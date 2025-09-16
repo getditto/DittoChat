@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import com.ditto.dittochat.UserConfig
 import com.ditto.dittochat.ui.DittoChatNavigation
 import com.ditto.dittochat.ui.DittoChatUI
 import dagger.hilt.android.AndroidEntryPoint
@@ -27,6 +28,7 @@ class MainActivity : ComponentActivity() {
         requestPermissions()
         ditto.disableSyncWithV3()
         ditto.startSync()
+        dittoChatUI.setCurrentUser(UserConfig("ditto-system-user-id"))
         setContent {
             DittoChatNavigation(dittoChatUI)
         }
@@ -35,7 +37,7 @@ class MainActivity : ComponentActivity() {
     fun requestPermissions() {
         val missing = DittoSyncPermissions(this).missingPermissions()
         if (missing.isNotEmpty()) {
-            this.requestPermissions(missing, 0)
+            requestPermissionLauncher.launch(missing)
         }
     }
 }
