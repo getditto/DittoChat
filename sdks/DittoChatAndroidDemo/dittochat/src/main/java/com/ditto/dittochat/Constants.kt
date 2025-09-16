@@ -1,0 +1,48 @@
+package com.ditto.dittochat
+object Constants {
+    // Model Keys
+    const val ARCHIVED_MESSAGE_KEY = "archivedMessage"
+    const val COLLECTION_ID_KEY = "collectionId"
+    const val CREATED_BY_KEY = "createdBy"
+    const val IS_GENERATED_KEY = "isGenerated"
+    const val CREATED_BY_UNKNOWN_KEY = "[unknown]"
+    const val CREATED_ON_KEY = "createdOn"
+    const val DB_ID_KEY = "_id"
+    const val FILENAME_KEY = "filename"
+    const val FILESIZE_KEY = "filesize"
+    const val IS_ARCHIVED_KEY = "isArchived"
+    const val LARGE_IMAGE_TOKEN_KEY = "largeImageToken"
+    const val MENTIONS_KEY = "mentions"
+    const val MESSAGES_ID_KEY = "messagesId"
+    const val NAME_KEY = "name"
+    const val PUBLIC_KEY = "ChatContact-Ditto"
+    const val PUBLIC_MESSAGES_ID_KEY = "chat"
+    const val PUBLIC_ROOMS_COLLECTION_ID = "rooms"
+    const val PUBLIC_MESSAGES_COLLECTION_ID = "messages"
+    const val ROOM_ID_KEY = "roomId"
+    const val SUBSCRIPTIONS_KEY = "subscriptions"
+    const val TEXT_KEY = "text"
+    const val THUMBNAIL_IMAGE_TOKEN_KEY = "thumbnailImageToken"
+    const val USER_ID_KEY = "userId"
+    const val AUTHOR_CS_KEY = "authorCs"
+    const val AUTHOR_ID_KEY = "authorId"
+    const val AUTHOR_LOC_KEY = "authorLoc"
+    const val AUTHOR_TYPE_KEY = "authorType"
+    const val MSG_KEY = "msg"
+    const val PARENT_KEY = "parent"
+    const val PKS_KEY = "pks"
+    const val ROOM_KEY = "room"
+    const val SCHVER_KEY = "schver"
+    const val TAK_UID_KEY = "takUid"
+    const val TIME_MS_KEY = "timeMs"
+    const val HAS_BEEN_CONVERTED_KEY = "hasBeenConverted"
+
+    // UI Keys
+    const val PUBLIC_ROOM_TITLE_KEY = "Public Room"
+    const val UNKNOWN_USER_ID_KEY = "unknownUserId"
+    const val UNKNOWN_USER_NAME_KEY = "UnknownUserName"
+    const val NO_NAME_KEY = "[no name]"
+
+    // UserDefaults Keys
+    const val ARCHIVED_PUBLIC_ROOMS_KEY = "archivedPublicRooms"
+}
