@@ -25,10 +25,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        dittoChatUI.setCurrentUser(UserConfig("ditto-system-user-id"))
         requestPermissions()
         ditto.disableSyncWithV3()
         ditto.startSync()
-        dittoChatUI.setCurrentUser(UserConfig("ditto-system-user-id"))
         setContent {
             DittoChatNavigation(dittoChatUI)
         }

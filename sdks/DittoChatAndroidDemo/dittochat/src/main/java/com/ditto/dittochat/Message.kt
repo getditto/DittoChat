@@ -63,7 +63,7 @@ data class Message(
     val takUid: String = "",
 
     @SerializedName("timeMs")
-    var timeMs: Date = Date(),
+    var timeMs: Long = 0,
 
     // TAK 1.0 fields
     @SerializedName("_r")
@@ -76,7 +76,7 @@ data class Message(
     val a: String = "",
 
     @SerializedName("b")
-    var b: Date = Date(),
+    var b: Long = 0,
 
     @SerializedName("d")
     val d: String = "",
@@ -110,12 +110,12 @@ data class Message(
         Constants.ROOM_KEY to room,
         Constants.SCHVER_KEY to schver,
         Constants.TAK_UID_KEY to takUid,
-        Constants.TIME_MS_KEY to timeMs.time,
+        Constants.TIME_MS_KEY to Date(timeMs).time,
         Constants.HAS_BEEN_CONVERTED_KEY to hasBeenConverted,
         "_r" to _r,
         "_v" to _v,
         "a" to a,
-        "b" to b.time,
+        "b" to Date(b).time,
         "d" to d,
         "e" to e
     )
