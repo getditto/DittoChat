@@ -61,7 +61,7 @@ class RoomsListScreenViewModel @Inject constructor(
     fun toggleSubscription(room: Room) {
         viewModelScope.launch {
             _currentUser.value?.let { user ->
-                val subscriptions = user.subscriptions.toMutableMap()
+                val subscriptions = user.subscriptions?.toMutableMap() ?: mutableMapOf()
 
                 if (subscriptions.containsKey(room.id)) {
                     subscriptions.remove(room.id)

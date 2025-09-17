@@ -30,7 +30,10 @@ object DittoChatModule {
             token = ""
         )
         val ditto = Ditto(androidDependencies, identity)
-        ditto.transportConfig.connect.websocketUrls = mutableSetOf("wss://i83inp.cloud.dittolive.app/3f40f790-a871-4dcc-9701-f5c2193d52ff")
+        ditto.updateTransportConfig { config ->
+            config.connect.websocketUrls.add("wss://i83inp.cloud.dittolive.app/")
+        }
+
         return ditto
     }
 

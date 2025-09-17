@@ -8,9 +8,8 @@ import com.ditto.dittochat.ChatConfig
 import com.ditto.dittochat.DittoChat
 import com.ditto.dittochat.DittoChatImpl
 import com.ditto.dittochat.UserConfig
-import javax.inject.Inject
 
-class DittoChatUI @Inject constructor(
+class DittoChatUI constructor(
     val dittoChat: DittoChat
 ) {
 

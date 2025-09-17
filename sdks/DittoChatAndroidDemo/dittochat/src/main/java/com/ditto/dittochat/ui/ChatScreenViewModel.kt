@@ -77,7 +77,7 @@ class ChatScreenViewModel @Inject constructor(
 
         viewModelScope.launch {
             dittoData.currentUserFlow().collect {
-                _currentUser.value = it
+                _currentUser.emit((it))
             }
         }
     }
@@ -195,10 +195,10 @@ class ChatScreenViewModel @Inject constructor(
         viewModelScope.launch {
             _currentUser.value?.let { user ->
                 _room.value?.let { room ->
-                    val subscriptions = user.subscriptions.toMutableMap()
+                    val subscriptions = user.subscriptions?.toMutableMap() ?: mutableMapOf()
                     subscriptions[room.id] = Date()
 
-                    val mentions = user.mentions.toMutableMap()
+                    val mentions = user.mentions?.toMutableMap() ?: mutableMapOf()
                     mentions[room.id] = emptyList()
 
                     dittoData.updateUser(
@@ -214,7 +214,7 @@ class ChatScreenViewModel @Inject constructor(
     fun getLastUnreadMessage(): String? {
         val user = _currentUser.value ?: return null
         val room = _room.value ?: return null
-        val lastReadDate = user.subscriptions[room.id] ?: return null
+        val lastReadDate = user.subscriptions?.get(room.id) ?: return null
 
         return _messagesWithUsers.value
             .firstOrNull { it.message.createdOn > lastReadDate }

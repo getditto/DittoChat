@@ -12,10 +12,10 @@ data class ChatUser(
     val name: String,
 
     @SerializedName("subscriptions")
-    val subscriptions: Map<String, Date?> = emptyMap(),
+    var subscriptions: Map<String, Date?>? = emptyMap(),
 
     @SerializedName("mentions")
-    val mentions: Map<String, List<String>> = emptyMap()
+    var mentions: Map<String, List<String>>? = emptyMap()
 ) {
     companion object {
         fun unknownUser() = ChatUser(

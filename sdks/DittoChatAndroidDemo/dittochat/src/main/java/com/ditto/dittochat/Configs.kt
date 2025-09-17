@@ -4,7 +4,7 @@ data class ChatConfig(
     val ditto: live.ditto.Ditto,
     val retentionPolicy: ChatRetentionPolicy = ChatRetentionPolicy(days = 30),
     val usersCollection: String = "users",
-    val userId: String? = null,
+    val userId: String? = "ditto-system-user-id",
     val acceptLargeImages: Boolean = true
 )
 

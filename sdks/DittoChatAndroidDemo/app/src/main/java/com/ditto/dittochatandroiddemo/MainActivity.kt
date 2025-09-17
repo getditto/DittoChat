@@ -4,18 +4,20 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.lifecycleScope
+import com.ditto.dittochat.ChatConfig
 import com.ditto.dittochat.UserConfig
 import com.ditto.dittochat.ui.DittoChatNavigation
 import com.ditto.dittochat.ui.DittoChatUI
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import live.ditto.Ditto
 import live.ditto.transports.DittoSyncPermissions
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    @Inject
     lateinit var dittoChatUI: DittoChatUI
 
     @Inject
@@ -25,8 +27,15 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        dittoChatUI.setCurrentUser(UserConfig("ditto-system-user-id"))
         requestPermissions()
+        lifecycleScope.launch {
+            ditto.store.execute("ALTER SYSTEM SET DQL_STRICT_MODE = false")
+        }
+        dittoChatUI = DittoChatUI(this, ChatConfig(
+            ditto,
+            usersCollection = "users",
+            userId = "ditto-system-user-id"
+        ))
         ditto.disableSyncWithV3()
         ditto.startSync()
         setContent {
