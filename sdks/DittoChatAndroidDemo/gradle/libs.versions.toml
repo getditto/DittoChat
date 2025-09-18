@@ -3,6 +3,7 @@ accompanistPermissions = "0.37.3"
 activityCompose = "1.11.0"
 agp = "8.13.0"
 coilCompose = "2.7.0"
+composeBom = "2025.08.00"
 ditto = "4.12.1"
 gson = "2.13.2"
 hiltAndroid = "2.57.1"
@@ -37,6 +38,7 @@ androidx-ui = { module = "androidx.compose.ui:ui", version.ref = "ui" }
 androidx-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "ui" }
 androidx-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "ui" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
 ditto = { module = "live.ditto:ditto", version.ref = "ditto" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }

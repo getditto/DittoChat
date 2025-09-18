@@ -38,7 +38,7 @@ android {
 dependencies {
     implementation(project(":dittochat"))
 
-    val composeBom = platform("androidx.compose:compose-bom:2025.08.00")
+    val composeBom = platform(libs.compose.bom)
     implementation(composeBom)
     androidTestImplementation(composeBom)
 

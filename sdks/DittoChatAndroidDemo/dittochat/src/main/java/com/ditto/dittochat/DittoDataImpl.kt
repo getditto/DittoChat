@@ -1,5 +1,6 @@
 package com.ditto.dittochat
 
+import android.util.Log
 import com.google.gson.Gson
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.awaitClose
@@ -34,7 +35,7 @@ class DittoDataImpl @Inject constructor(
             try {
                 ditto.sync.registerSubscription("SELECT * FROM `${Constants.PUBLIC_ROOMS_COLLECTION_ID}`")
             } catch (e: Exception) {
-                println("Error subscribing to public rooms: $e")
+                Log.d("DITTODATA","Error subscribing to public rooms: $e")
             }
 
             usersSubscription = ditto.store[usersCollection].findAll().subscribe()
@@ -58,7 +59,7 @@ class DittoDataImpl @Inject constructor(
             val result = ditto.store.execute(query, args).items.firstOrNull()
             result?.let { gson.fromJson(gson.toJson(it.value), Room::class.java) }
         } catch (e: Exception) {
-            println("room Error: $e")
+            Log.d("DITTODATA","room Error: $e")
             null
         }
     }
@@ -75,7 +76,7 @@ class DittoDataImpl @Inject constructor(
                 gson.fromJson(gson.toJson(it.value), Room::class.java)
             }
         } catch (e: Exception) {
-            println("findPublicRoomById Error: $e")
+            Log.d("DITTODATA","findPublicRoomById Error: $e")
             null
         }
     }
@@ -99,7 +100,7 @@ class DittoDataImpl @Inject constructor(
             val result = ditto.store.execute(query, args)
             result.items.firstOrNull()?.value?.get("_id") as? String
         } catch (e: Exception) {
-            println("createRoom Error: $e")
+            Log.d("DITTODATA","createRoom Error: $e")
             null
         }
     }
@@ -139,7 +140,7 @@ class DittoDataImpl @Inject constructor(
         try {
             ditto.store.execute(query, args)
         } catch (e: Exception) {
-            println("createMessage Error: $e")
+            Log.d("DITTODATA","createMessage Error: $e")
         }
     }
 
@@ -148,7 +149,7 @@ class DittoDataImpl @Inject constructor(
         try {
             ditto.store.execute(query, mapOf("id" to message.id))
         } catch (e: Exception) {
-            println("saveEditedTextMessage Error: $e")
+            Log.d("DITTODATA","saveEditedTextMessage Error: $e")
         }
     }
 
@@ -170,14 +171,14 @@ class DittoDataImpl @Inject constructor(
         try {
             ditto.store.execute(query, args)
         } catch (e: Exception) {
-            println("saveDeletedImageMessage Error: $e")
+            Log.d("DITTODATA","saveDeletedImageMessage Error: $e")
         }
     }
 
     override suspend fun createImageMessage(room: Room, imageData: ByteArray, text: String?) {
         // Simplified version - actual implementation would handle image attachments
         // This requires platform-specific image handling
-        println("createImageMessage: Image handling not fully implemented")
+        Log.d("DITTODATA","createImageMessage: Image handling not fully implemented")
     }
 
     override fun messagesFlow(room: Room, retentionDays: Int?): Flow<List<Message>> {
@@ -238,7 +239,7 @@ class DittoDataImpl @Inject constructor(
                 mapOf("message" to document)
             )
         } catch (e: Exception) {
-            println("createUpdateMessage Error: $e")
+            Log.d("DITTODATA","createUpdateMessage Error: $e")
         }
     }
 
@@ -254,7 +255,7 @@ class DittoDataImpl @Inject constructor(
                 mapOf("newUser" to user.toDocument())
             )
         } catch (e: Exception) {
-            println("addUser Error: $e")
+            Log.d("DITTODATA","addUser Error: $e")
         }
     }
 
@@ -295,7 +296,7 @@ class DittoDataImpl @Inject constructor(
 
             ditto.store.execute(query, mapOf("newDoc" to newDoc))
         } catch (e: Exception) {
-            println("updateUser Error: $e")
+            Log.d("DITTODATA","updateUser Error: $e")
         }
     }
 
@@ -355,7 +356,7 @@ class DittoDataImpl @Inject constructor(
             )
             subscriptions[room.id] = subscription
         } catch (e: Exception) {
-            println("addSubscriptions Error: $e")
+            Log.d("DITTODATA","addSubscriptions Error: $e")
         }
     }
 
@@ -372,7 +373,7 @@ class DittoDataImpl @Inject constructor(
                     mapOf("roomId" to room.id)
                 )
             } catch (e: Exception) {
-                println("evictPublicRoom Error: $e")
+                Log.d("DITTODATA","evictPublicRoom Error: $e")
             }
         }
     }
@@ -394,7 +395,7 @@ class DittoDataImpl @Inject constructor(
                 mapOf("newDoc" to newDoc)
             )
         } catch (e: Exception) {
-            println("createDefaultPublicRoom Error: $e")
+            Log.d("DITTODATA","createDefaultPublicRoom Error: $e")
         }
     }
 
@@ -417,7 +418,7 @@ class DittoDataImpl @Inject constructor(
 
             _publicRoomsFlow.value = filteredRooms
         } catch (e: Exception) {
-            println("updateAllPublicRooms Error: $e")
+            Log.d("DITTODATA","updateAllPublicRooms Error: $e")
         }
     }
 
