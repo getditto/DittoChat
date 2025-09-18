@@ -16,12 +16,12 @@ fun DittoChatNavigation(
         startDestination = "rooms"
     ) {
         composable("rooms") {
-            dittoChatUI.RoomsView(navController)
+            dittoChatUI.RoomsListView(navController)
         }
 
         composable("chat/{roomId}") { backStackEntry ->
             val roomId = backStackEntry.arguments?.getString("roomId") ?: return@composable
-            dittoChatUI.RoomView(
+            dittoChatUI.ChatRoomView(
                 roomId = roomId,
                 onNavigateBack = { navController.popBackStack() }
             )

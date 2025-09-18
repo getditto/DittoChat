@@ -18,7 +18,7 @@ class DittoChatUI constructor(
     )
 
     @Composable
-    fun RoomsView(
+    fun RoomsListView(
         navController: NavHostController = rememberNavController()
     ) {
         RoomsListScreen(
@@ -29,7 +29,7 @@ class DittoChatUI constructor(
     }
 
     @Composable
-    fun RoomView(
+    fun ChatRoomView(
         roomId: String,
         retentionDays: Int? = null,
         onNavigateBack: () -> Unit

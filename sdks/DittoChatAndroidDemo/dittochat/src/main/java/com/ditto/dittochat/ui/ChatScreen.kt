@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatScreen(
+internal fun ChatScreen(
     roomId: String,
     retentionDays: Int? = null,
     onNavigateBack: () -> Unit,

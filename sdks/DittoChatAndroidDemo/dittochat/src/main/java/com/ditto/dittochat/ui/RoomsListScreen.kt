@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RoomsListScreen(
+internal fun RoomsListScreen(
     onNavigateToChat: (String) -> Unit,
     viewModel: RoomsListScreenViewModel = hiltViewModel()
 ) {
