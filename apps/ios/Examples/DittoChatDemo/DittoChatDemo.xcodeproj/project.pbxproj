@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		78091B9B2E7C931D00CE5AA0 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 78091B9A2E7C931D00CE5AA0 /* NetworkExtension.framework */; };
+		78091BA32E7C931D00CE5AA0 /* DittoChatDemoNetworkExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 78091B982E7C931D00CE5AA0 /* DittoChatDemoNetworkExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		7873E56D2E68F390003DC9B2 /* DittoChatCore in Frameworks */ = {isa = PBXBuildFile; productRef = 7873E56C2E68F390003DC9B2 /* DittoChatCore */; };
 		7873E56F2E68F390003DC9B2 /* DittoChatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 7873E56E2E68F390003DC9B2 /* DittoChatUI */; };
 		7873E5782E68F47B003DC9B2 /* DittoChatCore in Frameworks */ = {isa = PBXBuildFile; productRef = 7873E5772E68F47B003DC9B2 /* DittoChatCore */; };
@@ -19,11 +21,44 @@
 		78E90C0A2E6A1E3C00B01E9B /* DittoChatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 78E90C092E6A1E3C00B01E9B /* DittoChatUI */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		78091BA12E7C931D00CE5AA0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7873E5552E68F35E003DC9B2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 78091B972E7C931D00CE5AA0;
+			remoteInfo = DittoChatDemoNetworkExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		78091BA42E7C931D00CE5AA0 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				78091BA32E7C931D00CE5AA0 /* DittoChatDemoNetworkExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		78091B982E7C931D00CE5AA0 /* DittoChatDemoNetworkExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DittoChatDemoNetworkExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		78091B9A2E7C931D00CE5AA0 /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
 		7873E55D2E68F35E003DC9B2 /* DittoChatDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DittoChatDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		78091BA82E7C931D00CE5AA0 /* Exceptions for "DittoChatDemoNetworkExtension" folder in "DittoChatDemoNetworkExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 78091B972E7C931D00CE5AA0 /* DittoChatDemoNetworkExtension */;
+		};
 		7873E6122E6902E2003DC9B2 /* Exceptions for "DittoChatDemo" folder in "DittoChatDemo" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -34,6 +69,14 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		78091B9C2E7C931D00CE5AA0 /* DittoChatDemoNetworkExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				78091BA82E7C931D00CE5AA0 /* Exceptions for "DittoChatDemoNetworkExtension" folder in "DittoChatDemoNetworkExtension" target */,
+			);
+			path = DittoChatDemoNetworkExtension;
+			sourceTree = "<group>";
+		};
 		7873E55F2E68F35E003DC9B2 /* DittoChatDemo */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -45,6 +88,14 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		78091B952E7C931D00CE5AA0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				78091B9B2E7C931D00CE5AA0 /* NetworkExtension.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7873E55A2E68F35E003DC9B2 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -65,10 +116,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		78091B992E7C931D00CE5AA0 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				78091B9A2E7C931D00CE5AA0 /* NetworkExtension.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		7873E5542E68F35E003DC9B2 = {
 			isa = PBXGroup;
 			children = (
 				7873E55F2E68F35E003DC9B2 /* DittoChatDemo */,
+				78091B9C2E7C931D00CE5AA0 /* DittoChatDemoNetworkExtension */,
+				78091B992E7C931D00CE5AA0 /* Frameworks */,
 				7873E55E2E68F35E003DC9B2 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -77,6 +138,7 @@
 			isa = PBXGroup;
 			children = (
 				7873E55D2E68F35E003DC9B2 /* DittoChatDemo.app */,
+				78091B982E7C931D00CE5AA0 /* DittoChatDemoNetworkExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -84,6 +146,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		78091B972E7C931D00CE5AA0 /* DittoChatDemoNetworkExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 78091BA72E7C931D00CE5AA0 /* Build configuration list for PBXNativeTarget "DittoChatDemoNetworkExtension" */;
+			buildPhases = (
+				78091B942E7C931D00CE5AA0 /* Sources */,
+				78091B952E7C931D00CE5AA0 /* Frameworks */,
+				78091B962E7C931D00CE5AA0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				78091B9C2E7C931D00CE5AA0 /* DittoChatDemoNetworkExtension */,
+			);
+			name = DittoChatDemoNetworkExtension;
+			packageProductDependencies = (
+			);
+			productName = DittoChatDemoNetworkExtension;
+			productReference = 78091B982E7C931D00CE5AA0 /* DittoChatDemoNetworkExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		7873E55C2E68F35E003DC9B2 /* DittoChatDemo */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 7873E5682E68F35F003DC9B2 /* Build configuration list for PBXNativeTarget "DittoChatDemo" */;
@@ -91,10 +175,12 @@
 				7873E5592E68F35E003DC9B2 /* Sources */,
 				7873E55A2E68F35E003DC9B2 /* Frameworks */,
 				7873E55B2E68F35E003DC9B2 /* Resources */,
+				78091BA42E7C931D00CE5AA0 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				78091BA22E7C931D00CE5AA0 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				7873E55F2E68F35E003DC9B2 /* DittoChatDemo */,
@@ -126,6 +212,9 @@
 				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
+					78091B972E7C931D00CE5AA0 = {
+						CreatedOnToolsVersion = 26.0;
+					};
 					7873E55C2E68F35E003DC9B2 = {
 						CreatedOnToolsVersion = 26.0;
 					};
@@ -149,11 +238,19 @@
 			projectRoot = "";
 			targets = (
 				7873E55C2E68F35E003DC9B2 /* DittoChatDemo */,
+				78091B972E7C931D00CE5AA0 /* DittoChatDemoNetworkExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		78091B962E7C931D00CE5AA0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7873E55B2E68F35E003DC9B2 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -164,6 +261,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		78091B942E7C931D00CE5AA0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7873E5592E68F35E003DC9B2 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -173,7 +277,78 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		78091BA22E7C931D00CE5AA0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 78091B972E7C931D00CE5AA0 /* DittoChatDemoNetworkExtension */;
+			targetProxy = 78091BA12E7C931D00CE5AA0 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		78091BA52E7C931D00CE5AA0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = DittoChatDemoNetworkExtension/DittoChatDemoNetworkExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3T2VMFZPPQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DittoChatDemoNetworkExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = DittoChatDemoNetworkExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ditto.DittoChatDemo.DittoChatDemoNetworkExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		78091BA62E7C931D00CE5AA0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = DittoChatDemoNetworkExtension/DittoChatDemoNetworkExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3T2VMFZPPQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DittoChatDemoNetworkExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = DittoChatDemoNetworkExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ditto.DittoChatDemo.DittoChatDemoNetworkExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		7873E5662E68F35F003DC9B2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -395,6 +570,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		78091BA72E7C931D00CE5AA0 /* Build configuration list for PBXNativeTarget "DittoChatDemoNetworkExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				78091BA52E7C931D00CE5AA0 /* Debug */,
+				78091BA62E7C931D00CE5AA0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		7873E5582E68F35E003DC9B2 /* Build configuration list for PBXProject "DittoChatDemo" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
