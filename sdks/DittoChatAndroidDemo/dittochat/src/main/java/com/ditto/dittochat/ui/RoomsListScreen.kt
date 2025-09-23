@@ -110,7 +110,6 @@ internal fun RoomsListScreen(
         CreateRoomDialog(
             onDismiss = { viewModel.hideCreateRoomDialog() },
             onCreate = { name ->
-                // Handle room creation
                 viewModel.hideCreateRoomDialog()
             }
         )

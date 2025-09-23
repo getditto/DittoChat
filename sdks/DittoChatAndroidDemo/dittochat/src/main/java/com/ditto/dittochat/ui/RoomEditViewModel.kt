@@ -1,5 +1,6 @@
 package com.ditto.dittochat.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,9 +36,10 @@ class RoomEditViewModel @Inject constructor(
                 dittoChat.createRoom(
                     RoomConfig(name = _roomName.value)
                 )
+
                 onSuccess()
             } catch (e: Exception) {
-                // Handle error
+                Log.e("ROOM CREATION", e.message.toString())
             } finally {
                 _isCreating.value = false
             }

@@ -51,7 +51,9 @@ class RoomsListScreenViewModel @Inject constructor(
     }
 
     fun hideCreateRoomDialog() {
-        _showCreateRoom.value = false
+        viewModelScope.launch {
+            _showCreateRoom.emit(false)
+        }
     }
 
     fun archiveRoom(room: Room) {

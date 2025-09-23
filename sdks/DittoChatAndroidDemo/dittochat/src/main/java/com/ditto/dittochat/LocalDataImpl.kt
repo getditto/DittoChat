@@ -49,6 +49,7 @@ class LocalService @Inject constructor(
         archived[room.id] = room
         saveArchivedRooms(archived)
         _archivedPublicRoomsFlow.value = archived.values.toList()
+        loadArchivedRooms()
     }
 
     override fun unarchivePublicRoom(room: Room) {
@@ -56,6 +57,7 @@ class LocalService @Inject constructor(
         archived.remove(room.id)
         saveArchivedRooms(archived)
         _archivedPublicRoomsFlow.value = archived.values.toList()
+        loadArchivedRooms()
     }
 
     private fun getArchivedRooms(): Map<String, Room> {
@@ -70,7 +72,8 @@ class LocalService @Inject constructor(
 
     private fun saveArchivedRooms(rooms: Map<String, Room>) {
         val json = gson.toJson(rooms)
-        prefs.edit().putString(Constants.ARCHIVED_PUBLIC_ROOMS_KEY, json).apply()
+        prefs.edit { putString(Constants.ARCHIVED_PUBLIC_ROOMS_KEY, json) }
+        loadArchivedRooms()
     }
 
     private fun loadArchivedRooms() {

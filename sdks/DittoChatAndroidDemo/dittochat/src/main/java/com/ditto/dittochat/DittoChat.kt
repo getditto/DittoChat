@@ -52,8 +52,9 @@ internal class DittoChatImpl @Inject constructor(
         }
 
     override suspend fun createRoom(config: RoomConfig): String {
-        return p2pStore.createRoom(config.id, config.name, config.isGenerated)
+        val room = p2pStore.createRoom(config.id, config.name, config.isGenerated)
             ?: throw Exception("Room creation failed")
+        return room
     }
 
     override suspend fun createMessage(config: MessageConfig) {
