@@ -88,7 +88,8 @@ class DittoDataImpl @Inject constructor(
             messagesId = Constants.PUBLIC_MESSAGES_COLLECTION_ID,
             userId = privateStore.currentUserId ?: Constants.UNKNOWN_USER_ID_KEY,
             collectionId = Constants.PUBLIC_ROOMS_COLLECTION_ID,
-            isGenerated = isGenerated
+            isGenerated = isGenerated,
+            createdOn = Date()
         )
 
         addSubscriptions(room)
@@ -96,13 +97,15 @@ class DittoDataImpl @Inject constructor(
         val query = "INSERT INTO `${Constants.PUBLIC_ROOMS_COLLECTION_ID}` DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE"
         val args = mapOf("newDoc" to room.toDocument())
 
-        return try {
+        val roomId = try {
             val result = ditto.store.execute(query, args)
             result.items.firstOrNull()?.value?.get("_id") as? String
         } catch (e: Exception) {
             Log.d("DITTODATA","createRoom Error: $e")
             null
         }
+        updateAllPublicRooms()
+        return roomId ?: room.id
     }
 
     override fun archiveRoom(room: Room) {

@@ -30,7 +30,7 @@ fun ChatInputBar(
             modifier = Modifier
                 .padding(8.dp)
                 .fillMaxWidth(),
-            verticalAlignment = Alignment.Bottom
+            verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onCameraClick) {
                 Icon(Icons.Rounded.Search, contentDescription = "Camera")
@@ -39,7 +39,9 @@ fun ChatInputBar(
             OutlinedTextField(
                 value = text,
                 onValueChange = onTextChange,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 12.dp),
                 placeholder = { Text("Message") },
                 shape = RoundedCornerShape(20.dp),
                 maxLines = 6
@@ -49,6 +51,7 @@ fun ChatInputBar(
                 onClick = onSendClick,
                 modifier = Modifier
                     .size(40.dp)
+                    .padding(4.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primary)
             ) {

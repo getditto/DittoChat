@@ -1,7 +1,6 @@
 package com.ditto.dittochat.ui
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -35,6 +34,7 @@ fun CreateRoomDialog(
                 onClick = {
                     viewModel.createRoom {
                         onCreate(roomName)
+                        onDismiss()
                     }
                 },
                 enabled = roomName.isNotEmpty() && !isCreating

@@ -33,7 +33,7 @@ data class Room(
         userId: String,
         collectionId: String? = null,
         createdBy: String? = null,
-        createdOn: Date? = null,
+        createdOn: Date = Date(),
         isGenerated: Boolean = false
     ) : this(
         id = id,
@@ -41,7 +41,7 @@ data class Room(
         messagesId = messagesId,
         collectionId = collectionId,
         createdBy = createdBy ?: userId,
-        createdOn = createdOn ?: Date(),
+        createdOn = createdOn,
         isGenerated = isGenerated
     )
 
