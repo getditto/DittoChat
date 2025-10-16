@@ -1,13 +1,13 @@
 {
-  "originHash" : "0d4d292f7f4d1dfbeffcfff916d2b95a0b65fe8c5cf362f1a500db1a3fb8733a",
+  "originHash" : "bfe249afe73839a23d8b50f5c8fd603e3f173b633edc3f973902e8c3d175161b",
   "pins" : [
     {
       "identity" : "dittoswiftpackage",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/getditto/DittoSwiftPackage",
       "state" : {
-        "revision" : "901434cab6ada9a3b2f14fb719d3ca92a7cf5d7d",
-        "version" : "4.12.1"
+        "revision" : "19e91a34cebdf0a00c7674af71460133528c46a1",
+        "version" : "4.12.3"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-collections",
       "state" : {
-        "revision" : "8c0c0a8b49e080e54e5e328cc552821ff07cd341",
-        "version" : "1.2.1"
+        "revision" : "94cf62b3ba8d4bed62680a282d4c25f9c63c2efb",
+        "version" : "1.1.0"
       }
     }
   ],
