@@ -16,7 +16,7 @@ let package = Package(
             targets: ["DittoChatUI"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/getditto/DittoSwiftPackage", from: "4.12.1-rc.2"),
+        .package(url: "https://github.com/getditto/DittoSwiftPackage", from: "4.12.2"),
         .package(url: "https://github.com/vadymmarkov/Fakery", from: "5.1.0"),
         .package(url: "https://github.com/apple/swift-collections", from: "1.0.0"),
     ],
@@ -27,14 +27,18 @@ let package = Package(
                 .product(name: "DittoSwift", package: "DittoSwiftPackage"),
                 .product(name: "Fakery", package: "Fakery"),
                 .product(name: "OrderedCollections", package: "swift-collections"),
-            ]
+            ],
+            path: "sdks/swift/Sources/DittoChatCore",
         ),
         .target(
             name: "DittoChatUI",
-            dependencies: ["DittoChatCore"]
-               ),
+            dependencies: ["DittoChatCore"],
+            path: "sdks/swift/Sources/DittoChatUI",
+        ),
         .testTarget(
             name: "DittoChatPackageTests",
-            dependencies: ["DittoChatCore"]),
+            dependencies: ["DittoChatCore"],
+            path: "sdks/swift/Tests",
+        ),
     ]
 )
