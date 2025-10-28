@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0750235F2E985C0100AF7194 /* DittoChatCore in Frameworks */ = {isa = PBXBuildFile; productRef = 0750235E2E985C0100AF7194 /* DittoChatCore */; };
+		075023612E985C0100AF7194 /* DittoChatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 075023602E985C0100AF7194 /* DittoChatUI */; };
 		7873E56D2E68F390003DC9B2 /* DittoChatCore in Frameworks */ = {isa = PBXBuildFile; productRef = 7873E56C2E68F390003DC9B2 /* DittoChatCore */; };
 		7873E56F2E68F390003DC9B2 /* DittoChatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 7873E56E2E68F390003DC9B2 /* DittoChatUI */; };
 		7873E5782E68F47B003DC9B2 /* DittoChatCore in Frameworks */ = {isa = PBXBuildFile; productRef = 7873E5772E68F47B003DC9B2 /* DittoChatCore */; };
@@ -50,6 +52,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				78E90C082E6A1E3C00B01E9B /* DittoChatCore in Frameworks */,
+				075023612E985C0100AF7194 /* DittoChatUI in Frameworks */,
+				0750235F2E985C0100AF7194 /* DittoChatCore in Frameworks */,
 				7873E5882E68F5A2003DC9B2 /* DittoChatCore in Frameworks */,
 				7873E57D2E68F4F1003DC9B2 /* DittoChatCore in Frameworks */,
 				7873E57F2E68F4F1003DC9B2 /* DittoChatUI in Frameworks */,
@@ -111,6 +115,8 @@
 				7873E5892E68F5A2003DC9B2 /* DittoChatUI */,
 				78E90C072E6A1E3C00B01E9B /* DittoChatCore */,
 				78E90C092E6A1E3C00B01E9B /* DittoChatUI */,
+				0750235E2E985C0100AF7194 /* DittoChatCore */,
+				075023602E985C0100AF7194 /* DittoChatUI */,
 			);
 			productName = DittoChatDemo;
 			productReference = 7873E55D2E68F35E003DC9B2 /* DittoChatDemo.app */;
@@ -141,7 +147,7 @@
 			mainGroup = 7873E5542E68F35E003DC9B2;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				78E90C062E6A1E3C00B01E9B /* XCLocalSwiftPackageReference "../../../../sdks/ios" */,
+				0750235D2E985C0100AF7194 /* XCLocalSwiftPackageReference "../../../DittoChat" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 7873E55E2E68F35E003DC9B2 /* Products */;
@@ -416,13 +422,21 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		78E90C062E6A1E3C00B01E9B /* XCLocalSwiftPackageReference "../../../../sdks/ios" */ = {
+		0750235D2E985C0100AF7194 /* XCLocalSwiftPackageReference "../../../DittoChat" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = ../../../../sdks/ios;
+			relativePath = ../../../DittoChat;
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		0750235E2E985C0100AF7194 /* DittoChatCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DittoChatCore;
+		};
+		075023602E985C0100AF7194 /* DittoChatUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DittoChatUI;
+		};
 		7873E56C2E68F390003DC9B2 /* DittoChatCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = DittoChatCore;
