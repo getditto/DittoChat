@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.compose.compiler)
+    id("maven-publish")
 }
 
 android {
@@ -32,6 +33,12 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    kotlin {
+        jvmToolchain(21)
+    }
+    publishing {
+        singleVariant("release") {}
     }
 }
 
@@ -71,4 +78,39 @@ dependencies {
     implementation(libs.accompanist.permissions)
 
     debugImplementation(libs.androidx.ui.tooling)
+}
+
+publishing {
+    publications {
+        register<MavenPublication>("release") {
+            groupId = "com.ditto"
+            artifactId = "dittochat"
+            version = "1.0.0"
+
+            afterEvaluate {
+                from(components["release"])
+            }
+
+            pom {
+                name.set("DittoChat")
+                description.set("A Kotlin Android SDK for Ditto Chat")
+                url.set("https://github.com/getditto/DittoChat")
+
+                developers {
+                    developer {
+                        id.set("bmalumphy")
+                        name.set("Bryan Malumphy")
+                        email.set("bryan.malumphy@ditto.com")
+                    }
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = "DittoChat"
+            url = uri("${project.buildDir}/dittoChat")
+        }
+    }
 }

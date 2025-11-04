@@ -54,7 +54,7 @@ final class ContentViewModel: ObservableObject {
         let dittoIdentity: DittoIdentity =
             .onlinePlayground(appID: proj.appID,
                               token: proj.token,
-                              enableDittoCloudSync: false,
+                              enableDittoCloudSync: true,
                               customAuthURL: URL(string: "https://" + proj.cloudUrl))
 
         let dittoInstance = Ditto(identity: dittoIdentity, persistenceDirectory: directory)
