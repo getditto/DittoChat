@@ -1,5 +1,5 @@
 import XCTest
-@testable import DittoChat
+@testable import DittoChatCore
 
 final class DittoChatPackageTests: XCTestCase {
     func testExample() throws {
