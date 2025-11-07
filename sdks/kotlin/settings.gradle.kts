@@ -9,6 +9,10 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+        maven {
+            name = "DittoChat"
+            url = uri("./build")
+        }
     }
 }
 dependencyResolutionManagement {

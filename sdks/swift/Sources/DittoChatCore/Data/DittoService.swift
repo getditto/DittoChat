@@ -644,7 +644,7 @@ extension DittoService {
                     dbIdKey: publicKey,
                     nameKey: publicRoomTitleKey,
                     collectionIdKey: publicRoomsCollectionId,
-                    messagesIdKey: publicMessagesIdKey,//PUBLIC_MESSAGES_ID,
+                    messagesIdKey: publicMessagesCollectionId,//PUBLIC_MESSAGES_ID,
                     createdOnKey: DateFormatter.isoDate.string(from: Date()),
                 ]
 
