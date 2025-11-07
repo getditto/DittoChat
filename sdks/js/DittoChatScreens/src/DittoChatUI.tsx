@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
-import { USERS, CURRENT_USER_ID } from "./constants";
+import { USERS } from "./constants";
 import ChatList from "./components/ChatList";
 import ChatView from "./components/ChatView";
 import NewMessageModal from "./components/NewMessageModal";
@@ -103,10 +103,10 @@ export default function DittoChatUI({
   }, []);
 
   return (
-    <div className="flex h-screen bg-white font-sans text-[rgb(var(--text-color))] overflow-hidden">
+    <div className="flex h-screen bg-white font-sans text-(--text-color) overflow-hidden">
       {/* Chat List */}
       <aside
-        className={`w-full md:w-[350px] md:flex-shrink-0 border-r border-[rgb(var(--border-color))] flex flex-col ${activeScreen !== "list" && "hidden"} md:flex`}
+        className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--border-color) flex flex-col ${activeScreen !== "list" && "hidden"} md:flex`}
       >
         <ChatList
           onSelectChat={handleSelectChat}
@@ -133,8 +133,8 @@ export default function DittoChatUI({
           />
         )}
         {activeScreen === "list" && !selectedChat && (
-          <div className="hidden md:flex flex-col items-center justify-center h-full bg-[rgb(var(--surface-color-light))] text-[rgb(var(--text-color-lightest))]">
-            <Icons.messageCircle className="w-24 h-24 text-[rgb(var(--text-color-disabled))] mb-4" />
+          <div className="hidden md:flex flex-col items-center justify-center h-full bg-(--surface-color-light) text-(--text-color-lightest)">
+            <Icons.messageCircle className="w-24 h-24 text-(--text-color-disabled) mb-4" />
             <p className="text-lg font-medium">Select a conversation</p>
             <p className="text-sm">or start a new message</p>
           </div>

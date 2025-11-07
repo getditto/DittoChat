@@ -1,31 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import { Icons } from './Icons';
+import React, { useEffect, useState } from "react";
+import { Icons } from "./Icons";
 
 interface ToastProps {
   message: string;
-  type: 'success' | 'info' | 'error';
+  type: "success" | "info" | "error";
   onClose: () => void;
 }
 
 const toastConfig = {
   success: {
     icon: Icons.checkCircle,
-    bgClass: 'bg-[rgb(var(--success-bg))]',
-    textClass: 'text-[rgb(var(--success-text))]',
-    iconClass: 'text-[rgb(var(--active-status-bg))]'
+    bgClass: "bg-(--success-bg)",
+    textClass: "text-(--success-text)",
+    iconClass: "text-(--active-status-bg)",
   },
   info: {
     icon: Icons.info,
-    bgClass: 'bg-[rgb(var(--edit-bg))]',
-    textClass: 'text-[rgb(var(--edit-text))]',
-    iconClass: 'text-[rgb(var(--info-icon-color))]'
+    bgClass: "bg-(--edit-bg)",
+    textClass: "text-(--edit-text)",
+    iconClass: "text-(--info-icon-color)",
   },
   error: {
     icon: Icons.x,
-    bgClass: 'bg-[rgb(var(--danger-bg))]',
-    textClass: 'text-[rgb(var(--danger-text))]',
-    iconClass: 'text-[rgb(var(--danger-text))]'
-  }
+    bgClass: "bg-(--danger-bg)",
+    textClass: "text-(--danger-text)",
+    iconClass: "text-(--danger-text)",
+  },
 };
 
 const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
@@ -46,13 +46,13 @@ const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
     setVisible(false);
     setTimeout(onClose, 300);
   };
-  
+
   const config = toastConfig[type];
   const Icon = config.icon;
 
   return (
     <div
-      className={`max-w-sm w-full rounded-lg shadow-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden transition-all duration-300 ease-in-out transform ${config.bgClass} ${visible ? 'animate-slide-in' : 'animate-fade-out'}`}
+      className={`max-w-sm w-full rounded-lg shadow-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden transition-all duration-300 ease-in-out transform ${config.bgClass} ${visible ? "animate-slide-in" : "animate-fade-out"}`}
       role="alert"
       aria-live="assertive"
       aria-atomic="true"
@@ -60,7 +60,10 @@ const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
       <div className="p-4">
         <div className="flex items-start">
           <div className="flex-shrink-0">
-            <Icon className={`h-6 w-6 ${config.iconClass}`} aria-hidden="true" />
+            <Icon
+              className={`h-6 w-6 ${config.iconClass}`}
+              aria-hidden="true"
+            />
           </div>
           <div className="ml-3 w-0 flex-1 pt-0.5">
             <p className={`text-sm font-medium ${config.textClass}`}>
@@ -70,7 +73,7 @@ const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
           <div className="ml-4 flex-shrink-0 flex">
             <button
               onClick={handleClose}
-              className={`inline-flex rounded-md p-1 ${config.textClass} opacity-70 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--primary-color-focus))]`}
+              className={`inline-flex rounded-md p-1 ${config.textClass} opacity-70 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-(--primary-color-focus)`}
             >
               <span className="sr-only">Close</span>
               <Icons.x className="h-5 w-5" aria-hidden="true" />
@@ -78,7 +81,7 @@ const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
           </div>
         </div>
       </div>
-       <style>{`
+      <style>{`
         @keyframes slide-in {
           from {
             transform: translateX(100%);

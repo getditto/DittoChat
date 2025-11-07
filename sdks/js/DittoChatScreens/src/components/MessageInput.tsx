@@ -122,7 +122,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
       <>
         {parts.map((part, i) =>
           part.startsWith("@") ? (
-            <span key={i} className="text-[rgb(var(--mention-text))]">
+            <span key={i} className="text-(--mention-text)">
               {part}
             </span>
           ) : (
@@ -156,21 +156,21 @@ const MessageInput: React.FC<MessageInputProps> = ({
   }, []);
 
   return (
-    <div className="p-4 bg-white border-t border-[rgb(var(--border-color))] mt-auto flex-shrink-0">
+    <div className="p-4 bg-white border-t border-(--border-color) mt-auto flex-shrink-0">
       <div className="relative">
         {editingMessage && (
           <div className="bg-[rgba(var(--edit-bg),0.5)] rounded-lg p-3 mb-2 flex justify-between items-start">
             <div>
-              <p className="font-semibold text-[rgb(var(--edit-text))] text-sm">
+              <p className="font-semibold text-(--edit-text) text-sm">
                 Edit Message
               </p>
-              <p className="text-sm text-[rgb(var(--text-color-lighter))] line-clamp-1">
+              <p className="text-sm text-(--text-color-lighter) line-clamp-1">
                 {editingMessage.text}
               </p>
             </div>
             <button
               onClick={onCancelEdit}
-              className="text-[rgb(var(--text-color-lightest))] hover:text-[rgb(var(--text-color-medium))] flex-shrink-0 ml-2"
+              className="text-(--text-color-lightest) hover:text-(--text-color-medium) flex-shrink-0 ml-2"
             >
               <Icons.x className="w-5 h-5" />
             </button>
@@ -180,14 +180,14 @@ const MessageInput: React.FC<MessageInputProps> = ({
         {isMentioning && filteredMentionUsers.length > 0 && (
           <div
             id="mention-popover"
-            className="absolute bottom-full mb-2 bg-white rounded-lg shadow-lg border border-[rgb(var(--border-color))] w-64 z-20 overflow-hidden"
+            className="absolute bottom-full mb-2 bg-white rounded-lg shadow-lg border border-(--border-color) w-64 z-20 overflow-hidden"
           >
             <ul className="max-h-60 overflow-y-auto">
               {filteredMentionUsers.map((user) => (
                 <li key={user.id}>
                   <button
                     onClick={() => handleMentionSelect(user.name)}
-                    className="w-full text-left px-3 py-2 flex items-center space-x-3 hover:bg-[rgb(var(--secondary-bg))]"
+                    className="w-full text-left px-3 py-2 flex items-center space-x-3 hover:bg-(--secondary-bg)"
                   >
                     <img
                       src={user.avatarUrl}
@@ -205,14 +205,14 @@ const MessageInput: React.FC<MessageInputProps> = ({
         {isAttachMenuOpen && (
           <div
             ref={attachMenuRef}
-            className="absolute bottom-full mb-2 bg-white rounded-lg shadow-lg border border-[rgb(var(--border-color))] w-48 z-10 py-1"
+            className="absolute bottom-full mb-2 bg-white rounded-lg shadow-lg border border-(--border-color) w-48 z-10 py-1"
           >
-            <button className="w-full text-left px-4 py-2 text-sm hover:bg-[rgb(var(--secondary-bg))] flex items-center space-x-3">
-              <Icons.image className="w-5 h-5 text-[rgb(var(--text-color-lightest))]" />
+            <button className="w-full text-left px-4 py-2 text-sm hover:bg-(--secondary-bg) flex items-center space-x-3">
+              <Icons.image className="w-5 h-5 text-(--text-color-lightest)" />
               <span>Photo</span>
             </button>
-            <button className="w-full text-left px-4 py-2 text-sm hover:bg-[rgb(var(--secondary-bg))] flex items-center space-x-3">
-              <Icons.fileText className="w-5 h-5 text-[rgb(var(--text-color-lightest))]" />
+            <button className="w-full text-left px-4 py-2 text-sm hover:bg-(--secondary-bg) flex items-center space-x-3">
+              <Icons.fileText className="w-5 h-5 text-(--text-color-lightest)" />
               <span>File</span>
             </button>
           </div>
@@ -222,14 +222,14 @@ const MessageInput: React.FC<MessageInputProps> = ({
           <div className="relative" ref={attachMenuRef}>
             <button
               onClick={() => setIsAttachMenuOpen((p) => !p)}
-              className="flex-shrink-0 flex items-center space-x-2 px-3 py-2 rounded-full bg-[rgb(var(--secondary-bg))] hover:bg-[rgb(var(--secondary-bg-hover))] text-[rgb(var(--text-color-lighter))] font-medium"
+              className="flex-shrink-0 flex items-center space-x-2 px-3 py-2 rounded-full bg-(--secondary-bg) hover:bg-(--secondary-bg-hover) text-(--text-color-lighter) font-medium"
             >
               <Icons.paperclip className="w-5 h-5" />
               <span>Attach</span>
             </button>
           </div>
 
-          <div className="flex-1 flex items-end bg-[rgb(var(--secondary-bg))] rounded-lg">
+          <div className="flex-1 flex items-end bg-(--secondary-bg) rounded-lg">
             <div className="relative flex-1 max-h-40 overflow-y-auto">
               <div
                 aria-hidden="true"
@@ -243,13 +243,13 @@ const MessageInput: React.FC<MessageInputProps> = ({
                 onChange={handleTextChange}
                 onKeyDown={handleKeyDown}
                 placeholder={editingMessage ? "Edit message..." : "Message..."}
-                className="absolute inset-0 w-full h-full bg-transparent text-[rgb(var(--text-color))] text-base resize-none outline-none p-2"
+                className="absolute inset-0 w-full h-full bg-transparent text-(--text-color) text-base resize-none outline-none p-2"
               />
             </div>
             <button
               onClick={handleAction}
               disabled={!text.trim()}
-              className="w-8 h-8 m-1 flex items-center justify-center rounded-full bg-[rgb(var(--primary-color))] text-[rgb(var(--text-on-primary))] disabled:bg-[rgb(var(--disabled-bg))] transition-colors flex-shrink-0"
+              className="w-8 h-8 m-1 flex items-center justify-center rounded-full bg-(--primary-color) text-(--text-on-primary) disabled:bg-(--disabled-bg) transition-colors flex-shrink-0"
             >
               {editingMessage ? (
                 <Icons.check className="w-5 h-5" />

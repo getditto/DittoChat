@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import type { Chat } from "../types";
-import { USERS, CURRENT_USER_ID, EMPTY_MESSAGES } from "../constants";
+import { EMPTY_MESSAGES } from "../constants";
 import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
 import { Icons } from "./Icons";
@@ -8,6 +8,7 @@ import { useDittoChatStore } from "dittochatcore";
 import type MessageWithUser from "dittochatcore/dist/types/MessageWithUser";
 import type Message from "dittochatcore/dist/types/Message";
 import type ChatUser from "dittochatcore/dist/types/ChatUser";
+import Avatar from "./Avatar";
 
 interface ChatViewProps {
   chat: Chat;
@@ -46,47 +47,42 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
     setEditingMessage(null);
   };
 
-  let chatName = chat.name;
-  let avatar: React.ReactNode;
-  let otherUserIsActive = false;
+  const chatName = chat.name;
+  // let avatar: React.ReactNode;
+  const otherUserIsActive = false;
 
+  // TODO: Implement chatName and avatar for DMs
   if (chat.type === "dm") {
-    const otherUserId = chat.participants.find((id) => id !== CURRENT_USER_ID);
-    const otherUser = USERS.find((user) => user.id === otherUserId);
-    chatName = otherUser?.name || "Unknown User";
-    otherUserIsActive = !!otherUser?.isActive;
-    avatar = (
-      <img
-        src={otherUser?.avatarUrl}
-        alt={chatName}
-        className="w-8 h-8 rounded-full"
-      />
-    );
-  } else {
-    avatar = (
-      <div className="w-8 h-8 rounded-full bg-[rgb(var(--secondary-bg-hover))] flex items-center justify-center">
-        <Icons.hashtag className="w-5 h-5 text-[rgb(var(--text-color-lightest))]" />
-      </div>
-    );
+    // const otherUserId = chat.participants.find((id) => id !== CURRENT_USER_ID);
+    // const otherUser = USERS.find((user) => user.id === otherUserId);
+    // chatName = otherUser?.name || "Unknown User";
+    // otherUserIsActive = !!otherUser?.isActive;
+    // avatar = (
+    //   <img
+    //     src={otherUser?.avatarUrl}
+    //     alt={chatName}
+    //     className="w-8 h-8 rounded-full"
+    //   />
+    // );
   }
 
   return (
     <div className="flex flex-col h-full">
-      <header className="flex items-center p-4 border-b border-[rgb(var(--border-color))] flex-shrink-0">
+      <header className="flex items-center px-4 min-h-12 border-b border-(--border-color) flex-shrink-0">
         <button
           onClick={onBack}
-          className="md:hidden mr-4 text-[rgb(var(--text-color-lighter))]"
+          className="md:hidden mr-4 text-(--text-color-lighter)"
         >
           <Icons.arrowLeft className="w-6 h-6" />
         </button>
         <div className="flex items-center space-x-3">
           <div className="relative">
-            {avatar}
+            <Avatar />
             {otherUserIsActive && (
-              <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-[rgb(var(--active-status-bg))] border-2 border-white"></span>
+              <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-(--active-status-bg) border-2 border-white"></span>
             )}
           </div>
-          <h2 className="text-lg font-semibold">{chatName}</h2>
+          <h2 className="text-xl font-semibold">{chatName}</h2>
         </div>
       </header>
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
