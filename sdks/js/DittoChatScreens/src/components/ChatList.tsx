@@ -4,7 +4,7 @@ import ChatListItem from "./ChatListItem";
 import { Icons } from "./Icons";
 import { useDittoChatStore } from "dittochatcore";
 import type Room from "dittochatcore/dist/types/Room";
-import { CHATS } from "../constants";
+import type Message from "dittochatcore/dist/types/Message";
 
 interface ChatListProps {
   onSelectChat: (chat: Chat) => void;
@@ -17,25 +17,38 @@ const ChatList: React.FC<ChatListProps> = ({
   onNewMessage,
   selectedChatId,
 }) => {
-  const [chats, setChats] = useState<Chat[]>(CHATS);
+  const [chats, setChats] = useState<Chat[]>([]);
   const rooms = useDittoChatStore((state) => state.rooms);
-  useEffect(() => {
-    rooms.map((room: Room) => {
-      const existingRoom = chats.find((chat) => chat.id === room._id);
-      if (!existingRoom) {
-        setChats((prevChats) => [
-          ...prevChats,
-          {
-            id: room._id,
-            type: "group",
-            name: room.name,
-            participants: [],
-            messages: [],
-          },
-        ]);
-      }
+  const users = useDittoChatStore((state) => state.allUsers);
+  const currentUserId = useDittoChatStore((state) => state.chatUser?._id);
+  const latestMessages = useDittoChatStore((state) => {
+    const roomKeys = Object.keys(state.messagesByRoom);
+    const latestMessages: Message[] = roomKeys.map((key) => {
+      const messages = state.messagesByRoom[key];
+      return messages[messages.length - 1].message;
     });
-  }, [rooms]);
+    const sortedMessages = latestMessages.sort(
+      (a, b) =>
+        new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime(),
+    );
+    return sortedMessages;
+  });
+  useEffect(() => {
+    const chats: Chat[] = [];
+    latestMessages.map((message: Message) => {
+      const room = rooms.find((room: Room) => room._id === message.roomId);
+      // const existingRoom = chats.find((chat) => chat.id === room._id);
+      chats.push({
+        id: room._id,
+        type: "group",
+        name: room.name,
+        participants: [],
+        messages: [message],
+      });
+
+      setChats(chats);
+    });
+  }, [rooms, latestMessages]);
   const [searchTerm, setSearchTerm] = useState("");
 
   // A real app would have more sophisticated search logic
@@ -45,39 +58,42 @@ const ChatList: React.FC<ChatListProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-white">
-      <header className="p-4 border-b border-[rgb(var(--border-color))]">
-        <h1 className="text-2xl font-bold">Chats</h1>
+      <header className="pl-4 pr-4 border-b min-h-12 flex items-center border-(--border-color)">
+        <h1 className="text-xl font-semibold">Chats</h1>
       </header>
       <div className="p-4 space-y-4">
         <button
           onClick={onNewMessage}
-          className="w-full bg-[rgb(var(--primary-color))] text-[rgb(var(--text-on-primary))] font-semibold py-3 rounded-lg hover:bg-[rgb(var(--primary-color-hover))] transition-colors"
+          className="w-full bg-(--primary-color) text-(--text-on-primary) font-semibold py-3 rounded-xl hover:bg-(--primary-color-hover) transition-colors"
         >
           New Message
         </button>
         <div className="relative">
-          <Icons.search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[rgb(var(--text-color-faint))]" />
+          <Icons.search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-(--text-color-faint)" />
           <input
             type="text"
             placeholder="Search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[rgb(var(--secondary-bg))] border border-[rgb(var(--border-color))] rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary-color-focus))]"
+            className="w-full bg-(--secondary-bg) border border-(--border-color) rounded-3xl pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--primary-color-focus)"
           />
         </div>
-      </div>
-      <div className="flex-1 overflow-y-auto">
-        <ul>
-          {filteredChats.map((chat) => (
-            <li key={chat.id}>
-              <ChatListItem
-                chat={chat}
-                isSelected={chat.id === selectedChatId}
-                onSelect={() => onSelectChat(chat)}
-              />
-            </li>
-          ))}
-        </ul>
+
+        <div className="flex-1 overflow-y-auto">
+          <ul>
+            {filteredChats.map((chat) => (
+              <li key={chat.id}>
+                <ChatListItem
+                  chat={chat}
+                  currentUserId={currentUserId}
+                  users={users}
+                  isSelected={chat.id === selectedChatId}
+                  onSelect={() => onSelectChat(chat)}
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );

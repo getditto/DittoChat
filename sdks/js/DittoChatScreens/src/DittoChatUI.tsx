@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-
-import { USERS, CURRENT_USER_ID } from "./constants";
+import "./index.css";
+import { useState, useEffect } from "react";
+import { USERS } from "./constants";
 import ChatList from "./components/ChatList";
 import ChatView from "./components/ChatView";
 import NewMessageModal from "./components/NewMessageModal";
@@ -8,6 +8,8 @@ import { Icons } from "./components/Icons";
 // import { useToast } from "./components/ToastProvider";
 import { useDittoChat, type DittoConfParams } from "dittochatcore";
 import type { Chat } from "./types";
+
+import { ToastProvider } from "./components/ToastProvider";
 
 export default function DittoChatUI({
   ditto,
@@ -103,43 +105,45 @@ export default function DittoChatUI({
   }, []);
 
   return (
-    <div className="flex h-screen bg-white font-sans text-[rgb(var(--text-color))] overflow-hidden">
-      {/* Chat List */}
-      <aside
-        className={`w-full md:w-[350px] md:flex-shrink-0 border-r border-[rgb(var(--border-color))] flex flex-col ${activeScreen !== "list" && "hidden"} md:flex`}
-      >
-        <ChatList
-          onSelectChat={handleSelectChat}
-          onNewMessage={handleNewMessage}
-          selectedChatId={selectedChat?.id || ""}
-        />
-      </aside>
+    <ToastProvider>
+      <div className="flex h-screen bg-white font-sans text-(--text-color) overflow-hidden">
+        {/* Chat List */}
+        <aside
+          className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--border-color) flex flex-col ${activeScreen !== "list" && "hidden"} md:flex`}
+        >
+          <ChatList
+            onSelectChat={handleSelectChat}
+            onNewMessage={handleNewMessage}
+            selectedChatId={selectedChat?.id || ""}
+          />
+        </aside>
 
-      {/* Main Content Area */}
-      <main
-        className={`w-full flex-1 flex-col ${activeScreen === "list" && "hidden"} md:flex`}
-      >
-        {activeScreen === "chat" && selectedChat && (
-          <ChatView
-            key={selectedChat.id}
-            chat={selectedChat}
-            onBack={handleBack}
-          />
-        )}
-        {activeScreen === "newMessage" && (
-          <NewMessageModal
-            onClose={handleBack}
-            users={USERS.filter((u) => u.id !== 0)}
-          />
-        )}
-        {activeScreen === "list" && !selectedChat && (
-          <div className="hidden md:flex flex-col items-center justify-center h-full bg-[rgb(var(--surface-color-light))] text-[rgb(var(--text-color-lightest))]">
-            <Icons.messageCircle className="w-24 h-24 text-[rgb(var(--text-color-disabled))] mb-4" />
-            <p className="text-lg font-medium">Select a conversation</p>
-            <p className="text-sm">or start a new message</p>
-          </div>
-        )}
-      </main>
-    </div>
+        {/* Main Content Area */}
+        <main
+          className={`w-full flex-1 flex-col ${activeScreen === "list" && "hidden"} md:flex`}
+        >
+          {activeScreen === "chat" && selectedChat && (
+            <ChatView
+              key={selectedChat.id}
+              chat={selectedChat}
+              onBack={handleBack}
+            />
+          )}
+          {activeScreen === "newMessage" && (
+            <NewMessageModal
+              onClose={handleBack}
+              users={USERS.filter((u) => u.id !== 0)}
+            />
+          )}
+          {activeScreen === "list" && !selectedChat && (
+            <div className="hidden md:flex flex-col items-center justify-center h-full bg-(--surface-color-light) text-(--text-color-lightest)">
+              <Icons.messageCircle className="w-24 h-24 text-(--text-color-disabled) mb-4" />
+              <p className="text-lg font-medium">Select a conversation</p>
+              <p className="text-sm">or start a new message</p>
+            </div>
+          )}
+        </main>
+      </div>
+    </ToastProvider>
   );
 }

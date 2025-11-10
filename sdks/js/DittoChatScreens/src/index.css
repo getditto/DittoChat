@@ -1,46 +1,46 @@
 @import "tailwindcss";
 :root {
     /* Primary color scheme */
-    --primary-color: 234 88 12; /* orange-600 */
-    --primary-color-hover: 194 65 12; /* orange-700 */
-    --primary-color-focus: 249 115 22; /* orange-500 */
-    --primary-color-light: 255 247 237; /* orange-50 */
-    --primary-color-lighter: 255 237 213; /* orange-100 */
-    --primary-color-light-border: 253 186 116; /* orange-300 */
-    --primary-color-dark-text: 154 52 18; /* orange-700 text */
-    --text-on-primary: 255 255 255; /* white */
+    --primary-color: rgba(255, 77, 0, 1); /* #ff4d00 */
+    --primary-color-hover: rgb(194 65 12); /* orange-700 */
+    --primary-color-focus: rgb(249 115 22); /* orange-500 */
+    --primary-color-light: rgba(255, 77, 0, 0.15); /* orange-50 */
+    --primary-color-lighter: rgb(255 237 213); /* orange-100 */
+    --primary-color-light-border: rgb(253 186 116); /* orange-300 */
+    --primary-color-dark-text: rgb(154 52 18); /* orange-700 text */
+    --text-on-primary: rgb(255 255 255); /* white */
 
     /* Mention colors */
-    --mention-text: 234 88 12; /* orange-600 */
-    --mention-text-on-primary: 254 215 170; /* orange-200 */
+    --mention-text: rgb(255 77 0); /* orange-600 */
+    --mention-text-on-primary: rgb(254 215 170); /* orange-200 */
 
     /* Surface & Background colors */
-    --surface-color: 255 255 255; /* white */
-    --surface-color-light: 249 250 251; /* gray-50 */
-    --secondary-bg: 243 244 246; /* gray-100 */
-    --secondary-bg-hover: 229 231 235; /* gray-200 */
-    --disabled-bg: 209 213 219; /* gray-300 */
+    --surface-color: rgb(255 255 255); /* white */
+    --surface-color-light: rgb(249 250 251); /* gray-50 */
+    --secondary-bg: rgb(243 244 246); /* gray-100 */
+    --secondary-bg-hover: rgba(0, 0, 0, 0.05); /* gray-200 */
+    --disabled-bg: rgb(209 213 219); /* gray-300 */
 
     /* Text colors */
-    --text-color: 17 24 39; /* gray-900 */
-    --text-color-medium: 31 41 55; /* gray-800 */
-    --text-color-light: 55 65 81; /* gray-700 */
-    --text-color-lighter: 75 85 99; /* gray-600 */
-    --text-color-lightest: 107 114 128; /* gray-500 */
-    --text-color-faint: 156 163 175; /* gray-400 */
-    --text-color-disabled: 209 213 219; /* gray-300 */
+    --text-color: rgb(17 24 39); /* gray-900 */
+    --text-color-medium: rgb(31 41 55); /* gray-800 */
+    --text-color-light: rgb(55 65 81); /* gray-700 */
+    --text-color-lighter: rgb(75 85 99); /* gray-600 */
+    --text-color-lightest: rgb(107 114 128); /* gray-500 */
+    --text-color-faint: rgb(156 163 175); /* gray-400 */
+    --text-color-disabled: rgb(209 213 219); /* gray-300 */
 
     /* Border color */
-    --border-color: 229 231 235; /* gray-200 */
+    --border-color: rgb(229 231 235); /* gray-200 */
 
     /* Semantic/Status colors */
-    --edit-bg: 239 246 255; /* blue-50 */
-    --edit-text: 30 64 175; /* blue-800 */
-    --info-icon-color: 59 130 246; /* blue-500 */
-    --notification-badge-bg: 239 68 68; /* red-500 */
-    --active-status-bg: 34 197 94; /* green-500 */
-    --danger-text: 220 38 38; /* red-600 */
-    --danger-bg: 254 242 242; /* red-50 */
-    --success-bg: 240 253 244; /* green-50 */
-    --success-text: 21 128 61; /* green-700 */
+    --edit-bg: rgb(239 246 255); /* blue-50 */
+    --edit-text: rgb(30 64 175); /* blue-800 */
+    --info-icon-color: rgb(59 130 246); /* blue-500 */
+    --notification-badge-bg: rgb(239 68 68); /* red-500 */
+    --active-status-bg: rgb(34 197 94); /* green-500 */
+    --danger-text: rgb(220 38 38); /* red-600 */
+    --danger-bg: rgb(254 242 242); /* red-50 */
+    --success-bg: rgb(240 253 244); /* green-50 */
+    --success-text: rgb(21 128 61); /* green-700 */
 }

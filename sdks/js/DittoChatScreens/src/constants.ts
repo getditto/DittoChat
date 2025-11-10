@@ -74,25 +74,25 @@ export const CHATS: Chat[] = [
     type: "dm",
     participants: [CURRENT_USER_ID, 1],
     messages: [
-      {
-        id: 101,
-        senderId: 1,
-        content:
-          "Hey, I'm Kenneth and this is a message from me. I'm only sending it for the mockup!",
-        timestamp: "11:44",
-        reactions: [
-          { emoji: "🙂", userIds: [0], count: 1 },
-          { emoji: "👍", userIds: [0], count: 1 },
-        ],
-      },
-      {
-        id: 102,
-        senderId: CURRENT_USER_ID,
-        content:
-          "Oh that's great, I'll reply for the mockup too so things don't look even more awkward.",
-        timestamp: "11:45",
-        reactions: [],
-      },
+      // {
+      //   id: 101,
+      //   senderId: 1,
+      //   content:
+      //     "Hey, I'm Kenneth and this is a message from me. I'm only sending it for the mockup!",
+      //   timestamp: "11:44",
+      //   reactions: [
+      //     { emoji: "🙂", userIds: [0], count: 1 },
+      //     { emoji: "👍", userIds: [0], count: 1 },
+      //   ],
+      // },
+      // {
+      //   id: 102,
+      //   senderId: CURRENT_USER_ID,
+      //   content:
+      //     "Oh that's great, I'll reply for the mockup too so things don't look even more awkward.",
+      //   timestamp: "11:45",
+      //   reactions: [],
+      // },
     ],
   },
   // {
