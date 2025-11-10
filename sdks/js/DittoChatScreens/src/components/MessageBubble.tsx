@@ -193,20 +193,23 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           )}
           <span className="mr-1 text-sm">&#183;</span>
           <span>{formatDate(message.createdOn)}</span>
+          {/*// TODO: Implement message editing functionality*/}
+          {/*{message.edited && (
+            <span className="text-(--text-color-faint) text-xs ml-1">
+              (edited)
+            </span>
+          )}*/}
         </div>
       )}
-      
+
       <div
         className={`flex items-center gap-2 ${isOwnMessage ? "flex-row-reverse" : "flex-row"}`}
       >
-        {/* --- START: MODIFIED SECTION --- */}
-        {/* This new container stacks the image and text bubble */}
         <div className={`flex flex-col max-w-xs md:max-w-md lg:max-w-lg ${isOwnMessage ? "items-end" : "items-start"}`}>
-          
-          {/* --- IMAGE BLOCK (if it exists) --- */}
+
           {hasImage && (
-            <div 
-              className={`relative ${hasText ? "mb-1" : ""}`} // Add margin if text follows
+            <div
+              className={`relative ${hasText ? "mb-1" : ""}`}
             >
               {imageError ? (
                 <div className="flex items-center justify-center w-48 h-48 rounded-xl bg-[rgb(var(--secondary-bg-hover))] text-[rgb(var(--text-color-light))]">
@@ -247,7 +250,6 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             </div>
           )}
 
-          {/* --- TEXT BLOCK (if it exists) --- */}
           {hasText && (
             <div
               className={`px-4 py-2 rounded-xl ${bubbleClasses}`}
@@ -261,14 +263,12 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             </div>
           )}
         </div>
-        {/* --- END: MODIFIED SECTION --- */}
 
 
         {isOwnMessage && (
           <div
-            className={`relative flex items-center transition-opacity duration-200 ${
-              isActionsVisible ? "opacity-100" : "opacity-0"
-            }`}
+            className={`relative flex items-center transition-opacity duration-200 ${isActionsVisible ? "opacity-100" : "opacity-0"
+              }`}
           >
             <div className="relative">
               {isEmojiPickerOpen && (
@@ -330,6 +330,28 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
       <div
         className={`flex items-center space-x-1 mt-1 ${isOwnMessage ? "justify-end" : ""}`}
       >
+        {/*// TODO: Implement reactions*/}
+        {/*{message.reactions.map((reaction) => {
+          const userHasReacted = reaction.userIds.includes(CURRENT_USER_ID);
+          return (
+            <button
+              key={reaction.emoji}
+              onClick={() => handleAddReactionClick(reaction.emoji)}
+              className={`text-xs px-2 py-0.5 rounded-full flex items-center space-x-1 cursor-pointer transition-colors ${
+                userHasReacted
+                  ? "bg-(--primary-color-lighter) border border-(--primary-color-light-border)"
+                  : "bg-(--secondary-bg-hover) hover:bg-(--disabled-bg)"
+              }`}
+            >
+              <span>{reaction.emoji}</span>
+              <span
+                className={`font-medium ${userHasReacted ? "text-(--primary-color-dark-text)" : "text-(--text-color-light)"}`}
+              >
+                {reaction.count}
+              </span>
+            </button>
+          );
+        })}*/}
         {!isOwnMessage && (
           <div className="relative">
             <button
