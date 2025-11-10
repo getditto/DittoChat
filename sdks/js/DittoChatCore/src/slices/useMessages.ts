@@ -21,7 +21,6 @@ export interface MessageSlice {
   createMessage: (room: Room, text: string) => Promise<void>;
   saveEditedTextMessage: (message: Message, room: Room) => Promise<void>;
   saveDeletedImageMessage: (message: Message, room: Room, type?: "text" | "image") => Promise<void>;
-  convertChat: (message: Message) => Promise<Message>;
   createImageMessage: (
     room: Room,
     imageFile: File,
@@ -75,7 +74,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
       const query = `SELECT * FROM COLLECTION ${collectionId} (thumbnailImageToken ATTACHMENT, largeImageToken ATTACHMENT)
         WHERE roomId = :roomId
-        AND (createdOn >= :date OR timeMs >= :dateMs OR b >= :dateMs)
+        AND createdOn >= :date
         ORDER BY createdOn ASC`;
 
       const args = {
@@ -106,9 +105,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
                 const user = allUsers.find(
                   (u: ChatUser) => u._id === message.userId
                 );
-                // TODO: Check convert chat implementation
                 // TODO: Edit and Delete messages need to be handled
-                // const converted = await _get().convertChat(message);
                 _set((state: ChatStore) => {
                   return produce(state, (draft) => {
                     if (!draft.messagesByRoom[roomId]) {
@@ -164,18 +161,16 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
           async (result) => {
             if (result.items.length > 0) {
               const message = result.items[0].value as Message;
-              const converted = await _get().convertChat(message);
-
-              const roomId = converted.roomId;
+              const roomId = message.roomId;
               const messagesByRoom = _get().messagesByRoom;
 
               if (messagesByRoom[roomId]) {
                 const updated = messagesByRoom[roomId].map((msg: Message) =>
-                  msg._id === messageId ? converted : msg
+                  msg._id === messageId ? message : msg
                 );
 
                 if (!updated.find((m: Message) => m._id === messageId)) {
-                  updated.push(converted);
+                  updated.push(message);
                 }
 
                 _set({
@@ -201,83 +196,6 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       }
     },
 
-    async convertChat(message: Message): Promise<Message> {
-      if (!ditto) return message;
-
-      if (message.hasBeenConverted === true) {
-        return message;
-      }
-
-      const converted: Message = {
-        ...message,
-        hasBeenConverted: true,
-        text: message.msg ?? message.text ?? "",
-      };
-
-      if (message.authorId && message.authorId.length > 0) {
-        converted.userId = message.authorId;
-      } else if (message.d && message.d.length > 0) {
-        converted.userId = message.d;
-      }
-
-      if (message.timeMs) {
-        converted.createdOn = message.timeMs;
-      } else if (message.b) {
-        converted.createdOn = new Date(message.b);
-      }
-
-      // Create the TAK user if it doesn't already exist
-      if (message.authorId && message.authorId.length > 0) {
-        const user: ChatUser = {
-          _id: message.authorId,
-          name: message.authorCs ?? message.authorId,
-          subscriptions: {},
-          mentions: {},
-        };
-
-        try {
-          const userDoc = { ...user } as Record<string, any>;
-          await ditto.store.execute(
-            `INSERT INTO ${userCollectionKey} DOCUMENTS (:user) ON ID CONFLICT DO NOTHING`,
-            { user: userDoc }
-          );
-        } catch (err) {
-          console.error("Error creating TAK user:", err);
-        }
-      } else if (message.d && message.d.length > 0) {
-        const user: ChatUser = {
-          _id: message.d,
-          name: message.e ?? message.d,
-          subscriptions: {},
-          mentions: {},
-        };
-
-        try {
-          const userDoc = { ...user } as Record<string, any>;
-          await ditto.store.execute(
-            `INSERT INTO ${userCollectionKey} DOCUMENTS (:user) ON ID CONFLICT DO NOTHING`,
-            { user: userDoc }
-          );
-        } catch (err) {
-          console.error("Error creating TAK user:", err);
-        }
-      }
-
-      // Update the message in the database with converted format
-      try {
-        const messageDoc = { ...converted } as Record<string, any>;
-        await ditto.store.execute(
-          `INSERT INTO ${
-            message.roomId || "chat"
-          } DOCUMENTS (:message) ON ID CONFLICT DO UPDATE`,
-          { message: messageDoc }
-        );
-      } catch (err) {
-        console.error("Error updating converted message:", err);
-      }
-
-      return converted;
-    },
 
     async createMessage(room: Room, text: string) {
       if (!ditto) return;
@@ -308,50 +226,15 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         const now = new Date();
         const nowIso = now.toISOString();
         const nowMs = Date.now();
-        const authorId = userId;
-        const authorCs = fullName ?? userId;
-        const d = userId;
-        const e = authorCs;
-        const parent = "RootContactGroup";
-        const authorType = "a-f-G-U-C";
-        const authorLoc = "0.0,0.0,NaN,HAE,NaN,NaN";
-        const roomName = (room as any).name ?? "";
-        const takUid = (
-          globalThis.crypto?.randomUUID?.() ??
-          Math.random().toString(16).slice(2) +
-            Math.random().toString(16).slice(2)
-        ).toUpperCase();
-
         const newDoc: Record<string, any> = {
-          // Core fields
           roomId: room._id,
           text,
           userId,
           createdOn: nowIso,
-          hasBeenConverted: true,
           isArchived: false,
           archivedMessage: null,
           largeImageToken: null,
           thumbnailImageToken: null,
-
-          // TAK/legacy compatible fields
-          msg: text,
-          authorId,
-          authorCs,
-          authorLoc,
-          authorType,
-          parent,
-          pks: "",
-          room: roomName || "ditto",
-          schver: 1,
-          takUid,
-          timeMs: nowMs,
-          _r: false,
-          _v: 2,
-          a: "",
-          b: nowMs,
-          d,
-          e,
         };
 
         const query = `INSERT INTO ${messagesId} DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE`;
@@ -498,12 +381,6 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         const now = new Date();
         const nowIso = now.toISOString();
         const nowMs = Date.now();
-        const takUid = (
-          globalThis.crypto?.randomUUID?.() ??
-          Math.random().toString(16).slice(2) +
-            Math.random().toString(16).slice(2)
-        ).toUpperCase();
-
         const newDoc: Record<string, any> = {
           _id: docId,
           createdOn: nowIso,
@@ -512,28 +389,8 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
           text: text || "",
           thumbnailImageToken: thumbnailAttachment,
           largeImageToken: largeAttachment,
-          hasBeenConverted: true,
           isArchived: false,
           archivedMessage: null,
-
-          // TAK/legacy compatible fields
-          msg: text || "",
-          authorId: userId,
-          authorCs: fullName ?? userId,
-          authorLoc: "0.0,0.0,NaN,HAE,NaN,NaN",
-          authorType: "a-f-G-U-C",
-          parent: "RootContactGroup",
-          pks: "",
-          room: (room as any).name ?? "ditto",
-          schver: 1,
-          takUid,
-          timeMs: nowMs,
-          _r: false,
-          _v: 2,
-          a: "",
-          b: nowMs,
-          d: userId,
-          e: fullName ?? userId,
         };
 
         console.log("Inserting message with both tokens:", newDoc);
