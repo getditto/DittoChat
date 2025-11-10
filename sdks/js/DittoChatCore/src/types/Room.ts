@@ -6,4 +6,5 @@ export default interface Room {
   createdBy: string;
   createdOn: Date;
   isGenerated: boolean;
+  participants?: string[];
 }

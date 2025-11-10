@@ -1,3 +1,4 @@
+import ChatUser from "dittochatcore/dist/types/ChatUser";
 import type Message from "dittochatcore/dist/types/Message";
 
 export interface User {
@@ -19,7 +20,7 @@ export interface Chat {
   id: number | string;
   type: ChatType;
   name?: string;
-  participants: number[];
+  participants: ChatUser[];
   messages: Message[];
   unread?: boolean;
 }

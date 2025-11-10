@@ -1,60 +1,86 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useRef } from "react";
+import {
+  List,
+  AutoSizer,
+  CellMeasurerCache,
+  CellMeasurer,
+} from "react-virtualized";
 import type { Chat } from "../types";
 import ChatListItem from "./ChatListItem";
 import { Icons } from "./Icons";
 import { useDittoChatStore } from "dittochatcore";
-import type Room from "dittochatcore/dist/types/Room";
-import type Message from "dittochatcore/dist/types/Message";
+import { GridCoreProps } from "react-virtualized/dist/es/Grid";
+import { MeasuredCellParent } from "react-virtualized/dist/es/CellMeasurer";
 
 interface ChatListProps {
+  chats: Chat[];
   onSelectChat: (chat: Chat) => void;
   onNewMessage: () => void;
   selectedChatId: number | string | null;
 }
 
 const ChatList: React.FC<ChatListProps> = ({
+  chats,
   onSelectChat,
   onNewMessage,
   selectedChatId,
 }) => {
-  const [chats, setChats] = useState<Chat[]>([]);
-  const rooms = useDittoChatStore((state) => state.rooms);
+  const listRef = useRef<List | null>(null);
   const users = useDittoChatStore((state) => state.allUsers);
   const currentUserId = useDittoChatStore((state) => state.chatUser?._id);
-  const latestMessages = useDittoChatStore((state) => {
-    const roomKeys = Object.keys(state.messagesByRoom);
-    const latestMessages: Message[] = roomKeys.map((key) => {
-      const messages = state.messagesByRoom[key];
-      return messages[messages.length - 1].message;
-    });
-    const sortedMessages = latestMessages.sort(
-      (a, b) =>
-        new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime(),
-    );
-    return sortedMessages;
-  });
-  useEffect(() => {
-    const chats: Chat[] = [];
-    latestMessages.map((message: Message) => {
-      const room = rooms.find((room: Room) => room._id === message.roomId);
-      // const existingRoom = chats.find((chat) => chat.id === room._id);
-      chats.push({
-        id: room._id,
-        type: "group",
-        name: room.name,
-        participants: [],
-        messages: [message],
-      });
 
-      setChats(chats);
-    });
-  }, [rooms, latestMessages]);
-  const [searchTerm, setSearchTerm] = useState("");
+  // search state moved outside for brevity - keep your useState if needed
+  const [searchTerm, setSearchTerm] = React.useState("");
 
-  // A real app would have more sophisticated search logic
-  const filteredChats = chats.filter((chat) =>
-    (chat.name || "DM").toLowerCase().includes(searchTerm.toLowerCase()),
+  const filteredChats = useMemo(
+    () =>
+      chats.filter((chat) =>
+        (chat.name || "DM").toLowerCase().includes(searchTerm.toLowerCase()),
+      ),
+    [chats, searchTerm],
   );
+
+  const selectedIndex = useMemo(() => {
+    return filteredChats.findIndex((c) => c.id === selectedChatId);
+  }, [filteredChats, selectedChatId]);
+
+  const rowRenderer = ({
+    index,
+    key,
+    parent,
+    style,
+  }: {
+    index: number;
+    key: string;
+    parent: React.Component<GridCoreProps> & MeasuredCellParent;
+    style: React.CSSProperties;
+  }) => {
+    const chat = filteredChats[index];
+    return (
+      <CellMeasurer
+        key={key}
+        cache={cache}
+        parent={parent}
+        columnIndex={0}
+        rowIndex={index}
+      >
+        <div key={key} style={style}>
+          <ChatListItem
+            chat={chat}
+            currentUserId={currentUserId}
+            users={users}
+            isSelected={chat.id === selectedChatId}
+            onSelect={() => onSelectChat(chat)}
+          />
+        </div>
+      </CellMeasurer>
+    );
+  };
+
+  const cache = new CellMeasurerCache({
+    defaultHeight: 60,
+    minHeight: 40,
+  });
 
   return (
     <div className="flex flex-col h-full bg-white">
@@ -78,22 +104,26 @@ const ChatList: React.FC<ChatListProps> = ({
             className="w-full bg-(--secondary-bg) border border-(--border-color) rounded-3xl pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--primary-color-focus)"
           />
         </div>
+      </div>
 
-        <div className="flex-1 overflow-y-auto">
-          <ul>
-            {filteredChats.map((chat) => (
-              <li key={chat.id}>
-                <ChatListItem
-                  chat={chat}
-                  currentUserId={currentUserId}
-                  users={users}
-                  isSelected={chat.id === selectedChatId}
-                  onSelect={() => onSelectChat(chat)}
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
+      <div className="flex-1 min-h-0 mb-4">
+        <AutoSizer>
+          {({ height, width }) => {
+            return (
+              <List
+                ref={listRef}
+                width={width}
+                height={height}
+                rowCount={filteredChats.length}
+                rowHeight={cache.rowHeight}
+                rowRenderer={rowRenderer}
+                overscanRowCount={10}
+                scrollToIndex={selectedIndex >= 0 ? selectedIndex : undefined}
+                scrollToAlignment="auto"
+              />
+            );
+          }}
+        </AutoSizer>
       </div>
     </div>
   );

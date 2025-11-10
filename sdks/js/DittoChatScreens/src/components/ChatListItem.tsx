@@ -22,22 +22,18 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
 }) => {
   const lastMessage = chat.messages[chat.messages.length - 1];
 
-  const chatName = chat.name;
-  const otherUserIsActive = false;
+  let chatName = chat.name;
+  let otherUserIsActive = false;
 
   if (chat.type === "dm") {
     // TODO: implement DM user avathar
-    // const otherUserId = chat.participants.find((id) => id !== currentUserId);
-    // const otherUser = USERS.find((user) => user.id === otherUserId);
-    // chatName = otherUser?.name || "Unknown User";
-    // otherUserIsActive = !!otherUser?.isActive;
-    // avatar = (
-    //   <img
-    //     src={otherUser?.avatarUrl}
-    //     alt={chatName}
-    //     className="w-10 h-10 rounded-full"
-    //   />
-    // );
+    const otherUser = chat.participants.find(
+      (user) => user._id !== currentUserId,
+    );
+
+    chatName = otherUser?.name || "Unknown User";
+    //TODO: Implement user status
+    otherUserIsActive = false;
   }
 
   const lastMessageSender = users.find((u) => u._id === lastMessage?.userId);
@@ -57,7 +53,7 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
       )}
     >
       <div className="relative -top-4">
-        <Avatar />
+        <Avatar isUser={chat.type === "dm"} />
         {chat.unread && (
           <span className="absolute -top-0.5 -right-0.5 block h-3 w-3 rounded-full bg-(--notification-badge-bg) border-2 border-white"></span>
         )}
@@ -69,12 +65,14 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
         <div className="flex justify-between items-baseline">
           <p className="font-semibold truncate">{chatName}</p>
           <p className="text-sm text-(--text-color-lightest) flex-shrink-0 ml-2">
-            {formatDate(lastMessage.createdOn)}
+            {lastMessage && formatDate(lastMessage.createdOn)}
           </p>
         </div>
         <p className="text-(--text-color-lighter) font-normal line-clamp-2">
           {senderName && <span className="font-medium">{senderName}: </span>}
-          {/*{lastMessage?.text}*/}
+          {lastMessage && lastMessage?.thumbnailImageToken
+            ? "Image"
+            : lastMessage?.text}
         </p>
       </div>
     </button>

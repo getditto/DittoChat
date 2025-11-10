@@ -1,13 +1,12 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
-import type { Chat, User } from "../types";
+import React, { useState, useRef, useEffect } from "react";
 import { Icons } from "./Icons";
-import { USERS, CURRENT_USER_ID } from "../constants";
 import type Message from "dittochatcore/dist/types/Message";
+import { useDittoChatStore } from "dittochatcore";
+import ChatUser from "dittochatcore/dist/types/ChatUser";
 
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
   onSendImage?: (file: File, caption?: string) => void;
-  chat: Chat;
   editingMessage: Message | null;
   onCancelEdit: () => void;
   onSaveEdit: (messageId: string, newContent: string) => void;
@@ -16,29 +15,23 @@ interface MessageInputProps {
 const MessageInput: React.FC<MessageInputProps> = ({
   onSendMessage,
   onSendImage,
-  chat,
   editingMessage,
   onCancelEdit,
   onSaveEdit,
 }) => {
+  const users: ChatUser[] = useDittoChatStore((state) => state.allUsers);
   const [text, setText] = useState("");
   const [isAttachMenuOpen, setIsAttachMenuOpen] = useState(false);
 
   // Mention states
   const [isMentioning, setIsMentioning] = useState(false);
-  const [filteredMentionUsers, setFilteredMentionUsers] = useState<User[]>([]);
+  const [filteredMentionUsers, setFilteredMentionUsers] = useState<ChatUser[]>(
+    [],
+  );
 
   const attachMenuRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Get users in the current chat, excluding the current user
-  const chatParticipants = useMemo(() => {
-    return USERS.filter(
-      (user) =>
-        chat.participants.includes(user.id) && user.id !== CURRENT_USER_ID,
-    );
-  }, [chat.participants]);
 
   useEffect(() => {
     if (editingMessage) {
@@ -82,7 +75,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
       const query = mentionMatch[1];
       setIsMentioning(true);
       setFilteredMentionUsers(
-        chatParticipants.filter((user) =>
+        users.filter((user) =>
           user.name.toLowerCase().includes(query.toLowerCase()),
         ),
       );
@@ -187,16 +180,16 @@ const MessageInput: React.FC<MessageInputProps> = ({
           >
             <ul className="max-h-60 overflow-y-auto">
               {filteredMentionUsers.map((user) => (
-                <li key={user.id}>
+                <li key={user._id}>
                   <button
                     onClick={() => handleMentionSelect(user.name)}
                     className="w-full text-left px-3 py-2 flex items-center space-x-3 hover:bg-(--secondary-bg)"
                   >
-                    <img
+                    {/*<img
                       src={user.avatarUrl}
                       alt={user.name}
                       className="w-8 h-8 rounded-full"
-                    />
+                    />*/}
                     <span className="font-semibold">{user.name}</span>
                   </button>
                 </li>
@@ -224,9 +217,10 @@ const MessageInput: React.FC<MessageInputProps> = ({
                 }
               }}
             />
-            <button 
+            <button
               onClick={() => fileInputRef.current?.click()}
-              className="w-full text-left px-4 py-2 text-sm hover:bg-[rgb(var(--secondary-bg))] flex items-center space-x-3">
+              className="w-full text-left px-4 py-2 text-sm hover:bg-[rgb(var(--secondary-bg))] flex items-center space-x-3"
+            >
               <Icons.image className="w-5 h-5 text-[rgb(var(--text-color-lightest))]" />
               <span>Photo</span>
             </button>
@@ -237,7 +231,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
           </div>
         )}
 
-        <div className="flex items-end space-x-3">
+        <div className="flex items-start space-x-3">
           <div className="relative" ref={attachMenuRef}>
             <button
               onClick={() => setIsAttachMenuOpen((p) => !p)}
@@ -248,11 +242,11 @@ const MessageInput: React.FC<MessageInputProps> = ({
             </button>
           </div>
 
-          <div className="flex-1 flex items-end bg-(--secondary-bg) rounded-lg">
-            <div className="relative flex-1 max-h-40 overflow-y-auto">
+          <div className="flex-1 flex items-start bg-(--secondary-bg) rounded-lg">
+            <div className="relative flex-1 min-h-12 max-h-20 p-2 overflow-y-auto">
               <div
                 aria-hidden="true"
-                className="text-base whitespace-pre-wrap break-words p-2 invisible"
+                className="text-base whitespace-pre-wrap break-words invisible"
               >
                 {renderHighlightedText()}
               </div>
@@ -262,7 +256,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
                 onChange={handleTextChange}
                 onKeyDown={handleKeyDown}
                 placeholder={editingMessage ? "Edit message..." : "Message..."}
-                className="absolute inset-0 w-full h-full bg-transparent text-(--text-color) text-base resize-none outline-none p-2"
+                className="absolute inset-0 w-full h-full bg-transparent text-(--text-color) text-base resize-none outline-none px-2 py-2"
               />
             </div>
             <button

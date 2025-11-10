@@ -1,17 +1,23 @@
 import React, { useState } from "react";
-import type { User } from "../types";
 import { Icons } from "./Icons";
+import { useDittoChatStore } from "dittochatcore";
+import ChatUser from "dittochatcore/dist/types/ChatUser";
+import Avatar from "./Avatar";
 
 interface NewMessageModalProps {
+  onNewDMCreate: (user: ChatUser) => void;
   onClose: () => void;
-  users: User[];
 }
 
 const NewMessageModal: React.FC<NewMessageModalProps> = ({
   onClose,
-  users,
+  onNewDMCreate,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
+
+  const users: ChatUser[] = useDittoChatStore((state) =>
+    state.allUsers.filter((user) => user._id !== state.chatUser?._id),
+  );
 
   const filteredUsers = users.filter((user) =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -43,17 +49,14 @@ const NewMessageModal: React.FC<NewMessageModalProps> = ({
       <div className="flex-1 overflow-y-auto">
         <ul>
           {filteredUsers.map((user) => (
-            <li key={user.id}>
+            <li key={user._id} onClick={() => onNewDMCreate(user)}>
               <button className="w-full text-left px-4 py-3 flex items-center space-x-4 hover:bg-(--surface-color-light) transition-colors">
                 <div className="relative">
-                  <img
-                    src={user.avatarUrl}
-                    alt={user.name}
-                    className="w-10 h-10 rounded-full"
-                  />
-                  {user.isActive && (
+                  <Avatar isUser={true} />
+                  {/*// TODO: Add active status indicator*/}
+                  {/*{user.isActive && (
                     <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-(--active-status-bg) border-2 border-white"></span>
-                  )}
+                  )}*/}
                 </div>
                 <span className="font-semibold">{user.name}</span>
               </button>

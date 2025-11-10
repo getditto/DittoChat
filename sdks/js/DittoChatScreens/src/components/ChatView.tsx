@@ -26,7 +26,9 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
   const currentUser: ChatUser = useDittoChatStore((state) => state.chatUser);
   const allUsers: ChatUser[] = useDittoChatStore((state) => state.allUsers);
   const createMessage = useDittoChatStore((state) => state.createMessage);
-  const createImageMessage = useDittoChatStore((state) => state.createImageMessage);
+  const createImageMessage = useDittoChatStore(
+    (state) => state.createImageMessage,
+  );
   const fetchAttachment = useDittoChatStore((state) => state.fetchAttachment);
 
   const rooms = useDittoChatStore((state) => state.rooms) as Room[];
@@ -54,23 +56,16 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
     setEditingMessage(null);
   };
 
-  const chatName = chat.name;
-  // let avatar: React.ReactNode;
-  const otherUserIsActive = false;
+  let chatName = chat.name;
+  let otherUserIsActive = false;
 
-  // TODO: Implement chatName and avatar for DMs
   if (chat.type === "dm") {
-    // const otherUserId = chat.participants.find((id) => id !== CURRENT_USER_ID);
-    // const otherUser = USERS.find((user) => user.id === otherUserId);
-    // chatName = otherUser?.name || "Unknown User";
-    // otherUserIsActive = !!otherUser?.isActive;
-    // avatar = (
-    //   <img
-    //     src={otherUser?.avatarUrl}
-    //     alt={chatName}
-    //     className="w-8 h-8 rounded-full"
-    //   />
-    // );
+    const otherUser = chat.participants.find(
+      (user) => user._id !== currentUser._id,
+    );
+    chatName = otherUser?.name || "Unknown User";
+    // TODO: Implement user status
+    otherUserIsActive = false;
   }
 
   return (
@@ -84,7 +79,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
         </button>
         <div className="flex items-center space-x-3">
           <div className="relative">
-            <Avatar />
+            <Avatar isUser={chat.type === "dm"} />
             {otherUserIsActive && (
               <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-(--active-status-bg) border-2 border-white"></span>
             )}
@@ -129,7 +124,6 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
         onSendImage={(file, caption) => {
           createImageMessage(room, file, caption).catch(console.error);
         }}
-        chat={chat}
         editingMessage={editingMessage}
         onCancelEdit={handleCancelEdit}
         onSaveEdit={handleSaveEdit}

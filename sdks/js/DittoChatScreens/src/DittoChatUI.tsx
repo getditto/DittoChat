@@ -1,15 +1,21 @@
 import "./index.css";
 import { useState, useEffect } from "react";
-import { USERS } from "./constants";
 import ChatList from "./components/ChatList";
 import ChatView from "./components/ChatView";
 import NewMessageModal from "./components/NewMessageModal";
 import { Icons } from "./components/Icons";
 // import { useToast } from "./components/ToastProvider";
-import { useDittoChat, type DittoConfParams } from "dittochatcore";
+import {
+  useDittoChat,
+  useDittoChatStore,
+  type DittoConfParams,
+} from "dittochatcore";
 import type { Chat } from "./types";
 
 import { ToastProvider } from "./components/ToastProvider";
+import ChatUser from "dittochatcore/dist/types/ChatUser";
+import Room from "dittochatcore/dist/types/Room";
+import Message from "dittochatcore/dist/types/Message";
 
 export default function DittoChatUI({
   ditto,
@@ -22,12 +28,75 @@ export default function DittoChatUI({
     userId,
   });
 
+  const [chats, setChats] = useState<Chat[]>([]);
+  const createDMRoom = useDittoChatStore((state) => state.createDMRoom);
+  const rooms: Room[] = useDittoChatStore((state) => state.rooms);
+  const users: ChatUser[] = useDittoChatStore((state) => state.allUsers);
+  const currentUser: ChatUser = useDittoChatStore((state) => state.chatUser);
+
   const [activeScreen, setActiveScreen] = useState<
     "list" | "chat" | "newMessage"
   >("list");
 
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
-  // const { addToast } = useToast();
+  const [newDMCreated, setNewDMCreated] = useState<string | undefined>(
+    undefined,
+  );
+
+  const latestMessages = useDittoChatStore((state) => {
+    const roomKeys = Object.keys(state.messagesByRoom);
+    const latestMessages: Message[] = roomKeys.map((key) => {
+      const messages = state.messagesByRoom[key];
+      return messages[messages.length - 1].message;
+    });
+    const sortedMessages = latestMessages.sort(
+      (a, b) =>
+        new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime(),
+    );
+    return sortedMessages;
+  });
+
+  const isDM = (room: Room) => {
+    return room.participants?.length === 2;
+  };
+  useEffect(() => {
+    const chats: Chat[] = [];
+    const latestRoomIds: string[] = [];
+
+    latestMessages.map((message: Message) => {
+      const room = rooms.find((room: Room) => room._id === message.roomId);
+      if (!room) return;
+      chats.push({
+        id: room._id,
+        type: isDM(room) ? "dm" : "group",
+        name: room.name,
+        participants: (room.participants || [])
+          .map((userId: string) => users.find((user) => user._id === userId))
+          .filter((user) => user) as ChatUser[],
+        messages: [message],
+      });
+      latestRoomIds.push(room._id);
+    });
+
+    const emptyRooms = rooms.filter(
+      (room: Room) => !latestRoomIds.includes(room._id),
+    );
+
+    emptyRooms.map((room: Room) => {
+      chats.push({
+        id: room._id,
+        type: isDM(room) ? "dm" : "group",
+        name: room.name,
+        participants: (room.participants || [])
+          .map((userId: string) => users.find((user) => user._id === userId))
+          .filter((user) => user) as ChatUser[],
+        messages: [],
+      });
+      latestRoomIds.push(room._id);
+    });
+
+    setChats(chats);
+  }, [rooms, latestMessages]);
 
   const handleSelectChat = (chat: Chat) => {
     setSelectedChat(chat);
@@ -43,6 +112,31 @@ export default function DittoChatUI({
     setSelectedChat(null);
     setActiveScreen("list");
   };
+
+  const handleNewDMCreate = async (user: ChatUser) => {
+    const createResponse = await createDMRoom(user);
+    setNewDMCreated(user._id);
+    console.log("createResponse", createResponse);
+  };
+
+  useEffect(() => {
+    if (newDMCreated) {
+      const chat = chats.find(
+        (chat: Chat) =>
+          chat.participants.length === 2 &&
+          chat.participants.some(
+            (participant) => participant._id === newDMCreated,
+          ) &&
+          chat.participants.some(
+            (participant) => participant._id === currentUser._id,
+          ),
+      );
+      if (chat) {
+        setSelectedChat(chat);
+        setActiveScreen("chat");
+      }
+    }
+  }, [chats, newDMCreated, currentUser]);
 
   // const handleAddReaction = (
   //   chatId: number | string,
@@ -98,10 +192,8 @@ export default function DittoChatUI({
   // On desktop, default to selecting the first chat
   useEffect(() => {
     if (window.innerWidth >= 768 && !selectedChat) {
-      // setSelectedChatId(chats[0].id);
       setActiveScreen("chat");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -112,6 +204,7 @@ export default function DittoChatUI({
           className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--border-color) flex flex-col ${activeScreen !== "list" && "hidden"} md:flex`}
         >
           <ChatList
+            chats={chats}
             onSelectChat={handleSelectChat}
             onNewMessage={handleNewMessage}
             selectedChatId={selectedChat?.id || ""}
@@ -132,7 +225,7 @@ export default function DittoChatUI({
           {activeScreen === "newMessage" && (
             <NewMessageModal
               onClose={handleBack}
-              users={USERS.filter((u) => u.id !== 0)}
+              onNewDMCreate={handleNewDMCreate}
             />
           )}
           {activeScreen === "list" && !selectedChat && (

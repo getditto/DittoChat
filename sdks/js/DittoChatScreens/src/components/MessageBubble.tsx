@@ -15,14 +15,14 @@ interface MessageBubbleProps {
   onDeleteMessage: (messageId: number | string) => void;
   onAddReaction: (messageId: number | string, emoji: string) => void;
   fetchAttachment?: (
-    token: any,
+    token: string,
     onProgress: (progress: number) => void,
     onComplete: (result: {
       success: boolean;
       data?: Uint8Array;
       metadata?: Record<string, string>;
       error?: Error;
-    }) => void
+    }) => void,
   ) => void;
 }
 
@@ -42,8 +42,10 @@ const FormattedMessage: React.FC<{ content: string; isOwn: boolean }> = ({
             {part}
           </span>
         ) : (
-          <React.Fragment key={i}>{part}</React.Fragment>
-        )
+          <React.Fragment key={i}>
+            <span className="whitespace-pre-line">{part}</span>
+          </React.Fragment>
+        ),
       )}
     </>
   );
@@ -105,7 +107,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     isLoading: isLoadingThumbnail,
     error: thumbnailError,
   } = useImageAttachment({
-    token: (message as any).thumbnailImageToken,
+    token: message.thumbnailImageToken,
     fetchAttachment,
     autoFetch: true,
   });
@@ -117,7 +119,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     error: largeImageError,
     fetchImage: fetchLargeImage,
   } = useImageAttachment({
-    token: (message as any).largeImageToken,
+    token: message.largeImageToken,
     fetchAttachment,
     autoFetch: false,
   });
@@ -127,8 +129,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   const [isActionsVisible, setIsActionsVisible] = useState(false);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
 
-  const hasImage =
-    (message as any).thumbnailImageToken || (message as any).largeImageToken;
+  const hasImage = message.thumbnailImageToken || message.largeImageToken;
   const hasText = !!message.text && message.text.trim().length > 0;
 
   const imageError = thumbnailError || largeImageError;
@@ -139,7 +140,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
       return;
     }
 
-    const token = (message as any).largeImageToken;
+    const token = message.largeImageToken;
 
     if (!token) {
       console.warn("No largeImageToken found, using thumbnail in fullscreen");
@@ -205,12 +206,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
       <div
         className={`flex items-center gap-2 ${isOwnMessage ? "flex-row-reverse" : "flex-row"}`}
       >
-        <div className={`flex flex-col max-w-xs md:max-w-md lg:max-w-lg ${isOwnMessage ? "items-end" : "items-start"}`}>
-
+        <div
+          className={`flex flex-col max-w-xs md:max-w-md lg:max-w-lg ${isOwnMessage ? "items-end" : "items-start"}`}
+        >
           {hasImage && (
-            <div
-              className={`relative ${hasText ? "mb-1" : ""}`}
-            >
+            <div className={`relative ${hasText ? "mb-1" : ""}`}>
               {imageError ? (
                 <div className="flex items-center justify-center w-48 h-48 rounded-xl bg-[rgb(var(--secondary-bg-hover))] text-[rgb(var(--text-color-light))]">
                   <span>{imageError}</span>
@@ -251,9 +251,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           )}
 
           {hasText && (
-            <div
-              className={`px-4 py-2 rounded-xl ${bubbleClasses}`}
-            >
+            <div className={`px-4 py-2 rounded-xl ${bubbleClasses}`}>
               <p className="break-words">
                 <FormattedMessage
                   content={message.text!}
@@ -264,11 +262,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           )}
         </div>
 
-
         {isOwnMessage && (
           <div
-            className={`relative flex items-center transition-opacity duration-200 ${isActionsVisible ? "opacity-100" : "opacity-0"
-              }`}
+            className={`relative flex items-center transition-opacity duration-200 ${
+              isActionsVisible ? "opacity-100" : "opacity-0"
+            }`}
           >
             <div className="relative">
               {isEmojiPickerOpen && (
