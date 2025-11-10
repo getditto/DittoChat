@@ -25,7 +25,7 @@ export interface MessageSlice {
   createImageMessage: (
     room: Room,
     imageFile: File,
-    text?: string,
+    text?: string
   ) => Promise<void>;
   fetchAttachment: (
     token: any,
@@ -35,7 +35,7 @@ export interface MessageSlice {
       data?: Uint8Array;
       metadata?: Record<string, string>;
       error?: Error;
-    }) => void,
+    }) => void
   ) => void;
 }
 
@@ -46,7 +46,7 @@ interface ChatRetentionPolicy {
 export const createMessageSlice: CreateSlice<MessageSlice> = (
   _set,
   _get,
-  { ditto, userId, userCollectionKey }: DittoConfParams,
+  { ditto, userId, userCollectionKey }: DittoConfParams
 ) => {
   const chatRetentionPolicy: ChatRetentionPolicy = { days: 30 };
 
@@ -69,7 +69,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
       const retentionDaysValue = retentionDays ?? chatRetentionPolicy.days;
       const retentionDaysAgo = new Date(
-        Date.now() - retentionDaysValue * 24 * 60 * 60 * 1000,
+        Date.now() - retentionDaysValue * 24 * 60 * 60 * 1000
       );
 
       const query = `SELECT * FROM COLLECTION ${collectionId} (thumbnailImageToken ATTACHMENT, largeImageToken ATTACHMENT)
@@ -101,11 +101,11 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
             for (const item of result.items) {
               const message = item.value as Message;
               const isExists = existingMessages.find(
-                (m) => m.id === message._id,
+                (m) => m.id === message._id
               );
               if (!isExists) {
                 const user = allUsers.find(
-                  (u: ChatUser) => u._id === message.userId,
+                  (u: ChatUser) => u._id === message.userId
                 );
                 // TODO: Check convert chat implementation
                 // TODO: Edit and Delete messages need to be handled
@@ -134,7 +134,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
             //   },
             // });
           },
-          args,
+          args
         );
 
         _set({
@@ -180,7 +180,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
               if (messagesByRoom[roomId]) {
                 const updated = messagesByRoom[roomId].map((msg: Message) =>
-                  msg._id === messageId ? converted : msg,
+                  msg._id === messageId ? converted : msg
                 );
 
                 if (!updated.find((m: Message) => m._id === messageId)) {
@@ -196,7 +196,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
               }
             }
           },
-          args,
+          args
         );
 
         _set({
@@ -248,7 +248,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
           const userDoc = { ...user } as Record<string, any>;
           await ditto.store.execute(
             `INSERT INTO ${userCollectionKey} DOCUMENTS (:user) ON ID CONFLICT DO NOTHING`,
-            { user: userDoc },
+            { user: userDoc }
           );
         } catch (err) {
           console.error("Error creating TAK user:", err);
@@ -265,7 +265,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
           const userDoc = { ...user } as Record<string, any>;
           await ditto.store.execute(
             `INSERT INTO ${userCollectionKey} DOCUMENTS (:user) ON ID CONFLICT DO NOTHING`,
-            { user: userDoc },
+            { user: userDoc }
           );
         } catch (err) {
           console.error("Error creating TAK user:", err);
@@ -276,8 +276,10 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       try {
         const messageDoc = { ...converted } as Record<string, any>;
         await ditto.store.execute(
-          `INSERT INTO ${message.roomId || "chat"} DOCUMENTS (:message) ON ID CONFLICT DO UPDATE`,
-          { message: messageDoc },
+          `INSERT INTO ${
+            message.roomId || "chat"
+          } DOCUMENTS (:message) ON ID CONFLICT DO UPDATE`,
+          { message: messageDoc }
         );
       } catch (err) {
         console.error("Error updating converted message:", err);
@@ -294,14 +296,14 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         // Fetch current user to get name
         const currentUserResult = await ditto.store.execute(
           `SELECT * FROM ${userCollectionKey} WHERE _id = :id`,
-          { id: userId },
+          { id: userId }
         );
         const userValue = currentUserResult.items?.[0]?.value;
         const fullName = userValue?.name ?? userId;
 
         const roomResult = await ditto.store.execute(
           `SELECT * FROM ${room.collectionId || "rooms"} WHERE _id = :id`,
-          { id: room._id },
+          { id: room._id }
         );
 
         if (roomResult.items.length === 0) {
@@ -410,7 +412,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         // Get current user info
         const currentUserResult = await ditto.store.execute(
           `SELECT * FROM ${userCollectionKey} WHERE _id = :id`,
-          { id: userId },
+          { id: userId }
         );
         const userValue = currentUserResult.items?.[0]?.value;
         const fullName = userValue?.name ?? userId;
@@ -418,7 +420,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         // Get room info
         const roomResult = await ditto.store.execute(
           `SELECT * FROM ${room.collectionId || "rooms"} WHERE _id = :id`,
-          { id: room._id },
+          { id: room._id }
         );
 
         if (roomResult.items.length === 0) {
@@ -434,60 +436,82 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
           Math.random().toString(16).slice(2) +
             Math.random().toString(16).slice(2);
 
-        // Create thumbnail image
+        // Create BOTH attachments BEFORE inserting the message
+        console.log("Creating thumbnail attachment...");
         const thumbnailImage = await createThumbnail(imageFile);
         const thumbnailBlob = await imageToBlob(thumbnailImage);
         const thumbnailData = new Uint8Array(await thumbnailBlob.arrayBuffer());
-
-        // Create attachment for thumbnail
         const thumbnailAttachment = await ditto.store.newAttachment(
           thumbnailData,
-          createAttachmentMetadata(userId, fullName, "thumbnail", imageFile),
+          createAttachmentMetadata(userId, fullName, "thumbnail", imageFile)
         );
 
-        // Create the initial message document with thumbnail
+        console.log("Creating large image attachment...");
+        const largeImageBlob = await imageToBlob(await fileToImage(imageFile));
+        const largeImageData = new Uint8Array(
+          await largeImageBlob.arrayBuffer()
+        );
+        const largeAttachment = await ditto.store.newAttachment(
+          largeImageData,
+          createAttachmentMetadata(userId, fullName, "large", imageFile)
+        );
+
+        // Now create the message document with BOTH tokens
         const now = new Date();
         const nowIso = now.toISOString();
+        const nowMs = Date.now();
+        const takUid = (
+          globalThis.crypto?.randomUUID?.() ??
+          Math.random().toString(16).slice(2) +
+            Math.random().toString(16).slice(2)
+        ).toUpperCase();
 
-        const initialDoc: Record<string, any> = {
+        const newDoc: Record<string, any> = {
           _id: docId,
           createdOn: nowIso,
           roomId: room._id,
           userId,
+          text: text || "",
           thumbnailImageToken: thumbnailAttachment,
+          largeImageToken: largeAttachment,
+          hasBeenConverted: true,
+          isArchived: false,
+          archivedMessage: null,
+
+          // TAK/legacy compatible fields
+          msg: text || "",
+          authorId: userId,
+          authorCs: fullName ?? userId,
+          authorLoc: "0.0,0.0,NaN,HAE,NaN,NaN",
+          authorType: "a-f-G-U-C",
+          parent: "RootContactGroup",
+          pks: "",
+          room: (room as any).name ?? "ditto",
+          schver: 1,
+          takUid,
+          timeMs: nowMs,
+          _r: false,
+          _v: 2,
+          a: "",
+          b: nowMs,
+          d: userId,
+          e: fullName ?? userId,
         };
 
-        // Insert the message with thumbnail
+        console.log("Inserting message with both tokens:", newDoc);
+
+        // Insert the message with BOTH attachments in a single operation
         await ditto.store.execute(
-          `INSERT INTO COLLECTION ${messagesId} (thumbnailImageToken ATTACHMENT) DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE`,
-          { newDoc: initialDoc },
+          `INSERT INTO COLLECTION ${messagesId} (thumbnailImageToken ATTACHMENT, largeImageToken ATTACHMENT) DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE`,
+          { newDoc }
         );
 
-        // Now create the large image attachment
-        const largeImageBlob = await imageToBlob(await fileToImage(imageFile));
-        const largeImageData = new Uint8Array(
-          await largeImageBlob.arrayBuffer(),
-        );
-
-        const largeAttachment = await ditto.store.newAttachment(
-          largeImageData,
-          createAttachmentMetadata(userId, fullName, "large", imageFile),
-        );
-
-        // Update the message with the large image
-        await ditto.store.execute(
-          `UPDATE COLLECTION ${messagesId} (largeImageToken ATTACHMENT) SET largeImageToken = :largeAttachment WHERE _id = :id`,
-          {
-            id: docId,
-            largeAttachment: largeAttachment,
-          },
-        );
+        console.log("Image message created successfully");
       } catch (err) {
         console.error("Error in createImageMessage:", err);
         throw err;
       }
     },
-
     fetchAttachment(token, onProgress, onComplete) {
       if (!ditto) {
         onComplete({
@@ -612,7 +636,7 @@ function fileToImage(file: File): Promise<HTMLImageElement> {
 
 // Helper function to convert Image or Canvas to Blob
 async function imageToBlob(
-  image: HTMLImageElement | HTMLCanvasElement,
+  image: HTMLImageElement | HTMLCanvasElement
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
     if (image instanceof HTMLCanvasElement) {
@@ -622,7 +646,7 @@ async function imageToBlob(
           else reject(new Error("Failed to convert canvas to blob"));
         },
         "image/jpeg",
-        1.0,
+        1.0
       );
     } else {
       const canvas = document.createElement("canvas");
@@ -640,7 +664,7 @@ async function imageToBlob(
           else reject(new Error("Failed to convert image to blob"));
         },
         "image/jpeg",
-        1.0,
+        1.0
       );
     }
   });
@@ -651,7 +675,7 @@ function createAttachmentMetadata(
   userId: string,
   username: string,
   type: "thumbnail" | "large",
-  file: File,
+  file: File
 ): Record<string, string> {
   const timestamp = new Date().toISOString();
   const cleanName = username.replace(/\s/g, "-");

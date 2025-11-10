@@ -6,14 +6,16 @@ import type Message from "dittochatcore/dist/types/Message";
 
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
+  onSendImage?: (file: File, caption?: string) => void;
   chat: Chat;
   editingMessage: Message | null;
   onCancelEdit: () => void;
-  onSaveEdit: (messageId: number, newContent: string) => void;
+  onSaveEdit: (messageId: string, newContent: string) => void;
 }
 
 const MessageInput: React.FC<MessageInputProps> = ({
   onSendMessage,
+  onSendImage,
   chat,
   editingMessage,
   onCancelEdit,
@@ -28,6 +30,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
 
   const attachMenuRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Get users in the current chat, excluding the current user
   const chatParticipants = useMemo(() => {
@@ -49,7 +52,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
   const handleAction = () => {
     if (text.trim()) {
       if (editingMessage) {
-        onSaveEdit(editingMessage.id, text.trim());
+        onSaveEdit(editingMessage._id, text.trim());
       } else {
         onSendMessage(text.trim());
         setText("");
@@ -207,7 +210,23 @@ const MessageInput: React.FC<MessageInputProps> = ({
             ref={attachMenuRef}
             className="absolute bottom-full mb-2 bg-white rounded-lg shadow-lg border border-[rgb(var(--border-color))] w-48 z-10 py-1"
           >
-            <button className="w-full text-left px-4 py-2 text-sm hover:bg-[rgb(var(--secondary-bg))] flex items-center space-x-3">
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file && onSendImage) {
+                  onSendImage(file, text.trim() || undefined);
+                  setText("");
+                  setIsAttachMenuOpen(false);
+                }
+              }}
+            />
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full text-left px-4 py-2 text-sm hover:bg-[rgb(var(--secondary-bg))] flex items-center space-x-3">
               <Icons.image className="w-5 h-5 text-[rgb(var(--text-color-lightest))]" />
               <span>Photo</span>
             </button>

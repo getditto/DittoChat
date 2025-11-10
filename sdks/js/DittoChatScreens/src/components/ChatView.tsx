@@ -8,6 +8,7 @@ import { useDittoChatStore } from "dittochatcore";
 import type MessageWithUser from "dittochatcore/dist/types/MessageWithUser";
 import type Message from "dittochatcore/dist/types/Message";
 import type ChatUser from "dittochatcore/dist/types/ChatUser";
+import type Room from "dittochatcore/dist/types/Room";
 
 interface ChatViewProps {
   chat: Chat;
@@ -23,6 +24,12 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
   );
   const currentUser: ChatUser = useDittoChatStore((state) => state.chatUser);
   const allUsers: ChatUser[] = useDittoChatStore((state) => state.allUsers);
+  const createMessage = useDittoChatStore((state) => state.createMessage);
+  const createImageMessage = useDittoChatStore((state) => state.createImageMessage);
+  const fetchAttachment = useDittoChatStore((state) => state.fetchAttachment);
+
+  const rooms = useDittoChatStore((state) => state.rooms) as Room[];
+  const room = (rooms || []).find((room) => room._id === chat.id);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -40,7 +47,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
     setEditingMessage(null);
   };
 
-  const handleSaveEdit = (messageId: number, newContent: string) => {
+  const handleSaveEdit = (messageId: string, newContent: string) => {
     // onUpdateMessage(chat.id, messageId, newContent);
     console.log("Save", messageId, newContent);
     setEditingMessage(null);
@@ -104,6 +111,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
               isOwnMessage={isOwnMessage}
               isGroupChat={chat.type === "group"}
               showSenderInfo={true}
+              fetchAttachment={fetchAttachment}
               onStartEdit={handleStartEdit}
               onDeleteMessage={(messageId) => {
                 // onDeleteMessage(chat.id, messageId)
@@ -120,8 +128,10 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
       </div>
       <MessageInput
         onSendMessage={(content) => {
-          // onSendMessage(chat.id, content);
-          console.log("Send", content);
+          createMessage(room, content).catch(console.error);
+        }}
+        onSendImage={(file, caption) => {
+          createImageMessage(room, file, caption).catch(console.error);
         }}
         chat={chat}
         editingMessage={editingMessage}
