@@ -41,7 +41,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
     setEditingMessage(null);
   };
 
-  const handleSaveEdit = (messageId: number, newContent: string) => {
+  const handleSaveEdit = (messageId: number | string, newContent: string) => {
     // onUpdateMessage(chat.id, messageId, newContent);
     console.log("Save", messageId, newContent);
     setEditingMessage(null);

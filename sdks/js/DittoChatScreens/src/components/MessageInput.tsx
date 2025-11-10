@@ -9,7 +9,7 @@ interface MessageInputProps {
   chat: Chat;
   editingMessage: Message | null;
   onCancelEdit: () => void;
-  onSaveEdit: (messageId: number, newContent: string) => void;
+  onSaveEdit: (messageId: number | string, newContent: string) => void;
 }
 
 const MessageInput: React.FC<MessageInputProps> = ({
@@ -49,7 +49,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
   const handleAction = () => {
     if (text.trim()) {
       if (editingMessage) {
-        onSaveEdit(editingMessage.id, text.trim());
+        onSaveEdit(editingMessage?._id, text.trim());
       } else {
         onSendMessage(text.trim());
         setText("");

@@ -1,25 +1,70 @@
-import React from "react";
+import "ditto-chat-ui/dist/ditto-chat-ui.css";
+
 import { Ditto } from "@dittolive/ditto";
 import {
   DittoProvider,
   useDitto,
   useOnlinePlaygroundIdentity,
+  usePendingCursorOperation,
 } from "@dittolive/react-ditto";
-import DittoChatUI from "./DittoChatUI";
+import DittoChatUI from "ditto-chat-ui";
+import { useEffect, useState } from "react";
 
 const DittoChatUIWrapper = () => {
   const ditto = useDitto("testing");
-  return (
+  const [userId, setUserId] = useState("");
+  const { documents: users } = usePendingCursorOperation({
+    collection: "users",
+  });
+
+  useEffect(() => {
+    console.log({ userId });
+  }, [userId]);
+
+  return userId ? (
     <DittoChatUI
       // @ts-expect-error
       ditto={ditto?.ditto as Ditto}
-      userId="43e9419a-f5ef-486e-912f-5ac8a318b9a9"
+      userId={userId}
       userCollectionKey="users"
     />
+  ) : (
+    <div>
+      <p style={{ textAlign: "center", fontSize: "24px", margin: "1rem" }}>
+        Login User
+      </p>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "1rem",
+          alignItems: "center",
+          minWidth: "100%",
+        }}
+      >
+        {users.map((user) => (
+          <button
+            style={{
+              background: "#ff4d00",
+              color: "#fff",
+              width: "200px",
+              height: "50px",
+              padding: "10px",
+              borderRadius: "20px",
+            }}
+            onClick={() => setUserId(user.value._id)}
+          >
+            {user.value.name}
+          </button>
+        ))}
+      </div>
+    </div>
   );
+
+  // <div>Hiiii</div>
 };
 
-const App: React.FC = () => {
+function App() {
   const { create } = useOnlinePlaygroundIdentity();
   return (
     <DittoProvider
@@ -51,6 +96,6 @@ const App: React.FC = () => {
       }}
     </DittoProvider>
   );
-};
+}
 
 export default App;
