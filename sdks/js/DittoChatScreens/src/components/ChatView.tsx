@@ -30,6 +30,8 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
     (state) => state.createImageMessage,
   );
   const fetchAttachment = useDittoChatStore((state) => state.fetchAttachment);
+  const saveEditedTextMessage = useDittoChatStore((state) => state.saveEditedTextMessage);
+  const saveDeletedImageMessage = useDittoChatStore((state) => state.saveDeletedImageMessage);
 
   const rooms = useDittoChatStore((state) => state.rooms) as Room[];
   const room = (rooms || []).find((room) => room._id === chat.id);
@@ -50,10 +52,21 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
     setEditingMessage(null);
   };
 
-  const handleSaveEdit = (messageId: string, newContent: string) => {
-    // onUpdateMessage(chat.id, messageId, newContent);
-    console.log("Save", messageId, newContent);
+  const handleSaveEdit = async (messageId: string, newContent: string) => {
+    if (!room || !editingMessage) return;
+    const updatedMessage = { ...editingMessage, text: newContent };
+    await saveEditedTextMessage(updatedMessage, room);
     setEditingMessage(null);
+  };
+
+  const handleDeleteMessage = async (messageId: string | number) => {
+    if (!room) return;
+    const msgObj = messages.find((m) => m.id === String(messageId));
+    if (!msgObj) return;
+    const msg = msgObj.message;
+    // If message has image tokens, treat as image delete
+    const isImage = !!msg.thumbnailImageToken || !!msg.largeImageToken;
+    await saveDeletedImageMessage(msg, room, isImage ? "image" : "text");
   };
 
   let chatName = chat.name;
@@ -104,10 +117,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
               showSenderInfo={true}
               fetchAttachment={fetchAttachment}
               onStartEdit={handleStartEdit}
-              onDeleteMessage={(messageId) => {
-                // onDeleteMessage(chat.id, messageId)
-                console.log("Delete", messageId);
-              }}
+              onDeleteMessage={handleDeleteMessage}
               onAddReaction={(messageId, emoji) => {
                 // onAddReaction(chat.id, messageId, emoji)
                 console.log("Delete", messageId, emoji);
