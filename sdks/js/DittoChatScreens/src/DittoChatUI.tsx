@@ -59,44 +59,57 @@ export default function DittoChatUI({
   const isDM = (room: Room) => {
     return room.participants?.length === 2;
   };
+
   useEffect(() => {
-    const chats: Chat[] = [];
-    const latestRoomIds: string[] = [];
+    if (!rooms.length || !users.length) return;
 
-    latestMessages.map((message: Message) => {
-      const room = rooms.find((room: Room) => room._id === message.roomId);
-      if (!room) return;
-      chats.push({
+    const userMap = new Map(users.map((u) => [u._id, u]));
+    const messageMap = new Map<string, Message>();
+    for (const msg of latestMessages) {
+      messageMap.set(msg.roomId, msg);
+    }
+    const messageRoomIds: string[] = [];
+    // Rooms that have latest messages (keep order of latestMessages)
+    const chatsWithMessages: Chat[] = latestMessages
+      .map((message: Message) => {
+        const room = rooms.find((r) => r._id === message.roomId);
+        if (!room) return null;
+        messageRoomIds.push(message.roomId);
+
+        const participants: ChatUser[] = (room.participants || [])
+          .map((userId) => userMap.get(userId))
+          .filter(Boolean) as ChatUser[];
+
+        return {
+          id: room._id,
+          type: isDM(room) ? "dm" : "group",
+          name: room.name,
+          participants,
+          messages: [message],
+        };
+      })
+      .filter(Boolean) as Chat[];
+
+    // Remaining rooms (no messages)
+    const emptyRooms = rooms.filter((r) => !messageRoomIds.includes(r._id));
+
+    const chatsWithoutMessages: Chat[] = emptyRooms.map((room) => {
+      const participants: ChatUser[] = (room.participants || [])
+        .map((userId) => userMap.get(userId))
+        .filter(Boolean) as ChatUser[];
+
+      return {
         id: room._id,
         type: isDM(room) ? "dm" : "group",
         name: room.name,
-        participants: (room.participants || [])
-          .map((userId: string) => users.find((user) => user._id === userId))
-          .filter((user) => user) as ChatUser[],
-        messages: [message],
-      });
-      latestRoomIds.push(room._id);
-    });
-
-    const emptyRooms = rooms.filter(
-      (room: Room) => !latestRoomIds.includes(room._id),
-    );
-
-    emptyRooms.map((room: Room) => {
-      chats.push({
-        id: room._id,
-        type: isDM(room) ? "dm" : "group",
-        name: room.name,
-        participants: (room.participants || [])
-          .map((userId: string) => users.find((user) => user._id === userId))
-          .filter((user) => user) as ChatUser[],
+        participants,
         messages: [],
-      });
-      latestRoomIds.push(room._id);
+      };
     });
 
-    setChats(chats);
-  }, [rooms, latestMessages]);
+    // Combine (latest first)
+    setChats([...chatsWithMessages, ...chatsWithoutMessages]);
+  }, [rooms, latestMessages, users]);
 
   const handleSelectChat = (chat: Chat) => {
     setSelectedChat(chat);
@@ -114,27 +127,33 @@ export default function DittoChatUI({
   };
 
   const handleNewDMCreate = async (user: ChatUser) => {
-    const createResponse = await createDMRoom(user);
+    const isExists = chats.find((chat) => {
+      if (chat.participants.length !== 2) return false;
+      const ids = chat.participants.map((p) => p._id);
+      return ids.includes(user._id) && ids.includes(currentUser._id);
+    });
+
+    if (isExists) {
+      handleSelectChat(isExists);
+      return;
+    }
+
+    await createDMRoom(user);
     setNewDMCreated(user._id);
-    console.log("createResponse", createResponse);
   };
 
   useEffect(() => {
-    if (newDMCreated) {
-      const chat = chats.find(
-        (chat: Chat) =>
-          chat.participants.length === 2 &&
-          chat.participants.some(
-            (participant) => participant._id === newDMCreated,
-          ) &&
-          chat.participants.some(
-            (participant) => participant._id === currentUser._id,
-          ),
-      );
-      if (chat) {
-        setSelectedChat(chat);
-        setActiveScreen("chat");
-      }
+    if (!newDMCreated) return;
+
+    const chat = chats.find((chat) => {
+      if (chat.participants.length !== 2) return false;
+      const ids = chat.participants.map((p) => p._id);
+      return ids.includes(newDMCreated) && ids.includes(currentUser._id);
+    });
+
+    if (chat) {
+      handleSelectChat(chat);
+      setNewDMCreated(undefined);
     }
   }, [chats, newDMCreated, currentUser]);
 

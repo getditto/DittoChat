@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   List,
   AutoSizer,
@@ -25,12 +25,32 @@ const ChatList: React.FC<ChatListProps> = ({
   onNewMessage,
   selectedChatId,
 }) => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<List | null>(null);
   const users = useDittoChatStore((state) => state.allUsers);
   const currentUserId = useDittoChatStore((state) => state.chatUser?._id);
 
   // search state moved outside for brevity - keep your useState if needed
   const [searchTerm, setSearchTerm] = React.useState("");
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleNewRoom = () => {
+    console.log("New Room feature is not yet implemented.", "info");
+    setIsDropdownOpen(false);
+  };
 
   const filteredChats = useMemo(
     () =>
@@ -88,12 +108,44 @@ const ChatList: React.FC<ChatListProps> = ({
         <h1 className="text-xl font-semibold">Chats</h1>
       </header>
       <div className="p-4 space-y-4">
-        <button
-          onClick={onNewMessage}
-          className="w-full bg-(--primary-color) text-(--text-on-primary) font-semibold py-3 rounded-xl hover:bg-(--primary-color-hover) transition-colors"
-        >
-          New Message
-        </button>
+        <div className="relative w-full" ref={dropdownRef}>
+          <div className="flex w-full rounded-lg shadow-sm">
+            <button
+              onClick={onNewMessage}
+              className="w-full bg-(--primary-color) text-(--text-on-primary) font-semibold py-3 rounded-l-xl hover:bg-(--primary-color-hover) transition-colors"
+            >
+              New Message
+            </button>
+            <button
+              onClick={() => setIsDropdownOpen((prev) => !prev)}
+              aria-haspopup="true"
+              aria-expanded={isDropdownOpen}
+              className="relative inline-flex items-center px-3 py-3 bg-(--primary-color) rounded-r-xl text-(--text-on-primary) hover:bg-(--primary-color-hover) focus:z-10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-(--primary-color-focus) border-l border-white/20 transition-colors"
+            >
+              <span className="sr-only">Open options</span>
+              <Icons.chevronDown className="h-5 w-5" aria-hidden="true" />
+            </button>
+          </div>
+          {isDropdownOpen && (
+            <div className="origin-top absolute mt-2 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+              <div
+                className="py-1"
+                role="menu"
+                aria-orientation="vertical"
+                aria-labelledby="options-menu"
+              >
+                <button
+                  onClick={handleNewRoom}
+                  className="block w-full text-left px-4 py-2 text-sm text-[rgb(var(--text-color-medium))] hover:bg-[rgb(var(--secondary-bg))]"
+                  role="menuitem"
+                >
+                  New Room
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className="relative">
           <Icons.search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-(--text-color-faint)" />
           <input
