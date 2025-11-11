@@ -15,7 +15,7 @@ import { MeasuredCellParent } from "react-virtualized/dist/es/CellMeasurer";
 interface ChatListProps {
   chats: Chat[];
   onSelectChat: (chat: Chat) => void;
-  onNewMessage: () => void;
+  onNewMessage: (messageType: "newMessage" | "newRoom") => void;
   selectedChatId: number | string | null;
 }
 
@@ -46,11 +46,6 @@ const ChatList: React.FC<ChatListProps> = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const handleNewRoom = () => {
-    console.log("New Room feature is not yet implemented.", "info");
-    setIsDropdownOpen(false);
-  };
 
   const filteredChats = useMemo(
     () =>
@@ -111,7 +106,7 @@ const ChatList: React.FC<ChatListProps> = ({
         <div className="relative w-full" ref={dropdownRef}>
           <div className="flex w-full rounded-lg shadow-sm">
             <button
-              onClick={onNewMessage}
+              onClick={() => onNewMessage("newMessage")}
               className="w-full bg-(--primary-color) text-(--text-on-primary) font-semibold py-3 rounded-l-xl hover:bg-(--primary-color-hover) transition-colors"
             >
               New Message
@@ -135,7 +130,10 @@ const ChatList: React.FC<ChatListProps> = ({
                 aria-labelledby="options-menu"
               >
                 <button
-                  onClick={handleNewRoom}
+                  onClick={() => {
+                    onNewMessage("newRoom");
+                    setIsDropdownOpen(false);
+                  }}
                   className="block w-full text-left px-4 py-2 text-sm text-[rgb(var(--text-color-medium))] hover:bg-[rgb(var(--secondary-bg))]"
                   role="menuitem"
                 >
