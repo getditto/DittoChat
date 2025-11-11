@@ -278,31 +278,36 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       if (!ditto) return;
       try {
         if (type === "image") {
-          // Remove image tokens, set text to deleted, and mark as deleted
+          // Remove image tokens, set text to deleted message placeholder, and mark as deleted
           const query = `UPDATE ${room.messagesId}
             SET thumbnailImageToken = null,
                 largeImageToken = null,
+                text = :text,
                 isDeleted = :isDeleted
             WHERE _id = :id`;
           await ditto.store.execute(query, {
             id: message._id,
+            text: "[deleted image]",
             isDeleted: true,
           });
         } else if (type === "file") {
-          // Remove file token, set as deleted
+          // Remove file token, set text to deleted file placeholder, and mark as deleted
           const query = `UPDATE ${room.messagesId}
             SET fileAttachmentToken = null,
+                text = :text,
                 isDeleted = :isDeleted
             WHERE _id = :id`;
           await ditto.store.execute(query, {
             id: message._id,
+            text: "[deleted file]",
             isDeleted: true,
           });
         } else {
           // Mark text message as deleted
-          const query = `UPDATE ${room.messagesId} SET isDeleted = :isDeleted WHERE _id = :id`;
+          const query = `UPDATE ${room.messagesId} SET text = :text, isDeleted = :isDeleted WHERE _id = :id`;
           await ditto.store.execute(query, {
             id: message._id,
+            text: "[deleted message]",
             isDeleted: true,
           });
         }
