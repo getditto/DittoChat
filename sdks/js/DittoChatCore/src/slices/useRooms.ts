@@ -1,8 +1,9 @@
-import { StoreObserver, SyncSubscription } from "@dittolive/ditto";
+import { Ditto, StoreObserver, SyncSubscription } from "@dittolive/ditto";
 import Room from "../types/Room";
 import ChatUser from "../types/ChatUser";
 import { ChatStore, CreateSlice, DittoConfParams } from "../useChat";
 import { produce } from "immer";
+import { v4 as uuidv4 } from "uuid";
 
 export interface RoomSlice {
   rooms: Room[];
@@ -11,8 +12,8 @@ export interface RoomSlice {
   roomsSubscription: SyncSubscription | null;
   dmRoomsObserver: StoreObserver | null;
   dmRoomsSubscription: SyncSubscription | null;
-  createRoom: (name: string) => Promise<void>;
-  createDMRoom: (user: ChatUser) => Promise<any>;
+  createRoom: (name: string) => Promise<void | Room>;
+  createDMRoom: (user: ChatUser) => Promise<void | Room>;
 }
 
 function saveRoomsToStore(_set: any, rooms: Room[]) {
@@ -28,6 +29,46 @@ function saveRoomsToStore(_set: any, rooms: Room[]) {
   });
 }
 
+async function createRoomBase({
+  ditto,
+  chatUser,
+  name,
+  collectionId,
+  messagesId,
+  participants = [],
+}: {
+  ditto: Ditto | null;
+  chatUser: ChatUser;
+  name: string;
+  collectionId: "rooms" | "dm_rooms";
+  messagesId: "messages" | "dm_messages";
+  participants?: string[];
+}) {
+  if (!ditto) return;
+
+  try {
+    const id = uuidv4();
+
+    const room: Record<string, any> = {
+      _id: id,
+      name,
+      messagesId,
+      collectionId,
+      isGenerated: false,
+      createdBy: chatUser?._id,
+      createdOn: new Date(),
+      ...(participants.length ? { participants } : {}),
+    };
+
+    const query = `INSERT INTO \`${collectionId}\` DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE`;
+    await ditto.store.execute(query, { newDoc: room });
+
+    return room as Room;
+  } catch (error) {
+    console.error(`Error creating ${collectionId}:`, error);
+  }
+}
+
 export const createRoomSlice: CreateSlice<RoomSlice> = (
   _set,
   _get,
@@ -40,51 +81,28 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
     roomsSubscription: null,
     dmRoomsObserver: null,
     dmRoomsSubscription: null,
-    createRoom: async (name: string) => {
-      if (!ditto) return Promise.resolve();
-      try {
-        const chatUser = _get().chatUser;
-        const room = {
-          name: name,
-          messagesId: "messages",
-          collectionId: "rooms",
-          isGenerated: false,
-          createdBy: chatUser?._id,
-          createdOn: new Date(),
-        } as Record<string, any>;
 
-        let query =
-          "INSERT INTO `rooms` DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE";
-
-        await ditto.store.execute(query, { newDoc: room });
-      } catch (error) {
-        console.error("Error creating room:", error);
-      }
+    createRoom(name: string) {
+      const chatUser = _get().chatUser;
+      return createRoomBase({
+        ditto,
+        chatUser,
+        name,
+        collectionId: "rooms",
+        messagesId: "messages",
+      });
     },
 
-    createDMRoom: async (dmUser: ChatUser) => {
-      if (!ditto) return Promise.resolve();
-      try {
-        const chatUser = _get().chatUser;
-        const room = {
-          name: `${chatUser?.name} & ${dmUser.name}`,
-          messagesId: "dm_messages",
-          collectionId: "dm_rooms",
-          isGenerated: false,
-          createdBy: chatUser?._id,
-          createdOn: new Date(),
-          participants: [chatUser?._id, dmUser._id],
-        } as Record<string, any>;
-
-        let query =
-          "INSERT INTO `dm_rooms` DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE";
-
-        const result = await ditto.store.execute(query, { newDoc: room });
-        console.log("new room created", result);
-        return result;
-      } catch (error) {
-        console.error("Error creating room:", error);
-      }
+    createDMRoom(dmUser: ChatUser) {
+      const chatUser = _get().chatUser;
+      return createRoomBase({
+        ditto,
+        chatUser,
+        name: `${chatUser?.name} & ${dmUser.name}`,
+        collectionId: "dm_rooms",
+        messagesId: "dm_messages",
+        participants: [chatUser?._id, dmUser._id],
+      });
     },
   };
 
