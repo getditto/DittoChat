@@ -45,10 +45,13 @@ export default function DittoChatUI({
 
   const latestMessages = useDittoChatStore((state) => {
     const roomKeys = Object.keys(state.messagesByRoom);
-    const latestMessages: Message[] = roomKeys.map((key) => {
-      const messages = state.messagesByRoom[key];
-      return messages[messages.length - 1].message;
-    });
+    const latestMessages: Message[] = roomKeys
+      .map((key) => {
+        const messages = state.messagesByRoom[key];
+        if (!messages || messages.length === 0) return null;
+        return messages[messages.length - 1].message;
+      })
+      .filter((msg): msg is Message => msg !== null);
     const sortedMessages = latestMessages.sort(
       (a, b) =>
         new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime(),

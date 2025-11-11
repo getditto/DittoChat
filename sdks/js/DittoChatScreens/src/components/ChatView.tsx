@@ -32,6 +32,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
   const fetchAttachment = useDittoChatStore((state) => state.fetchAttachment);
   const saveEditedTextMessage = useDittoChatStore((state) => state.saveEditedTextMessage);
   const saveDeletedImageMessage = useDittoChatStore((state) => state.saveDeletedImageMessage);
+  const createFileMessage = useDittoChatStore((state) => state.createFileMessage);
 
   const rooms = useDittoChatStore((state) => state.rooms) as Room[];
   const room = (rooms || []).find((room) => room._id === chat.id);
@@ -64,9 +65,15 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
     const msgObj = messages.find((m) => m.id === String(messageId));
     if (!msgObj) return;
     const msg = msgObj.message;
-    // If message has image tokens, treat as image delete
-    const isImage = !!msg.thumbnailImageToken || !!msg.largeImageToken;
-    await saveDeletedImageMessage(msg, room, isImage ? "image" : "text");
+    // If message has file token, treat as file delete
+    console.log("Delete message:", msg);
+    if (msg.fileAttachmentToken) {
+      await saveDeletedImageMessage(msg, room, "file");
+    } else {
+      // If message has image tokens, treat as image delete
+      const isImage = !!msg.thumbnailImageToken || !!msg.largeImageToken;
+      await saveDeletedImageMessage(msg, room, isImage ? "image" : "text");
+    }
   };
 
   let chatName = chat.name;
@@ -133,6 +140,9 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
         }}
         onSendImage={(file, caption) => {
           createImageMessage(room, file, caption).catch(console.error);
+        }}
+        onSendFile={(file, caption) => {
+          createFileMessage(room, file, caption).catch(console.error);
         }}
         editingMessage={editingMessage}
         onCancelEdit={handleCancelEdit}

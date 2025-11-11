@@ -7,6 +7,7 @@ import ChatUser from "dittochatcore/dist/types/ChatUser";
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
   onSendImage?: (file: File, caption?: string) => void;
+  onSendFile?: (file: File, caption?: string) => void;
   editingMessage: Message | null;
   onCancelEdit: () => void;
   onSaveEdit: (messageId: string, newContent: string) => void;
@@ -15,6 +16,7 @@ interface MessageInputProps {
 const MessageInput: React.FC<MessageInputProps> = ({
   onSendMessage,
   onSendImage,
+  onSendFile,
   editingMessage,
   onCancelEdit,
   onSaveEdit,
@@ -32,6 +34,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
   const attachMenuRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const documentFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (editingMessage) {
@@ -217,6 +220,19 @@ const MessageInput: React.FC<MessageInputProps> = ({
                 }
               }}
             />
+            <input
+              type="file"
+              ref={documentFileInputRef} 
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file && onSendFile) {
+                  onSendFile(file, text.trim() || undefined);
+                  setText("");
+                  setIsAttachMenuOpen(false);
+                }
+              }}
+            />
             <button
               onClick={() => fileInputRef.current?.click()}
               className="w-full text-left px-4 py-2 text-sm hover:bg-[rgb(var(--secondary-bg))] flex items-center space-x-3"
@@ -224,7 +240,10 @@ const MessageInput: React.FC<MessageInputProps> = ({
               <Icons.image className="w-5 h-5 text-[rgb(var(--text-color-lightest))]" />
               <span>Photo</span>
             </button>
-            <button className="w-full text-left px-4 py-2 text-sm hover:bg-(--secondary-bg) flex items-center space-x-3">
+            <button
+              onClick={() => documentFileInputRef.current?.click()} 
+              className="w-full text-left px-4 py-2 text-sm hover:bg-(--secondary-bg) flex items-center space-x-3"
+            >
               <Icons.fileText className="w-5 h-5 text-(--text-color-lightest)" />
               <span>File</span>
             </button>

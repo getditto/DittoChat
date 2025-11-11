@@ -20,10 +20,15 @@ export interface MessageSlice {
   messagePublisher: (messageId: string, collectionId: string) => Promise<void>;
   createMessage: (room: Room, text: string) => Promise<void>;
   saveEditedTextMessage: (message: Message, room: Room) => Promise<void>;
-  saveDeletedImageMessage: (message: Message, room: Room, type?: "text" | "image") => Promise<void>;
+  saveDeletedImageMessage: (message: Message, room: Room, type?: "text" | "image" | "file") => Promise<void>;
   createImageMessage: (
     room: Room,
     imageFile: File,
+    text?: string
+  ) => Promise<void>;
+  createFileMessage: (
+    room: Room,
+    file: File,
     text?: string
   ) => Promise<void>;
   fetchAttachment: (
@@ -72,7 +77,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         Date.now() - retentionDaysValue * 24 * 60 * 60 * 1000
       );
 
-      const query = `SELECT * FROM COLLECTION ${collectionId} (thumbnailImageToken ATTACHMENT, largeImageToken ATTACHMENT)
+      const query = `SELECT * FROM COLLECTION ${collectionId} (thumbnailImageToken ATTACHMENT, largeImageToken ATTACHMENT, fileAttachmentToken ATTACHMENT)
         WHERE roomId = :roomId
         AND createdOn >= :date
         ORDER BY createdOn ASC`;
@@ -96,31 +101,38 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
               MessageWithUser[]
             >;
             const existingMessages = messagesByRoom[roomId] || [];
-            for (const item of result.items) {
-              const message = item.value as Message;
-              const isExists = existingMessages.find(
-                (m) => m.id === message._id
-              );
-              if (!isExists) {
-                const user = allUsers.find(
-                  (u: ChatUser) => u._id === message.userId
-                );
-                // TODO: Edit and Delete messages need to be handled
-                _set((state: ChatStore) => {
-                  return produce(state, (draft) => {
-                    if (!draft.messagesByRoom[roomId]) {
-                      draft.messagesByRoom[roomId] = [];
-                    }
-                    draft.messagesByRoom[roomId].push({
+            
+            _set((state: ChatStore) => {
+              return produce(state, (draft) => {
+                if (!draft.messagesByRoom[roomId]) {
+                  draft.messagesByRoom[roomId] = [];
+                }
+
+                for (const item of result.items) {
+                  const message = item.value as Message;
+                  const existingIndex = draft.messagesByRoom[roomId]!.findIndex(
+                    (m) => m.id === message._id
+                  );
+
+                  if (existingIndex === -1) {
+                    // New message - add it
+                    const user = allUsers.find(
+                      (u: ChatUser) => u._id === message.userId
+                    );
+                    draft.messagesByRoom[roomId]!.push({
                       message,
                       user,
                       id: message._id,
                     });
-                    return draft;
-                  });
-                });
-              }
-            }
+                  } else {
+                    // Existing message - update it (handles edits and deletes)
+                    draft.messagesByRoom[roomId]![existingIndex].message = message;
+                  }
+                }
+
+                return draft;
+              });
+            });
           },
           args
         );
@@ -150,7 +162,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         return;
       }
 
-      const query = `SELECT * FROM COLLECTION ${collectionId} (thumbnailImageToken ATTACHMENT, largeImageToken ATTACHMENT) WHERE _id = :id`;
+  const query = `SELECT * FROM COLLECTION ${collectionId} (thumbnailImageToken ATTACHMENT, largeImageToken ATTACHMENT, fileAttachmentToken ATTACHMENT) WHERE _id = :id`;
       const args = { id: messageId };
 
       try {
@@ -235,6 +247,9 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
           archivedMessage: null,
           largeImageToken: null,
           thumbnailImageToken: null,
+          fileAttachmentToken: null,
+          isEdited: false,
+          isDeleted: false,
         };
 
         const query = `INSERT INTO ${messagesId} DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE`;
@@ -248,78 +263,49 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       if (!ditto) return;
 
       try {
-        const query = `UPDATE ${room.messagesId} SET text = :text WHERE _id = :id`;
+        const query = `UPDATE ${room.messagesId} SET text = :text, isEdited = :isEdited WHERE _id = :id`;
         await ditto.store.execute(query, {
           id: message._id,
           text: message.text,
-        });
-
-        _set((state: ChatStore) => {
-          const updatedMessages = (state.messagesByRoom[room._id] || []).map(
-            (m) =>
-              m.message._id === message._id
-                ? { ...m, message: { ...m.message, text: message.text } }
-                : m
-          );
-
-          return {
-            ...state,
-            messagesByRoom: {
-              ...state.messagesByRoom,
-              [room._id]: updatedMessages,
-            },
-          };
+          isEdited: true,
         });
       } catch (err) {
         console.error("Error in saveEditedTextMessage:", err);
       }
     },
 
-    async saveDeletedImageMessage(message: Message, room: Room, type?: "text" | "image") {
+  async saveDeletedImageMessage(message: Message, room: Room, type?: "text" | "image" | "file") {
       if (!ditto) return;
       try {
         if (type === "image") {
-          // Remove image tokens and set text to deleted
+          // Remove image tokens, set text to deleted, and mark as deleted
           const query = `UPDATE ${room.messagesId}
             SET thumbnailImageToken = null,
                 largeImageToken = null,
-                text = :text
+                isDeleted = :isDeleted
             WHERE _id = :id`;
           await ditto.store.execute(query, {
             id: message._id,
-            text: "[deleted image]",
+            isDeleted: true,
           });
-        } else {
-          // Only set text to deleted
-          const query = `UPDATE ${room.messagesId} SET text = :text WHERE _id = :id`;
+        } else if (type === "file") {
+          // Remove file token, set as deleted
+          const query = `UPDATE ${room.messagesId}
+            SET fileAttachmentToken = null,
+                isDeleted = :isDeleted
+            WHERE _id = :id`;
           await ditto.store.execute(query, {
             id: message._id,
-            text: "[deleted message]",
+            isDeleted: true,
+          });
+        } else {
+          // Mark text message as deleted
+          const query = `UPDATE ${room.messagesId} SET isDeleted = :isDeleted WHERE _id = :id`;
+          await ditto.store.execute(query, {
+            id: message._id,
+            isDeleted: true,
           });
         }
-        _set((state: ChatStore) => {
-          const updatedMessages = (state.messagesByRoom[room._id] || []).map(
-            (m) =>
-              m.message._id === message._id
-                ? {
-                    ...m,
-                    message: {
-                      ...m.message,
-                      text: type === "image" ? "[deleted image]" : "[deleted message]",
-                      thumbnailImageToken: type === "image" ? undefined : m.message.thumbnailImageToken,
-                      largeImageToken: type === "image" ? undefined : m.message.largeImageToken,
-                    },
-                  }
-                : m
-          );
-          return {
-            ...state,
-            messagesByRoom: {
-              ...state.messagesByRoom,
-              [room._id]: updatedMessages,
-            },
-          };
-        });
       } catch (err) {
         console.error("Error in saveDeletedImageMessage:", err);
       }
@@ -389,8 +375,11 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
           text: text || "",
           thumbnailImageToken: thumbnailAttachment,
           largeImageToken: largeAttachment,
+          fileAttachmentToken: null,
           isArchived: false,
           archivedMessage: null,
+          isEdited: false,
+          isDeleted: false,
         };
 
         console.log("Inserting message with both tokens:", newDoc);
@@ -407,6 +396,80 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         throw err;
       }
     },
+
+    async createFileMessage(room: Room, file: File, text?: string) {
+      if (!ditto) throw new Error("Ditto not initialized");
+      if (!userId) throw new Error("User ID not found");
+
+      try {
+        // Get current user info
+        const currentUserResult = await ditto.store.execute(
+          `SELECT * FROM ${userCollectionKey} WHERE _id = :id`,
+          { id: userId }
+        );
+        const userValue = currentUserResult.items?.[0]?.value;
+        const fullName = userValue?.name ?? userId;
+
+        // Get room info
+        const roomResult = await ditto.store.execute(
+          `SELECT * FROM ${room.collectionId || "rooms"} WHERE _id = :id`,
+          { id: room._id }
+        );
+
+        if (roomResult.items.length === 0) {
+          throw new Error("Room not found");
+        }
+
+        const actualRoom = roomResult.items[0].value as Room;
+        const messagesId = actualRoom.messagesId;
+
+        // Generate unique document ID
+        const docId =
+          globalThis.crypto?.randomUUID?.() ??
+          Math.random().toString(16).slice(2) +
+            Math.random().toString(16).slice(2);
+
+        // Create file attachment
+        console.log("Creating file attachment...");
+        const fileData = new Uint8Array(await file.arrayBuffer());
+        const fileAttachment = await ditto.store.newAttachment(
+          fileData,
+          createAttachmentMetadata(userId, fullName, "file", file)
+        );
+
+        // Now create the message document with file token
+        const now = new Date();
+        const nowIso = now.toISOString();
+        const newDoc: Record<string, any> = {
+          _id: docId,
+          createdOn: nowIso,
+          roomId: room._id,
+          userId,
+          text: text || file.name, // Use filename as default text if no text provided
+          fileAttachmentToken: fileAttachment,
+          thumbnailImageToken: null,
+          largeImageToken: null,
+          isArchived: false,
+          archivedMessage: null,
+          isEdited: false,
+          isDeleted: false,
+        };
+
+        console.log("Inserting message with file attachment:", newDoc);
+
+        // Insert the message with file attachment
+        await ditto.store.execute(
+          `INSERT INTO COLLECTION ${messagesId} (fileAttachmentToken ATTACHMENT) DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE`,
+          { newDoc }
+        );
+
+        console.log("File message created successfully");
+      } catch (err) {
+        console.error("Error in createFileMessage:", err);
+        throw err;
+      }
+    },
+
     fetchAttachment(token, onProgress, onComplete) {
       if (!ditto) {
         onComplete({
@@ -569,20 +632,22 @@ async function imageToBlob(
 function createAttachmentMetadata(
   userId: string,
   username: string,
-  type: "thumbnail" | "large",
+  type: "thumbnail" | "large" | "file",
   file: File
 ): Record<string, string> {
   const timestamp = new Date().toISOString();
   const cleanName = username.replace(/\s/g, "-");
   const cleanTimestamp = timestamp.replace(/:/g, "-");
-  const filename = `${cleanName}_${type}_${cleanTimestamp}.jpg`;
+  const fileExtension = type === "file" ? file.name.split(".").pop() || "bin" : "jpg";
+  const filename = `${cleanName}_${type}_${cleanTimestamp}.${fileExtension}`;
 
   return {
     filename: filename,
     userId: userId,
     username: username,
-    fileformat: ".jpg",
+    fileformat: type === "file" ? `.${fileExtension}` : ".jpg",
     filesize: file.size.toString(),
     timestamp: timestamp,
+    originalName: file.name,
   };
 }

@@ -130,7 +130,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
 
   const hasImage = message.thumbnailImageToken || message.largeImageToken;
-  const hasText = !!message.text && message.text.trim().length > 0;
+  const hasFile = !!message.fileAttachmentToken;
+  const hasText = !!message.text && message.text.trim().length > 0 && !hasFile;
 
   const imageError = thumbnailError || largeImageError;
 
@@ -194,12 +195,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           )}
           <span className="mr-1 text-sm">&#183;</span>
           <span>{formatDate(message.createdOn)}</span>
-          {/*// TODO: Implement message editing functionality*/}
-          {/*{message.edited && (
+          {message.isEdited && !message.isDeleted && (
             <span className="text-(--text-color-faint) text-xs ml-1">
               (edited)
             </span>
-          )}*/}
+          )}
         </div>
       )}
 
@@ -211,7 +211,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         >
           {hasImage && (
             <div className={`relative ${hasText ? "mb-1" : ""}`}>
-              {imageError ? (
+              {message.isDeleted ? (
+                <div className="flex items-center justify-center w-48 h-48 rounded-xl bg-[rgb(var(--secondary-bg-hover))]">
+                  <span className="italic text-(--text-color-faint)">[deleted image]</span>
+                </div>
+              ) : imageError ? (
                 <div className="flex items-center justify-center w-48 h-48 rounded-xl bg-[rgb(var(--secondary-bg-hover))] text-[rgb(var(--text-color-light))]">
                   <span>{imageError}</span>
                 </div>
@@ -250,13 +254,63 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             </div>
           )}
 
+          {hasFile && (
+            message.isDeleted ? (
+              <div className={`flex items-center gap-3 px-4 py-3 rounded-xl ${bubbleClasses} max-w-xs`}>
+                <span className="italic text-(--text-color-faint)">[deleted file]</span>
+              </div>
+            ) : (
+              <div className={`flex items-center gap-3 px-4 py-3 rounded-xl ${bubbleClasses} max-w-xs`}>
+                <div className="flex-shrink-0 p-2 bg-(--secondary-bg-hover) rounded-lg">
+                  <Icons.fileText className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate text-sm">
+                    {message.text || "File attachment"}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    if (fetchAttachment && message.fileAttachmentToken) {
+                      fetchAttachment(
+                        message.fileAttachmentToken as any,
+                        () => { },
+                        (result) => {
+                          if (result.success && result.data) {
+                            const blob = new Blob([new Uint8Array(result.data)], { type: "application/octet-stream" });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement("a");
+                            a.href = url;
+                            a.download = message.text || "download";
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                          }
+                        }
+                      );
+                    }
+                  }}
+                  className="p-1.5 hover:bg-(--secondary-bg-hover) rounded-md transition-colors flex-shrink-0"
+                  aria-label="Download file"
+                >
+                  <Icons.arrowDown className="w-4 h-4" />
+                </button>
+              </div>
+            )
+          )}
+
           {hasText && (
             <div className={`px-4 py-2 rounded-xl ${bubbleClasses}`}>
               <p className="break-words">
-                <FormattedMessage
-                  content={message.text!}
-                  isOwn={isOwnMessage}
-                />
+                {message.isDeleted ? (
+                  <span className="italic text-(--text-color-faint)">[deleted message]</span>
+                ) : (
+                  <FormattedMessage
+                    content={message.text!}
+                    isOwn={isOwnMessage}
+                  />
+                )}
               </p>
             </div>
           )}
@@ -264,9 +318,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
         {isOwnMessage && (
           <div
-            className={`relative flex items-center transition-opacity duration-200 ${
-              isActionsVisible ? "opacity-100" : "opacity-0"
-            }`}
+            className={`relative flex items-center transition-opacity duration-200 ${isActionsVisible ? "opacity-100" : "opacity-0"
+              }`}
           >
             <div className="relative">
               {isEmojiPickerOpen && (

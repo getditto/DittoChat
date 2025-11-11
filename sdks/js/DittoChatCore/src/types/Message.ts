@@ -8,7 +8,10 @@ export default interface Message {
   userId: string;
   largeImageToken?: Attachment | Record<string, any>;
   thumbnailImageToken?: Attachment | Record<string, any>;
+  fileAttachmentToken?: Attachment | Record<string, any>;
 
   archivedMessage?: string;
   isArchived: boolean;
+  isEdited?: boolean;
+  isDeleted?: boolean;
 }
