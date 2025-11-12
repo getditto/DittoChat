@@ -1,4 +1,5 @@
 import React from "react";
+import { useDittoChatStore } from "dittochatcore";
 import type { Chat } from "../types";
 import type ChatUser from "dittochatcore/dist/types/ChatUser";
 import { formatDate } from "../utils";
@@ -41,6 +42,34 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
     lastMessage?.userId === currentUserId
       ? "You"
       : lastMessageSender?.name.split(" ")[0];
+  const chatUser = useDittoChatStore((state) => state.chatUser);
+  const messagesForRoom = useDittoChatStore((state: any) => state.messagesByRoom?.[String(chat.id)] || []);
+
+  // Only show unread badges for rooms the user explicitly subscribed to
+  const isSubscribed = !!(chatUser?.subscriptions && String(chat.id) in chatUser.subscriptions);
+
+
+  const subscribedAt = chatUser?.subscriptions?.[String(chat.id)];
+  const lastCreated = lastMessage ? new Date(lastMessage.createdOn) : null;
+
+  const unread = Boolean(
+    isSubscribed &&
+    lastMessage &&
+    lastMessage.userId !== currentUserId &&
+    (!subscribedAt || (lastCreated && new Date(String(subscribedAt)) < lastCreated))
+  );
+
+  const unreadCount = (() => {
+    if (!isSubscribed || !messagesForRoom || messagesForRoom.length === 0) return 0;
+    if (!subscribedAt) return messagesForRoom.length;
+    const since = new Date(String(subscribedAt));
+    return messagesForRoom.reduce((acc: number, m: any) => {
+      const msg = m?.message || m; 
+      if (msg.userId === currentUserId) return acc;
+      const msgDate = new Date(msg.createdOn);
+      return msgDate > since ? acc + 1 : acc;
+    }, 0);
+  })();
 
   return (
     <button
@@ -54,8 +83,10 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
     >
       <div className="relative -top-4">
         <Avatar isUser={chat.type === "dm"} />
-        {chat.unread && (
-          <span className="absolute -top-0.5 -right-0.5 block h-3 w-3 rounded-full bg-(--notification-badge-bg) border-2 border-white"></span>
+        {unread && (
+          <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1.5 text-xs flex items-center justify-center rounded-full bg-(--notification-badge-bg) border-2 border-white">
+            {unreadCount > 0 ? unreadCount : null}
+          </span>
         )}
         {otherUserIsActive && (
           <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-(--active-status-bg) border-2 border-white"></span>

@@ -18,12 +18,15 @@ export interface ChatUserSlice {
   addUser: (user: Omit<ChatUser, "_id"> & { _id?: string }) => Promise<void>;
   updateUser: (user: Partial<ChatUser> & { _id: string }) => Promise<void>;
   findUserById: (userId: string) => Promise<ChatUser | null>;
+  subscribeToRoom: (roomId: string) => Promise<void>;
+  markRoomAsRead: (roomId: string) => Promise<void>;
+  unsubscribeFromRoom: (roomId: string) => Promise<void>;
 }
 
 export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
   _set,
   _get,
-  { ditto, userId, userCollectionKey }: DittoConfParams,
+  { ditto, userId, userCollectionKey }: DittoConfParams
 ) => {
   const store: ChatUserSlice = {
     chatUser: null,
@@ -38,7 +41,7 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
         const doc: Record<string, any> = { ...user };
         await ditto.store.execute(
           `INSERT INTO ${userCollectionKey} DOCUMENTS (:newUser) ON ID CONFLICT DO UPDATE`,
-          { newUser: doc },
+          { newUser: doc }
         );
       } catch (err) {
         console.error("Error in addUser:", err);
@@ -54,7 +57,7 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
         const updated = { ...current, ...patch };
         await ditto.store.execute(
           `INSERT INTO ${userCollectionKey} DOCUMENTS (:newUser) ON ID CONFLICT DO UPDATE`,
-          { newUser: updated },
+          { newUser: updated }
         );
       } catch (err) {
         console.error("Error in updateUser:", err);
@@ -65,13 +68,62 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
       try {
         const result = await ditto.store.execute(
           `SELECT * FROM ${userCollectionKey} WHERE _id = :id`,
-          { id: userId },
+          { id: userId }
         );
         const userVal = result.items?.[0]?.value;
         return userVal ? (userVal as ChatUser) : null;
       } catch (err) {
         console.error("Error in findUserById:", err);
         return null;
+      }
+    },
+
+    async subscribeToRoom(roomId: string) {
+      if (!ditto || !userId) return;
+      try {
+        const user = await _get().findUserById(userId);
+        if (!user) return;
+
+        // Only subscribe if not already subscribed
+        if (!user.subscriptions || !user.subscriptions[roomId]) {
+          const now = new Date().toISOString();
+          const subscriptions = { ...user.subscriptions, [roomId]: now };
+          await _get().updateUser({ _id: userId, subscriptions });
+        }
+      } catch (err) {
+        console.error("Error in subscribeToRoom:", err);
+      }
+    },
+
+    async markRoomAsRead(roomId: string) {
+      if (!ditto || !userId) return;
+      try {
+        const user = await _get().findUserById(userId);
+        if (!user) return;
+
+        // Only mark as read if already subscribed
+        if (user.subscriptions && user.subscriptions[roomId]) {
+          const now = new Date().toISOString();
+          const subscriptions = { ...user.subscriptions, [roomId]: now };
+          await _get().updateUser({ _id: userId, subscriptions });
+        }
+      } catch (err) {
+        console.error("Error in markRoomAsRead:", err);
+      }
+    },
+
+    // Add an unsubscribe function as well
+    async unsubscribeFromRoom(roomId: string) {
+      if (!ditto || !userId) return;
+      try {
+        const user = await _get().findUserById(userId);
+        if (!user || !user.subscriptions) return;
+
+        const subscriptions = { ...user.subscriptions };
+        delete subscriptions[roomId];
+        await _get().updateUser({ _id: userId, subscriptions });
+      } catch (err) {
+        console.error("Error in unsubscribeFromRoom:", err);
       }
     },
   };
@@ -85,7 +137,7 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
 
     store.userSubscription = ditto.sync.registerSubscription(
       userQuery,
-      queryParams,
+      queryParams
     );
 
     store.userObserver = ditto.store.registerObserver(
@@ -93,7 +145,7 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
       (result) => {
         _set({ chatUser: (result.items?.[0]?.value as ChatUser) || null });
       },
-      queryParams,
+      queryParams
     );
 
     // All Users: allUsersPublisher()
@@ -103,7 +155,7 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
       allUsersQuery,
       (result) => {
         _set({ allUsers: result.items.map((doc) => doc.value as ChatUser) });
-      },
+      }
     );
   }
 
