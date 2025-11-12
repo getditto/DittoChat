@@ -33,8 +33,8 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
   const saveEditedTextMessage = useDittoChatStore((state) => state.saveEditedTextMessage);
   const saveDeletedImageMessage = useDittoChatStore((state) => state.saveDeletedImageMessage);
   const createFileMessage = useDittoChatStore((state) => state.createFileMessage);
-  const subscribeToRoom = useDittoChatStore((state: any) => state.subscribeToRoom as ((roomId: string) => Promise<void>) | undefined);
-  const markRoomAsRead = useDittoChatStore((state: any) => state.markRoomAsRead as ((roomId: string) => Promise<void>) | undefined);
+  // const subscribeToRoom = useDittoChatStore((state: any) => state.subscribeToRoom as ((roomId: string) => Promise<void>) | undefined);
+  // const markRoomAsRead = useDittoChatStore((state: any) => state.markRoomAsRead as ((roomId: string) => Promise<void>) | undefined);
   const chatUser = useDittoChatStore((state: any) => state.chatUser as any);
 
   const rooms = useDittoChatStore((state) => state.rooms) as Room[];
@@ -48,12 +48,12 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
     scrollToBottom();
   }, [chat.messages]);
 
-  // When the user opens/views the room, mark it as read (update subscription timestamp)
-  useEffect(() => {
-    if (room && markRoomAsRead && chatUser?.subscriptions && room._id in chatUser.subscriptions) {
-      markRoomAsRead(room._id).catch(console.error);
-    }
-  }, [room, markRoomAsRead, chatUser]);
+  // TODO: When the user opens/views the room, mark it as read (update subscription timestamp)
+  // useEffect(() => {
+  //   if (room && markRoomAsRead && chatUser?.subscriptions && room._id in chatUser.subscriptions) {
+  //     markRoomAsRead(room._id).catch(console.error);
+  //   }
+  // }, [room, markRoomAsRead, chatUser]);
 
   const handleStartEdit = (message: Message) => {
     setEditingMessage(message);
@@ -115,7 +115,9 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
             )}
           </div>
           <h2 className="text-xl font-semibold">{chatName}</h2>
-          {room && chatUser && (
+
+          {/* TODO: Subscribe button */}
+          {/* {room && chatUser && (
             <button
               onClick={() => {
                 if (subscribeToRoom) subscribeToRoom(room._id).catch(console.error);
@@ -123,7 +125,8 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
               className="ml-3 text-sm px-2 py-1 border rounded text-(--text-color-light)">
               {chatUser?.subscriptions && room._id in chatUser.subscriptions ? "Subscribed" : "Subscribe"}
             </button>
-          )}
+          )} */}
+
         </div>
       </header>
       <div className="flex-1 overflow-y-auto p-4 space-y-4">

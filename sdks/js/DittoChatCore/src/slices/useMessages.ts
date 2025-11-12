@@ -20,17 +20,17 @@ export interface MessageSlice {
   messagePublisher: (messageId: string, collectionId: string) => Promise<void>;
   createMessage: (room: Room, text: string) => Promise<void>;
   saveEditedTextMessage: (message: Message, room: Room) => Promise<void>;
-  saveDeletedImageMessage: (message: Message, room: Room, type?: "text" | "image" | "file") => Promise<void>;
+  saveDeletedImageMessage: (
+    message: Message,
+    room: Room,
+    type?: "text" | "image" | "file"
+  ) => Promise<void>;
   createImageMessage: (
     room: Room,
     imageFile: File,
     text?: string
   ) => Promise<void>;
-  createFileMessage: (
-    room: Room,
-    file: File,
-    text?: string
-  ) => Promise<void>;
+  createFileMessage: (room: Room, file: File, text?: string) => Promise<void>;
   fetchAttachment: (
     token: any,
     onProgress: (progress: number) => void,
@@ -41,7 +41,6 @@ export interface MessageSlice {
       error?: Error;
     }) => void
   ) => void;
-
 }
 
 interface ChatRetentionPolicy {
@@ -80,6 +79,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       const query = `SELECT * FROM COLLECTION ${collectionId} (thumbnailImageToken ATTACHMENT, largeImageToken ATTACHMENT, fileAttachmentToken ATTACHMENT)
         WHERE roomId = :roomId
         AND createdOn >= :date
+        AND isArchived = false
         ORDER BY createdOn ASC`;
 
       const args = {
@@ -100,8 +100,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
               string,
               MessageWithUser[]
             >;
-            const existingMessages = messagesByRoom[roomId] || [];
-            
+
             _set((state: ChatStore) => {
               return produce(state, (draft) => {
                 if (!draft.messagesByRoom[roomId]) {
@@ -110,23 +109,51 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
                 for (const item of result.items) {
                   const message = item.value as Message;
+
+                  // First check if this message already exists in the list
                   const existingIndex = draft.messagesByRoom[roomId]!.findIndex(
                     (m) => m.id === message._id
                   );
 
-                  if (existingIndex === -1) {
-                    // New message - add it
-                    const user = allUsers.find(
-                      (u: ChatUser) => u._id === message.userId
-                    );
-                    draft.messagesByRoom[roomId]!.push({
-                      message,
-                      user,
-                      id: message._id,
-                    });
+                  const user = allUsers.find(
+                    (u: ChatUser) => u._id === message.userId
+                  );
+
+                  const messageWithUser = {
+                    message,
+                    user,
+                    id: message._id,
+                  };
+
+                  // Check if this is an edited message (has archivedMessage)
+                  if (message.archivedMessage) {
+                    // Find the original message's position by its ID
+                    const originalIndex = draft.messagesByRoom[
+                      roomId
+                    ]!.findIndex((m) => m.id === message.archivedMessage);
+
+                    if (originalIndex !== -1) {
+                      // Replace the original message at its position with the edited one
+                      draft.messagesByRoom[roomId]![originalIndex] =
+                        messageWithUser;
+                    } else if (existingIndex === -1) {
+                      // Original not found and this edited message doesn't exist yet - add it
+                      draft.messagesByRoom[roomId]!.push(messageWithUser);
+                    } else {
+                      // This edited message already exists - update it in place
+                      draft.messagesByRoom[roomId]![existingIndex] =
+                        messageWithUser;
+                    }
                   } else {
-                    // Existing message - update it (handles edits and deletes)
-                    draft.messagesByRoom[roomId]![existingIndex].message = message;
+                    // Regular message handling (not an edit)
+                    if (existingIndex === -1) {
+                      // New message - add it
+                      draft.messagesByRoom[roomId]!.push(messageWithUser);
+                    } else {
+                      // Existing message - update it (handles deletes and other updates)
+                      draft.messagesByRoom[roomId]![existingIndex] =
+                        messageWithUser;
+                    }
                   }
                 }
 
@@ -162,7 +189,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         return;
       }
 
-  const query = `SELECT * FROM COLLECTION ${collectionId} (thumbnailImageToken ATTACHMENT, largeImageToken ATTACHMENT, fileAttachmentToken ATTACHMENT) WHERE _id = :id`;
+      const query = `SELECT * FROM COLLECTION ${collectionId} (thumbnailImageToken ATTACHMENT, largeImageToken ATTACHMENT, fileAttachmentToken ATTACHMENT) WHERE _id = :id`;
       const args = { id: messageId };
 
       try {
@@ -208,7 +235,6 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       }
     },
 
-
     async createMessage(room: Room, text: string) {
       if (!ditto) return;
       if (!userId) return;
@@ -237,7 +263,6 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
         const now = new Date();
         const nowIso = now.toISOString();
-        const nowMs = Date.now();
         const newDoc: Record<string, any> = {
           roomId: room._id,
           text,
@@ -261,61 +286,143 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
     async saveEditedTextMessage(message: Message, room: Room) {
       if (!ditto) return;
+      if (!userId) return;
 
       try {
-        const query = `UPDATE ${room.messagesId} SET text = :text, isEdited = :isEdited WHERE _id = :id`;
-        await ditto.store.execute(query, {
+        // Archive the original message
+        const archiveQuery = `UPDATE ${room.messagesId} SET isArchived = :isArchived WHERE _id = :id`;
+        await ditto.store.execute(archiveQuery, {
           id: message._id,
+          isArchived: true,
+        });
+
+        // Create a new message with the edited text
+        const now = new Date();
+        const nowIso = now.toISOString();
+
+        const newDoc: Record<string, any> = {
+          roomId: room._id,
           text: message.text,
+          userId: userId,
+          createdOn: nowIso,
+          isArchived: false,
+          archivedMessage: message._id,
+          largeImageToken: message.largeImageToken || null,
+          thumbnailImageToken: message.thumbnailImageToken || null,
+          fileAttachmentToken: message.fileAttachmentToken || null,
           isEdited: true,
+          isDeleted: false,
+        };
+
+        const insertQuery = `INSERT INTO ${room.messagesId} DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE`;
+        await ditto.store.execute(insertQuery, { newDoc });
+
+        console.log("Edit audit trail created:", {
+          original: message._id,
+          edited: newDoc._id,
         });
       } catch (err) {
         console.error("Error in saveEditedTextMessage:", err);
+        throw err;
       }
     },
 
-  async saveDeletedImageMessage(message: Message, room: Room, type?: "text" | "image" | "file") {
+    // async saveDeletedImageMessage(message: Message, room: Room, type?: "text" | "image" | "file") {
+    //   if (!ditto) return;
+    //   try {
+    //     if (type === "image") {
+    //       // Remove image tokens, set text to deleted message placeholder, and mark as deleted
+    //       const query = `UPDATE ${room.messagesId}
+    //         SET thumbnailImageToken = null,
+    //             largeImageToken = null,
+    //             text = :text,
+    //             isDeleted = :isDeleted
+    //         WHERE _id = :id`;
+    //       await ditto.store.execute(query, {
+    //         id: message._id,
+    //         text: "[deleted image]",
+    //         isDeleted: true,
+    //       });
+    //     } else if (type === "file") {
+    //       // Remove file token, set text to deleted file placeholder, and mark as deleted
+    //       const query = `UPDATE ${room.messagesId}
+    //         SET fileAttachmentToken = null,
+    //             text = :text,
+    //             isDeleted = :isDeleted
+    //         WHERE _id = :id`;
+    //       await ditto.store.execute(query, {
+    //         id: message._id,
+    //         text: "[deleted file]",
+    //         isDeleted: true,
+    //       });
+    //     } else {
+    //       // Mark text message as deleted
+    //       const query = `UPDATE ${room.messagesId} SET text = :text, isDeleted = :isDeleted WHERE _id = :id`;
+    //       await ditto.store.execute(query, {
+    //         id: message._id,
+    //         text: "[deleted message]",
+    //         isDeleted: true,
+    //       });
+    //     }
+    //   } catch (err) {
+    //     console.error("Error in saveDeletedImageMessage:", err);
+    //   }
+    // },
+
+    async saveDeletedImageMessage(
+      message: Message,
+      room: Room,
+      type?: "text" | "image" | "file"
+    ) {
       if (!ditto) return;
+      if (!userId) return;
+
       try {
+        // Archive the original message (same as edit)
+        const archiveQuery = `UPDATE ${room.messagesId} SET isArchived = :isArchived WHERE _id = :id`;
+        await ditto.store.execute(archiveQuery, {
+          id: message._id,
+          isArchived: true,
+        });
+
+        // Create a new "deleted" message with the appropriate placeholder
+        const now = new Date();
+        const nowIso = now.toISOString();
+
+        let deletedText = "[deleted message]";
         if (type === "image") {
-          // Remove image tokens, set text to deleted message placeholder, and mark as deleted
-          const query = `UPDATE ${room.messagesId}
-            SET thumbnailImageToken = null,
-                largeImageToken = null,
-                text = :text,
-                isDeleted = :isDeleted
-            WHERE _id = :id`;
-          await ditto.store.execute(query, {
-            id: message._id,
-            text: "[deleted image]",
-            isDeleted: true,
-          });
+          deletedText = "[deleted image]";
         } else if (type === "file") {
-          // Remove file token, set text to deleted file placeholder, and mark as deleted
-          const query = `UPDATE ${room.messagesId}
-            SET fileAttachmentToken = null,
-                text = :text,
-                isDeleted = :isDeleted
-            WHERE _id = :id`;
-          await ditto.store.execute(query, {
-            id: message._id,
-            text: "[deleted file]",
-            isDeleted: true,
-          });
-        } else {
-          // Mark text message as deleted
-          const query = `UPDATE ${room.messagesId} SET text = :text, isDeleted = :isDeleted WHERE _id = :id`;
-          await ditto.store.execute(query, {
-            id: message._id,
-            text: "[deleted message]",
-            isDeleted: true,
-          });
+          deletedText = "[deleted file]";
         }
+
+        const newDoc: Record<string, any> = {
+          roomId: room._id,
+          text: deletedText,
+          userId: userId,
+          createdOn: nowIso,
+          isArchived: false,
+          archivedMessage: message._id, // Link to the original message
+          largeImageToken: null,
+          thumbnailImageToken: null,
+          fileAttachmentToken: null,
+          isEdited: false,
+          isDeleted: true, // Mark as deleted
+        };
+
+        const insertQuery = `INSERT INTO ${room.messagesId} DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE`;
+        await ditto.store.execute(insertQuery, { newDoc });
+
+        console.log("Delete audit trail created:", {
+          original: message._id,
+          deleted: newDoc._id,
+          type: type || "text",
+        });
       } catch (err) {
         console.error("Error in saveDeletedImageMessage:", err);
+        throw err;
       }
     },
-
     async createImageMessage(room: Room, imageFile: File, text?: string) {
       if (!ditto) throw new Error("Ditto not initialized");
       if (!userId) throw new Error("User ID not found");
@@ -371,7 +478,6 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         // Now create the message document with BOTH tokens
         const now = new Date();
         const nowIso = now.toISOString();
-        const nowMs = Date.now();
         const newDoc: Record<string, any> = {
           _id: docId,
           createdOn: nowIso,
@@ -450,7 +556,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
           createdOn: nowIso,
           roomId: room._id,
           userId,
-          text: text || file.name, // Use filename as default text if no text provided
+          text: text || file.name,
           fileAttachmentToken: fileAttachment,
           thumbnailImageToken: null,
           largeImageToken: null,
@@ -643,7 +749,8 @@ function createAttachmentMetadata(
   const timestamp = new Date().toISOString();
   const cleanName = username.replace(/\s/g, "-");
   const cleanTimestamp = timestamp.replace(/:/g, "-");
-  const fileExtension = type === "file" ? file.name.split(".").pop() || "bin" : "jpg";
+  const fileExtension =
+    type === "file" ? file.name.split(".").pop() || "bin" : "jpg";
   const filename = `${cleanName}_${type}_${cleanTimestamp}.${fileExtension}`;
 
   return {
