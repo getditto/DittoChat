@@ -2,13 +2,13 @@ import { Attachment } from "@dittolive/ditto";
 
 export default interface Message {
   _id: string;
-  createdOn: Date;
+  createdOn: string;
   roomId: string;
   text: string;
   userId: string;
-  largeImageToken?: Attachment | Record<string, any>;
-  thumbnailImageToken?: Attachment | Record<string, any>;
-  fileAttachmentToken?: Attachment | Record<string, any>;
+  largeImageToken?: Attachment;
+  thumbnailImageToken?: Attachment;
+  fileAttachmentToken?: Attachment;
 
   archivedMessage?: string;
   isArchived: boolean;

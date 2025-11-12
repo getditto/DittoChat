@@ -9,10 +9,7 @@ interface NewMessageModalProps {
   onClose: () => void;
 }
 
-const NewMessageModal: React.FC<NewMessageModalProps> = ({
-  onClose,
-  onNewDMCreate,
-}) => {
+function NewMessageModal({ onClose, onNewDMCreate }: NewMessageModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
   const users: ChatUser[] = useDittoChatStore((state) =>
@@ -66,6 +63,6 @@ const NewMessageModal: React.FC<NewMessageModalProps> = ({
       </div>
     </div>
   );
-};
+}
 
 export default NewMessageModal;

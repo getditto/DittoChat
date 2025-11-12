@@ -60,8 +60,6 @@ const DittoChatUIWrapper = () => {
       </div>
     </div>
   );
-
-  // <div>Hiiii</div>
 };
 
 function App() {

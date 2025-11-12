@@ -28,7 +28,7 @@ const toastConfig = {
   },
 };
 
-const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
+function Toast({ message, type, onClose }: ToastProps) {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
@@ -110,6 +110,6 @@ const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
       `}</style>
     </div>
   );
-};
+}
 
 export default Toast;

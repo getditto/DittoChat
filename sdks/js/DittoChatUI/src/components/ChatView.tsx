@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import type { Chat } from "../types";
-import { EMPTY_MESSAGES } from "../constants";
+import { EMPTY_MESSAGES, EMPTY_ROOMS } from "../constants";
 import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
 import { Icons } from "./Icons";
@@ -16,14 +16,16 @@ interface ChatViewProps {
   onBack: () => void;
 }
 
-const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
+function ChatView({ chat, onBack }: ChatViewProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
 
   const messages: MessageWithUser[] = useDittoChatStore(
     (state) => state.messagesByRoom[chat.id] || EMPTY_MESSAGES,
   );
-  const currentUser: ChatUser = useDittoChatStore((state) => state.currentUser);
+  const currentUser: ChatUser | null = useDittoChatStore(
+    (state) => state.currentUser,
+  );
   const allUsers: ChatUser[] = useDittoChatStore((state) => state.allUsers);
   const createMessage = useDittoChatStore((state) => state.createMessage);
   const createImageMessage = useDittoChatStore(
@@ -42,8 +44,8 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
   // const subscribeToRoom = useDittoChatStore((state: any) => state.subscribeToRoom as ((roomId: string) => Promise<void>) | undefined);
   // const markRoomAsRead = useDittoChatStore((state: any) => state.markRoomAsRead as ((roomId: string) => Promise<void>) | undefined);
 
-  const rooms = useDittoChatStore((state) => state.rooms) as Room[];
-  const room = (rooms || []).find((room) => room._id === chat.id);
+  const rooms = useDittoChatStore((state) => state.rooms || EMPTY_ROOMS);
+  const room = rooms.find((room) => room._id === chat.id);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -81,7 +83,6 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
     if (!msgObj) return;
     const msg = msgObj.message;
     // If message has file token, treat as file delete
-    console.log("Delete message:", msg);
     if (msg.fileAttachmentToken) {
       await saveDeletedImageMessage(msg, room, "file");
     } else {
@@ -96,7 +97,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
 
   if (chat.type === "dm") {
     const otherUser = chat.participants.find(
-      (user) => user._id !== currentUser._id,
+      (user) => user._id !== currentUser?._id,
     );
     chatName = otherUser?.name || "Unknown User";
     // TODO: Implement user status
@@ -138,7 +139,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
           const sender = allUsers.find(
             (user) => user._id === message.message.userId,
           );
-          const isOwnMessage = message.message.userId === currentUser._id;
+          const isOwnMessage = message.message.userId === currentUser?._id;
 
           return (
             <MessageBubble
@@ -163,13 +164,15 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
       </div>
       <MessageInput
         onSendMessage={(content) => {
-          createMessage(room, content).catch(console.error);
+          //TODO: Refactor room null check
+          if (room) createMessage(room, content).catch(console.error);
         }}
         onSendImage={(file, caption) => {
-          createImageMessage(room, file, caption).catch(console.error);
+          if (room)
+            createImageMessage(room, file, caption).catch(console.error);
         }}
         onSendFile={(file, caption) => {
-          createFileMessage(room, file, caption).catch(console.error);
+          if (room) createFileMessage(room, file, caption).catch(console.error);
         }}
         editingMessage={editingMessage}
         onCancelEdit={handleCancelEdit}
@@ -177,6 +180,6 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
       />
     </div>
   );
-};
+}
 
 export default ChatView;

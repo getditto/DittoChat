@@ -6,7 +6,6 @@ import { createRoomSlice, RoomSlice } from "./slices/useRooms";
 import { useMemo } from "react";
 import { ChatUserSlice, createChatUserSlice } from "./slices/useChatUser";
 import { MessageSlice, createMessageSlice } from "./slices/useMessages";
-import Room from "./types/Room";
 
 export type DittoConfParams = {
   ditto: Ditto | null;
@@ -14,39 +13,48 @@ export type DittoConfParams = {
   userCollectionKey: string;
 };
 
-export type CreateSlice<T> = (set: any, get: any, params: DittoConfParams) => T;
+export type CreateSlice<T> = (
+  set: StoreApi<ChatStore>["setState"],
+  get: StoreApi<ChatStore>["getState"],
+  params: DittoConfParams,
+) => T;
 
 export type ChatStore = RoomSlice & ChatUserSlice & MessageSlice;
 
 export let chatStore: StoreApi<ChatStore> | null = null;
 
 export function useDittoChat<T>(params: DittoConfParams) {
-  chatStore = useMemo(
-    () =>
-      createStore<ChatStore>()((set, get) => ({
-        ...createRoomSlice(set, get, params),
-        ...createChatUserSlice(set, get, params),
-        ...createMessageSlice(set, get, params),
-      })),
-    [params.ditto],
-  );
+  if (!chatStore) {
+    chatStore = useMemo(
+      () =>
+        createStore<ChatStore>()((set, get) => ({
+          ...createRoomSlice(set, get, params),
+          ...createChatUserSlice(set, get, params),
+          ...createMessageSlice(set, get, params),
+        })),
+      [params.ditto],
+    );
 
-  chatStore.subscribe((state, prevState) => {
-    if (state.rooms.length !== prevState.rooms.length) {
-      state.rooms.forEach((room) => {
-        state.messagesPublisher(room);
-      });
-    }
-  });
+    chatStore.subscribe((state, prevState) => {
+      if (state.rooms.length !== prevState.rooms.length) {
+        state.rooms.forEach((room) => {
+          state.messagesPublisher(room);
+        });
+      }
+    });
+  }
+
   return useStore(chatStore);
 }
 
-export function useDittoChatStore(selector?: (state: ChatStore) => any) {
+export function useDittoChatStore<T = Partial<ChatStore>>(
+  selector?: (state: ChatStore) => T,
+) {
   if (!chatStore) {
     throw new Error(
       "chatStore must be initialized before useDittoChatStore. use useDittoChat for initialization",
     );
   }
   if (selector) return useStore(chatStore, useShallow(selector));
-  return useStore(chatStore);
+  return useStore(chatStore) as T;
 }

@@ -4,7 +4,7 @@ export default interface Room {
   messagesId: string;
   collectionId?: string;
   createdBy: string;
-  createdOn: Date;
+  createdOn: string;
   isGenerated: boolean;
   participants?: string[];
 }

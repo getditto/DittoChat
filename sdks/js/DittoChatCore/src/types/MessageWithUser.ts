@@ -3,6 +3,6 @@ import Message from "./Message";
 
 export default interface MessageWithUser {
   message: Message;
-  user: ChatUser;
+  user?: ChatUser | null;
   id: string;
 }

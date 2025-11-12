@@ -6,10 +6,7 @@ interface NewRoomModalProps {
   onCreateRoom: (roomName: string) => void;
 }
 
-const NewRoomModal: React.FC<NewRoomModalProps> = ({
-  onClose,
-  onCreateRoom,
-}) => {
+function NewRoomModal({ onClose, onCreateRoom }: NewRoomModalProps) {
   const [roomName, setRoomName] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -67,6 +64,6 @@ const NewRoomModal: React.FC<NewRoomModalProps> = ({
       </form>
     </div>
   );
-};
+}
 
 export default NewRoomModal;

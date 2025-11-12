@@ -14,14 +14,14 @@ interface MessageInputProps {
   onSaveEdit: (messageId: string, newContent: string) => void;
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({
+function MessageInput({
   onSendMessage,
   onSendImage,
   onSendFile,
   editingMessage,
   onCancelEdit,
   onSaveEdit,
-}) => {
+}: MessageInputProps) {
   const users: ChatUser[] = useDittoChatStore((state) => state.allUsers);
   const [text, setText] = useState("");
   const [isAttachMenuOpen, setIsAttachMenuOpen] = useState(false);
@@ -291,6 +291,6 @@ const MessageInput: React.FC<MessageInputProps> = ({
       </div>
     </div>
   );
-};
+}
 
 export default MessageInput;

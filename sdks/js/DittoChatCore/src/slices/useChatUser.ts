@@ -35,10 +35,9 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
     async addUser(user) {
       if (!ditto) return;
       try {
-        const doc: Record<string, any> = { ...user };
         await ditto.store.execute(
           `INSERT INTO ${userCollectionKey} DOCUMENTS (:newUser) ON ID CONFLICT DO UPDATE`,
-          { newUser: doc },
+          { newUser: user },
         );
       } catch (err) {
         console.error("Error in addUser:", err);
@@ -63,12 +62,11 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
     async findUserById(userId) {
       if (!ditto) return null;
       try {
-        const result = await ditto.store.execute(
+        const result = await ditto.store.execute<ChatUser>(
           `SELECT * FROM ${userCollectionKey} WHERE _id = :id`,
           { id: userId },
         );
-        const userVal = result.items?.[0]?.value;
-        return userVal ? (userVal as ChatUser) : null;
+        return result.items?.[0]?.value;
       } catch (err) {
         console.error("Error in findUserById:", err);
         return null;
@@ -138,20 +136,20 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
       queryParams,
     );
 
-    store.userObserver = ditto.store.registerObserver(
+    store.userObserver = ditto.store.registerObserver<ChatUser>(
       userQuery,
       (result) => {
-        _set({ currentUser: (result.items?.[0]?.value as ChatUser) || null });
+        _set({ currentUser: result.items?.[0]?.value });
       },
       queryParams,
     );
 
     store.allUsersSubscription = ditto.sync.registerSubscription(allUsersQuery);
 
-    store.allUsersObserver = ditto.store.registerObserver(
+    store.allUsersObserver = ditto.store.registerObserver<ChatUser>(
       allUsersQuery,
       (result) => {
-        _set({ allUsers: result.items.map((doc) => doc.value as ChatUser) });
+        _set({ allUsers: result.items.map((doc) => doc.value) });
       },
     );
   }

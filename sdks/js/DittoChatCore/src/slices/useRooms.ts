@@ -4,6 +4,7 @@ import ChatUser from "../types/ChatUser";
 import { ChatStore, CreateSlice, DittoConfParams } from "../useChat";
 import { produce } from "immer";
 import { v4 as uuidv4 } from "uuid";
+import { StoreApi } from "zustand";
 
 export interface RoomSlice {
   rooms: Room[];
@@ -16,7 +17,10 @@ export interface RoomSlice {
   createDMRoom: (user: ChatUser) => Promise<void | Room>;
 }
 
-function saveRoomsToStore(_set: any, rooms: Room[]) {
+function saveRoomsToStore(
+  _set: StoreApi<ChatStore>["setState"],
+  rooms: Room[],
+) {
   if (rooms.length === 0) return;
   _set((state: ChatStore) => {
     return produce(state, (draft) => {
@@ -31,14 +35,14 @@ function saveRoomsToStore(_set: any, rooms: Room[]) {
 
 async function createRoomBase({
   ditto,
-  currentUser,
+  currentUserId,
   name,
   collectionId,
   messagesId,
   participants = [],
 }: {
   ditto: Ditto | null;
-  currentUser: ChatUser;
+  currentUserId: string;
   name: string;
   collectionId: "rooms" | "dm_rooms";
   messagesId: "messages" | "dm_messages";
@@ -49,21 +53,21 @@ async function createRoomBase({
   try {
     const id = uuidv4();
 
-    const room: Record<string, any> = {
+    const room = {
       _id: id,
       name,
       messagesId,
       collectionId,
       isGenerated: false,
-      createdBy: currentUser?._id,
-      createdOn: new Date(),
-      ...(participants.length ? { participants } : {}),
+      createdBy: currentUserId,
+      createdOn: new Date().toISOString(),
+      participants: participants || undefined,
     };
 
     const query = `INSERT INTO \`${collectionId}\` DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE`;
     await ditto.store.execute(query, { newDoc: room });
 
-    return room as Room;
+    return room;
   } catch (error) {
     console.error(`Error creating ${collectionId}:`, error);
   }
@@ -86,7 +90,7 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
       const currentUser = _get().currentUser;
       return createRoomBase({
         ditto,
-        currentUser,
+        currentUserId: currentUser?._id || userId,
         name,
         collectionId: "rooms",
         messagesId: "messages",
@@ -95,9 +99,10 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
 
     createDMRoom(dmUser: ChatUser) {
       const currentUser = _get().currentUser;
+      if (!currentUser?._id || !dmUser?._id) throw Error("Invalid users");
       return createRoomBase({
         ditto,
-        currentUser,
+        currentUserId: currentUser?._id || userId,
         name: `${currentUser?.name} & ${dmUser.name}`,
         collectionId: "dm_rooms",
         messagesId: "dm_messages",
@@ -113,13 +118,16 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
     store.dmRoomsSubscription = ditto.sync.registerSubscription(dmRoomsQuery, {
       userId,
     });
-    store.roomsObserver = ditto.store.registerObserver(roomsQuery, (result) => {
-      saveRoomsToStore(
-        _set,
-        result.items.map((doc) => doc.value as Room),
-      );
-    });
-    store.dmRoomsObserver = ditto.store.registerObserver(
+    store.roomsObserver = ditto.store.registerObserver<Room>(
+      roomsQuery,
+      (result) => {
+        saveRoomsToStore(
+          _set,
+          result.items.map((doc) => doc.value),
+        );
+      },
+    );
+    store.dmRoomsObserver = ditto.store.registerObserver<Room>(
       dmRoomsQuery,
       (result) => {
         saveRoomsToStore(

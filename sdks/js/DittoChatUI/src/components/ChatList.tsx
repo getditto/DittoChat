@@ -19,17 +19,19 @@ interface ChatListProps {
   selectedChatId: number | string | null;
 }
 
-const ChatList: React.FC<ChatListProps> = ({
+function ChatList({
   chats,
   onSelectChat,
   onNewMessage,
   selectedChatId,
-}) => {
+}: ChatListProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<List | null>(null);
   const users = useDittoChatStore((state) => state.allUsers);
-  const currentUserId = useDittoChatStore((state) => state.currentUser?._id);
+  const currentUserId = useDittoChatStore<string>(
+    (state) => state.currentUser?._id || "",
+  );
 
   // search state moved outside for brevity - keep your useState if needed
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -177,6 +179,6 @@ const ChatList: React.FC<ChatListProps> = ({
       </div>
     </div>
   );
-};
+}
 
 export default ChatList;

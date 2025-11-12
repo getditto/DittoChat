@@ -27,10 +27,13 @@ interface MessageBubbleProps {
   ) => void;
 }
 
-const FormattedMessage: React.FC<{ content: string; isOwn: boolean }> = ({
+function FormattedMessage({
   content,
   isOwn,
-}) => {
+}: {
+  content: string;
+  isOwn: boolean;
+}) {
   const parts = content.split(/(@[A-Za-z\s\d]+)/g);
   return (
     <>
@@ -50,14 +53,17 @@ const FormattedMessage: React.FC<{ content: string; isOwn: boolean }> = ({
       )}
     </>
   );
-};
+}
 
 const EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
 
-const EmojiPicker: React.FC<{
+function EmojiPicker({
+  onSelect,
+  closePicker,
+}: {
   onSelect: (emoji: string) => void;
   closePicker: () => void;
-}> = ({ onSelect, closePicker }) => {
+}) {
   const pickerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -89,9 +95,9 @@ const EmojiPicker: React.FC<{
       ))}
     </div>
   );
-};
+}
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({
+function MessageBubble({
   message,
   sender,
   isOwnMessage,
@@ -101,7 +107,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   onStartEdit,
   onDeleteMessage,
   onAddReaction,
-}) => {
+}: MessageBubbleProps) {
   const {
     imageUrl: thumbnailUrl,
     progress: thumbnailProgress,
@@ -132,7 +138,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
   const hasImage = message.thumbnailImageToken || message.largeImageToken;
   const hasFile = !!message.fileAttachmentToken;
-  const hasText = !!message.text && message.text.trim().length > 0 && (!hasFile || message.isDeleted);
+  const hasText =
+    !!message.text &&
+    message.text.trim().length > 0 &&
+    (!hasFile || message.isDeleted);
 
   const imageError = thumbnailError || largeImageError;
 
@@ -282,7 +291,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                   onClick={() => {
                     if (fetchAttachment && message.fileAttachmentToken) {
                       fetchAttachment(
-                        message.fileAttachmentToken as AttachmentToken,
+                        message.fileAttachmentToken as unknown as AttachmentToken,
                         () => {},
                         (result) => {
                           if (result.success && result.data) {
@@ -477,6 +486,6 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
       )}
     </div>
   );
-};
+}
 
 export default MessageBubble;

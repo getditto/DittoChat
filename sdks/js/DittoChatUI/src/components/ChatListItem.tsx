@@ -1,5 +1,4 @@
 import React from "react";
-import { useDittoChatStore } from "@dittolive/ditto-chat-core";
 import type { Chat } from "../types";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import { formatDate } from "../utils";
@@ -14,13 +13,13 @@ interface ChatListItemProps {
   onSelect: () => void;
 }
 
-const ChatListItem: React.FC<ChatListItemProps> = ({
+function ChatListItem({
   chat,
   users,
   currentUserId,
   isSelected,
   onSelect,
-}) => {
+}: ChatListItemProps) {
   const lastMessage = chat.messages[chat.messages.length - 1];
 
   let chatName = chat.name;
@@ -110,6 +109,6 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
       </div>
     </button>
   );
-};
+}
 
 export default ChatListItem;

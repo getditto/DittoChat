@@ -34,7 +34,9 @@ export default function DittoChatUI({
   const createRoom = useDittoChatStore((state) => state.createRoom);
   const rooms: Room[] = useDittoChatStore((state) => state.rooms);
   const users: ChatUser[] = useDittoChatStore((state) => state.allUsers);
-  const currentUser: ChatUser = useDittoChatStore((state) => state.currentUser);
+  const currentUser: ChatUser | null = useDittoChatStore(
+    (state) => state.currentUser,
+  );
 
   const [activeScreen, setActiveScreen] = useState<
     "list" | "chat" | "newMessage" | "newRoom"
@@ -135,7 +137,7 @@ export default function DittoChatUI({
     const isExists = chats.find((chat) => {
       if (chat.participants.length !== 2) return false;
       const ids = chat.participants.map((p) => p._id);
-      return ids.includes(user._id) && ids.includes(currentUser._id);
+      return ids.includes(user._id) && ids.includes(currentUser?._id);
     });
 
     if (isExists) {
@@ -144,12 +146,12 @@ export default function DittoChatUI({
     }
 
     const createdRoom = await createDMRoom(user);
-    setNewlyCreatedRoom(createdRoom._id);
+    setNewlyCreatedRoom(createdRoom?._id);
   };
 
   const handleNewRoomCreate = async (roomName: string) => {
     const createdRoom = await createRoom(roomName);
-    setNewlyCreatedRoom(createdRoom._id);
+    setNewlyCreatedRoom(createdRoom?._id);
   };
 
   useEffect(() => {

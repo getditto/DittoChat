@@ -3,7 +3,7 @@ import {
   StoreObserver,
   SyncSubscription,
 } from "@dittolive/ditto";
-import { produce } from "immer";
+import { produce, WritableDraft } from "immer";
 import Message from "../types/Message";
 import Room from "../types/Room";
 import ChatUser from "../types/ChatUser";
@@ -92,14 +92,9 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         const subscription = ditto.sync.registerSubscription(query, args);
         const allUsers = _get().allUsers;
         // Register observer
-        const observer = ditto.store.registerObserver(
+        const observer = ditto.store.registerObserver<Message>(
           query,
           async (result) => {
-            const messagesByRoom = (_get().messagesByRoom || {}) as Record<
-              string,
-              MessageWithUser[]
-            >;
-
             _set((state: ChatStore) => {
               return produce(state, (draft) => {
                 if (!draft.messagesByRoom[roomId]) {
@@ -107,22 +102,29 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
                 }
 
                 for (const item of result.items) {
-                  const message = item.value as Message;
-
-                  // First check if this message already exists in the list
-                  const existingIndex = draft.messagesByRoom[roomId]!.findIndex(
-                    (m) => m.id === message._id,
-                  );
+                  const message = item.value;
 
                   const user = allUsers.find(
                     (u: ChatUser) => u._id === message.userId,
                   );
 
-                  const messageWithUser = {
+                  const messageWithUser: MessageWithUser = {
                     message,
                     user,
                     id: message._id,
                   };
+                  const mutableMessage = {
+                    ...messageWithUser,
+                    message:
+                      messageWithUser.message as unknown as WritableDraft<
+                        typeof messageWithUser.message
+                      >,
+                  };
+
+                  // First check if this message already exists in the list
+                  const existingIndex = draft.messagesByRoom[roomId]!.findIndex(
+                    (m) => m.id === message._id,
+                  );
 
                   // Check if this is an edited message (has archivedMessage)
                   if (message.archivedMessage) {
@@ -133,25 +135,25 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
                     if (originalIndex !== -1) {
                       // Replace the original message at its position with the edited one
-                      draft.messagesByRoom[roomId]![originalIndex] =
-                        messageWithUser;
+                      draft.messagesByRoom[roomId][originalIndex] =
+                        mutableMessage;
                     } else if (existingIndex === -1) {
                       // Original not found and this edited message doesn't exist yet - add it
-                      draft.messagesByRoom[roomId]!.push(messageWithUser);
+                      draft.messagesByRoom[roomId]!.push(mutableMessage);
                     } else {
                       // This edited message already exists - update it in place
                       draft.messagesByRoom[roomId]![existingIndex] =
-                        messageWithUser;
+                        mutableMessage;
                     }
                   } else {
                     // Regular message handling (not an edit)
                     if (existingIndex === -1) {
                       // New message - add it
-                      draft.messagesByRoom[roomId]!.push(messageWithUser);
+                      draft.messagesByRoom[roomId]!.push(mutableMessage);
                     } else {
                       // Existing message - update it (handles deletes and other updates)
                       draft.messagesByRoom[roomId]![existingIndex] =
-                        messageWithUser;
+                        mutableMessage;
                     }
                   }
                 }
@@ -184,7 +186,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
       try {
         // Fetch current user to get name
-        const currentUserResult = await ditto.store.execute(
+        const currentUserResult = await ditto.store.execute<Room>(
           `SELECT * FROM ${userCollectionKey} WHERE _id = :id`,
           { id: userId },
         );
@@ -201,12 +203,12 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
           return;
         }
 
-        const actualRoom = roomResult.items[0].value as Room;
+        const actualRoom = roomResult.items[0].value;
         const messagesId = actualRoom.messagesId;
 
         const now = new Date();
         const nowIso = now.toISOString();
-        const newDoc: Record<string, any> = {
+        const newDoc = {
           roomId: room._id,
           text,
           userId,
@@ -240,7 +242,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         });
 
         // Create a new message with the edited text
-        const newDoc: Record<string, any> = {
+        const newDoc = {
           roomId: room._id,
           text: message.text,
           userId: userId,
@@ -289,7 +291,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
           deletedText = "[deleted file]";
         }
 
-        const newDoc: Record<string, any> = {
+        const newDoc = {
           roomId: room._id,
           text: deletedText,
           userId: userId,
@@ -305,12 +307,6 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
         const insertQuery = `INSERT INTO ${room.messagesId} DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE`;
         await ditto.store.execute(insertQuery, { newDoc });
-
-        console.log("Delete audit trail created:", {
-          original: message._id,
-          deleted: newDoc._id,
-          type: type || "text",
-        });
       } catch (err) {
         console.error("Error in saveDeletedImageMessage:", err);
         throw err;
@@ -322,7 +318,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
       try {
         // Get current user info
-        const currentUserResult = await ditto.store.execute(
+        const currentUserResult = await ditto.store.execute<ChatUser>(
           `SELECT * FROM ${userCollectionKey} WHERE _id = :id`,
           { id: userId },
         );
@@ -330,7 +326,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         const fullName = userValue?.name ?? userId;
 
         // Get room info
-        const roomResult = await ditto.store.execute(
+        const roomResult = await ditto.store.execute<Room>(
           `SELECT * FROM ${room.collectionId || "rooms"} WHERE _id = :id`,
           { id: room._id },
         );
@@ -339,7 +335,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
           throw new Error("Room not found");
         }
 
-        const actualRoom = roomResult.items[0].value as Room;
+        const actualRoom = roomResult.items[0].value;
         const messagesId = actualRoom.messagesId;
 
         // Generate unique document ID
@@ -371,7 +367,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         // Now create the message document with BOTH tokens
         const now = new Date();
         const nowIso = now.toISOString();
-        const newDoc: Record<string, any> = {
+        const newDoc = {
           _id: docId,
           createdOn: nowIso,
           roomId: room._id,
@@ -385,8 +381,6 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
           isEdited: false,
           isDeleted: false,
         };
-
-        console.log("Inserting message with both tokens:", newDoc);
 
         // Insert the message with BOTH attachments in a single operation
         await ditto.store.execute(
@@ -407,7 +401,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
       try {
         // Get current user info
-        const currentUserResult = await ditto.store.execute(
+        const currentUserResult = await ditto.store.execute<ChatUser>(
           `SELECT * FROM ${userCollectionKey} WHERE _id = :id`,
           { id: userId },
         );
@@ -415,7 +409,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         const fullName = userValue?.name ?? userId;
 
         // Get room info
-        const roomResult = await ditto.store.execute(
+        const roomResult = await ditto.store.execute<Room>(
           `SELECT * FROM ${room.collectionId || "rooms"} WHERE _id = :id`,
           { id: room._id },
         );
@@ -424,7 +418,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
           throw new Error("Room not found");
         }
 
-        const actualRoom = roomResult.items[0].value as Room;
+        const actualRoom = roomResult.items[0].value;
         const messagesId = actualRoom.messagesId;
 
         // Generate unique document ID
@@ -444,7 +438,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         // Now create the message document with file token
         const now = new Date();
         const nowIso = now.toISOString();
-        const newDoc: Record<string, any> = {
+        const newDoc = {
           _id: docId,
           createdOn: nowIso,
           roomId: room._id,
@@ -458,8 +452,6 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
           isEdited: false,
           isDeleted: false,
         };
-
-        console.log("Inserting message with file attachment:", newDoc);
 
         // Insert the message with file attachment
         await ditto.store.execute(
@@ -589,7 +581,7 @@ function fileToImage(file: File): Promise<HTMLImageElement> {
       const img = new Image();
       img.onload = () => resolve(img);
       img.onerror = reject;
-      img.src = e.target?.result as string;
+      img.src = String(e.target?.result);
     };
     reader.onerror = reject;
     reader.readAsDataURL(file);

@@ -20,7 +20,7 @@ const DittoChatUIWrapper = () => {
   );
 };
 
-const App: React.FC = () => {
+function App() {
   const { create } = useOnlinePlaygroundIdentity();
   return (
     <DittoProvider
@@ -52,6 +52,6 @@ const App: React.FC = () => {
       }}
     </DittoProvider>
   );
-};
+}
 
 export default App;
