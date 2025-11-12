@@ -12,7 +12,7 @@
   "dependencies": {
     "@dittolive/ditto": "^4.12.4",
     "@dittolive/react-ditto": "^0.11.2",
-    "ditto-chat-ui": "file:../../../sdks/js/DittoChatScreens",
+    "@dittolive/ditto-chat-ui": "file:../../../sdks/js/DittoChatUI",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },

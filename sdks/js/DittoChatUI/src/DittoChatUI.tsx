@@ -9,13 +9,13 @@ import {
   useDittoChat,
   useDittoChatStore,
   type DittoConfParams,
-} from "dittochatcore";
+} from "@dittolive/ditto-chat-core";
 import type { Chat } from "./types";
 
 import { ToastProvider } from "./components/ToastProvider";
-import ChatUser from "dittochatcore/dist/types/ChatUser";
-import Room from "dittochatcore/dist/types/Room";
-import Message from "dittochatcore/dist/types/Message";
+import ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
+import Room from "@dittolive/ditto-chat-core/dist/types/Room";
+import Message from "@dittolive/ditto-chat-core/dist/types/Message";
 import NewRoomModal from "./components/NewRoomModal";
 
 export default function DittoChatUI({
@@ -34,7 +34,7 @@ export default function DittoChatUI({
   const createRoom = useDittoChatStore((state) => state.createRoom);
   const rooms: Room[] = useDittoChatStore((state) => state.rooms);
   const users: ChatUser[] = useDittoChatStore((state) => state.allUsers);
-  const currentUser: ChatUser = useDittoChatStore((state) => state.chatUser);
+  const currentUser: ChatUser = useDittoChatStore((state) => state.currentUser);
 
   const [activeScreen, setActiveScreen] = useState<
     "list" | "chat" | "newMessage" | "newRoom"

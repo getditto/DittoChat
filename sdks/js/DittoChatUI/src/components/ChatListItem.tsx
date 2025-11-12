@@ -1,7 +1,7 @@
 import React from "react";
-import { useDittoChatStore } from "dittochatcore";
+import { useDittoChatStore } from "@dittolive/ditto-chat-core";
 import type { Chat } from "../types";
-import type ChatUser from "dittochatcore/dist/types/ChatUser";
+import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import { formatDate } from "../utils";
 import clsx from "clsx";
 import Avatar from "./Avatar";
@@ -42,14 +42,15 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
     lastMessage?.userId === currentUserId
       ? "You"
       : lastMessageSender?.name.split(" ")[0];
-  const chatUser = useDittoChatStore((state) => state.chatUser);
-  const messagesForRoom = useDittoChatStore((state: any) => state.messagesByRoom?.[String(chat.id)] || []);
+  // const currentUser = useDittoChatStore((state) => state.currentUser);
+  // const messagesForRoom = useDittoChatStore(
+  //   (state: any) => state.messagesByRoom?.[String(chat.id)] || [],
+  // );
 
   // Only show unread badges for rooms the user explicitly subscribed to
-  // const isSubscribed = !!(chatUser?.subscriptions && String(chat.id) in chatUser.subscriptions);
+  // const isSubscribed = !!(currentUser?.subscriptions && String(chat.id) in currentUser.subscriptions);
 
-
-  // const subscribedAt = chatUser?.subscriptions?.[String(chat.id)];
+  // const subscribedAt = currentUser?.subscriptions?.[String(chat.id)];
   // const lastCreated = lastMessage ? new Date(lastMessage.createdOn) : null;
 
   // const unread = Boolean(
@@ -64,7 +65,7 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
   //   if (!subscribedAt) return messagesForRoom.length;
   //   const since = new Date(String(subscribedAt));
   //   return messagesForRoom.reduce((acc: number, m: any) => {
-  //     const msg = m?.message || m; 
+  //     const msg = m?.message || m;
   //     if (msg.userId === currentUserId) return acc;
   //     const msgDate = new Date(msg.createdOn);
   //     return msgDate > since ? acc + 1 : acc;

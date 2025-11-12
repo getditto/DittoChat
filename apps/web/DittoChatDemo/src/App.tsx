@@ -1,4 +1,4 @@
-import "ditto-chat-ui/dist/ditto-chat-ui.css";
+import "@dittolive/ditto-chat-ui/dist/ditto-chat-ui.css";
 
 import { Ditto } from "@dittolive/ditto";
 import {
@@ -7,7 +7,7 @@ import {
   useOnlinePlaygroundIdentity,
   usePendingCursorOperation,
 } from "@dittolive/react-ditto";
-import DittoChatUI from "ditto-chat-ui";
+import DittoChatUI from "@dittolive/ditto-chat-ui";
 import { useEffect, useState } from "react";
 
 const DittoChatUIWrapper = () => {

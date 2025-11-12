@@ -8,7 +8,7 @@ import {
 import type { Chat } from "../types";
 import ChatListItem from "./ChatListItem";
 import { Icons } from "./Icons";
-import { useDittoChatStore } from "dittochatcore";
+import { useDittoChatStore } from "@dittolive/ditto-chat-core";
 import { GridCoreProps } from "react-virtualized/dist/es/Grid";
 import { MeasuredCellParent } from "react-virtualized/dist/es/CellMeasurer";
 
@@ -29,7 +29,7 @@ const ChatList: React.FC<ChatListProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<List | null>(null);
   const users = useDittoChatStore((state) => state.allUsers);
-  const currentUserId = useDittoChatStore((state) => state.chatUser?._id);
+  const currentUserId = useDittoChatStore((state) => state.currentUser?._id);
 
   // search state moved outside for brevity - keep your useState if needed
   const [searchTerm, setSearchTerm] = React.useState("");

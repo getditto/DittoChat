@@ -1,7 +1,7 @@
 {
-  "name": "ditto-chat-ui",
+  "name": "@dittolive/ditto-chat-ui",
   "private": true,
-  "version": "0.0.1",
+  "version": "1.0.0",
   "main": "dist/index.umd.js",
   "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
@@ -9,6 +9,12 @@
   "files": [
     "dist"
   ],
+  "author": "Ditto",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/getditto/DittoChat.git"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -23,7 +29,7 @@
   },
   "peerDependencies": {
     "@dittolive/ditto": "^4.12.3",
-    "dittochatcore": "file:../DittoChatCore",
+    "@dittolive/ditto-chat-core": "file:../DittoChatCore",
     "react": "^18 || ^19",
     "react-dom": "^18 || ^19",
     "react-router-dom": "^7.9.5"

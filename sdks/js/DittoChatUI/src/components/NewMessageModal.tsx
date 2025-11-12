@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Icons } from "./Icons";
-import { useDittoChatStore } from "dittochatcore";
-import ChatUser from "dittochatcore/dist/types/ChatUser";
+import { useDittoChatStore } from "@dittolive/ditto-chat-core";
+import ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import Avatar from "./Avatar";
 
 interface NewMessageModalProps {
@@ -16,7 +16,7 @@ const NewMessageModal: React.FC<NewMessageModalProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
 
   const users: ChatUser[] = useDittoChatStore((state) =>
-    state.allUsers.filter((user) => user._id !== state.chatUser?._id),
+    state.allUsers.filter((user) => user._id !== state.currentUser?._id),
   );
 
   const filteredUsers = users.filter((user) =>

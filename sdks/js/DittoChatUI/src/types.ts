@@ -1,5 +1,5 @@
-import ChatUser from "dittochatcore/dist/types/ChatUser";
-import type Message from "dittochatcore/dist/types/Message";
+import ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
+import type Message from "@dittolive/ditto-chat-core/dist/types/Message";
 
 export interface User {
   id: number;

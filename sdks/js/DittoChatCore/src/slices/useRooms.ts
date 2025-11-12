@@ -31,14 +31,14 @@ function saveRoomsToStore(_set: any, rooms: Room[]) {
 
 async function createRoomBase({
   ditto,
-  chatUser,
+  currentUser,
   name,
   collectionId,
   messagesId,
   participants = [],
 }: {
   ditto: Ditto | null;
-  chatUser: ChatUser;
+  currentUser: ChatUser;
   name: string;
   collectionId: "rooms" | "dm_rooms";
   messagesId: "messages" | "dm_messages";
@@ -55,7 +55,7 @@ async function createRoomBase({
       messagesId,
       collectionId,
       isGenerated: false,
-      createdBy: chatUser?._id,
+      createdBy: currentUser?._id,
       createdOn: new Date(),
       ...(participants.length ? { participants } : {}),
     };
@@ -83,10 +83,10 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
     dmRoomsSubscription: null,
 
     createRoom(name: string) {
-      const chatUser = _get().chatUser;
+      const currentUser = _get().currentUser;
       return createRoomBase({
         ditto,
-        chatUser,
+        currentUser,
         name,
         collectionId: "rooms",
         messagesId: "messages",
@@ -94,14 +94,14 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
     },
 
     createDMRoom(dmUser: ChatUser) {
-      const chatUser = _get().chatUser;
+      const currentUser = _get().currentUser;
       return createRoomBase({
         ditto,
-        chatUser,
-        name: `${chatUser?.name} & ${dmUser.name}`,
+        currentUser,
+        name: `${currentUser?.name} & ${dmUser.name}`,
         collectionId: "dm_rooms",
         messagesId: "dm_messages",
-        participants: [chatUser?._id, dmUser._id],
+        participants: [currentUser?._id, dmUser._id],
       });
     },
   };

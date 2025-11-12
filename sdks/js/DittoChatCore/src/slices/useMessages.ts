@@ -1,4 +1,8 @@
-import { StoreObserver, SyncSubscription } from "@dittolive/ditto";
+import {
+  AttachmentToken,
+  StoreObserver,
+  SyncSubscription,
+} from "@dittolive/ditto";
 import { produce } from "immer";
 import Message from "../types/Message";
 import Room from "../types/Room";
@@ -12,34 +16,30 @@ export interface MessageSlice {
   messageObserversByRoom: Record<string, StoreObserver | null>;
   messageSubscriptionsByRoom: Record<string, SyncSubscription | null>;
 
-  // Single message observer
-  singleMessageObservers: Record<string, StoreObserver | null>;
-
   // Methods
   messagesPublisher: (room: Room, retentionDays?: number) => Promise<void>;
-  messagePublisher: (messageId: string, collectionId: string) => Promise<void>;
   createMessage: (room: Room, text: string) => Promise<void>;
   saveEditedTextMessage: (message: Message, room: Room) => Promise<void>;
   saveDeletedImageMessage: (
     message: Message,
     room: Room,
-    type?: "text" | "image" | "file"
+    type?: "text" | "image" | "file",
   ) => Promise<void>;
   createImageMessage: (
     room: Room,
     imageFile: File,
-    text?: string
+    text?: string,
   ) => Promise<void>;
   createFileMessage: (room: Room, file: File, text?: string) => Promise<void>;
   fetchAttachment: (
-    token: any,
+    token: AttachmentToken,
     onProgress: (progress: number) => void,
     onComplete: (result: {
       success: boolean;
       data?: Uint8Array;
       metadata?: Record<string, string>;
       error?: Error;
-    }) => void
+    }) => void,
   ) => void;
 }
 
@@ -50,7 +50,7 @@ interface ChatRetentionPolicy {
 export const createMessageSlice: CreateSlice<MessageSlice> = (
   _set,
   _get,
-  { ditto, userId, userCollectionKey }: DittoConfParams
+  { ditto, userId, userCollectionKey }: DittoConfParams,
 ) => {
   const chatRetentionPolicy: ChatRetentionPolicy = { days: 30 };
 
@@ -58,7 +58,6 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     messagesByRoom: {},
     messageObserversByRoom: {},
     messageSubscriptionsByRoom: {},
-    singleMessageObservers: {},
 
     async messagesPublisher(room: Room, retentionDays?: number) {
       if (!ditto) return;
@@ -73,7 +72,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
       const retentionDaysValue = retentionDays ?? chatRetentionPolicy.days;
       const retentionDaysAgo = new Date(
-        Date.now() - retentionDaysValue * 24 * 60 * 60 * 1000
+        Date.now() - retentionDaysValue * 24 * 60 * 60 * 1000,
       );
 
       const query = `SELECT * FROM COLLECTION ${collectionId} (thumbnailImageToken ATTACHMENT, largeImageToken ATTACHMENT, fileAttachmentToken ATTACHMENT)
@@ -112,11 +111,11 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
                   // First check if this message already exists in the list
                   const existingIndex = draft.messagesByRoom[roomId]!.findIndex(
-                    (m) => m.id === message._id
+                    (m) => m.id === message._id,
                   );
 
                   const user = allUsers.find(
-                    (u: ChatUser) => u._id === message.userId
+                    (u: ChatUser) => u._id === message.userId,
                   );
 
                   const messageWithUser = {
@@ -161,7 +160,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
               });
             });
           },
-          args
+          args,
         );
 
         _set({
@@ -179,62 +178,6 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       }
     },
 
-    async messagePublisher(messageId: string, collectionId: string) {
-      if (!ditto) return;
-
-      const key = `${collectionId}:${messageId}`;
-
-      // If already observing, skip
-      if (_get().singleMessageObservers[key]) {
-        return;
-      }
-
-      const query = `SELECT * FROM COLLECTION ${collectionId} (thumbnailImageToken ATTACHMENT, largeImageToken ATTACHMENT, fileAttachmentToken ATTACHMENT) WHERE _id = :id`;
-      const args = { id: messageId };
-
-      try {
-        const subscription = ditto.sync.registerSubscription(query, args);
-
-        const observer = ditto.store.registerObserver(
-          query,
-          async (result) => {
-            if (result.items.length > 0) {
-              const message = result.items[0].value as Message;
-              const roomId = message.roomId;
-              const messagesByRoom = _get().messagesByRoom;
-
-              if (messagesByRoom[roomId]) {
-                const updated = messagesByRoom[roomId].map((msg: Message) =>
-                  msg._id === messageId ? message : msg
-                );
-
-                if (!updated.find((m: Message) => m._id === messageId)) {
-                  updated.push(message);
-                }
-
-                _set({
-                  messagesByRoom: {
-                    ...messagesByRoom,
-                    [roomId]: updated,
-                  },
-                });
-              }
-            }
-          },
-          args
-        );
-
-        _set({
-          singleMessageObservers: {
-            ..._get().singleMessageObservers,
-            [key]: observer,
-          },
-        });
-      } catch (err) {
-        console.error("Error in messagePublisher:", err);
-      }
-    },
-
     async createMessage(room: Room, text: string) {
       if (!ditto) return;
       if (!userId) return;
@@ -243,14 +186,14 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         // Fetch current user to get name
         const currentUserResult = await ditto.store.execute(
           `SELECT * FROM ${userCollectionKey} WHERE _id = :id`,
-          { id: userId }
+          { id: userId },
         );
         const userValue = currentUserResult.items?.[0]?.value;
         const fullName = userValue?.name ?? userId;
 
         const roomResult = await ditto.store.execute(
           `SELECT * FROM ${room.collectionId || "rooms"} WHERE _id = :id`,
-          { id: room._id }
+          { id: room._id },
         );
 
         if (roomResult.items.length === 0) {
@@ -297,14 +240,11 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         });
 
         // Create a new message with the edited text
-        const now = new Date();
-        const nowIso = now.toISOString();
-
         const newDoc: Record<string, any> = {
           roomId: room._id,
           text: message.text,
           userId: userId,
-          createdOn: nowIso,
+          createdOn: message.createdOn,
           isArchived: false,
           archivedMessage: message._id,
           largeImageToken: message.largeImageToken || null,
@@ -316,63 +256,16 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
         const insertQuery = `INSERT INTO ${room.messagesId} DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE`;
         await ditto.store.execute(insertQuery, { newDoc });
-
-        console.log("Edit audit trail created:", {
-          original: message._id,
-          edited: newDoc._id,
-        });
       } catch (err) {
         console.error("Error in saveEditedTextMessage:", err);
         throw err;
       }
     },
 
-    // async saveDeletedImageMessage(message: Message, room: Room, type?: "text" | "image" | "file") {
-    //   if (!ditto) return;
-    //   try {
-    //     if (type === "image") {
-    //       // Remove image tokens, set text to deleted message placeholder, and mark as deleted
-    //       const query = `UPDATE ${room.messagesId}
-    //         SET thumbnailImageToken = null,
-    //             largeImageToken = null,
-    //             text = :text,
-    //             isDeleted = :isDeleted
-    //         WHERE _id = :id`;
-    //       await ditto.store.execute(query, {
-    //         id: message._id,
-    //         text: "[deleted image]",
-    //         isDeleted: true,
-    //       });
-    //     } else if (type === "file") {
-    //       // Remove file token, set text to deleted file placeholder, and mark as deleted
-    //       const query = `UPDATE ${room.messagesId}
-    //         SET fileAttachmentToken = null,
-    //             text = :text,
-    //             isDeleted = :isDeleted
-    //         WHERE _id = :id`;
-    //       await ditto.store.execute(query, {
-    //         id: message._id,
-    //         text: "[deleted file]",
-    //         isDeleted: true,
-    //       });
-    //     } else {
-    //       // Mark text message as deleted
-    //       const query = `UPDATE ${room.messagesId} SET text = :text, isDeleted = :isDeleted WHERE _id = :id`;
-    //       await ditto.store.execute(query, {
-    //         id: message._id,
-    //         text: "[deleted message]",
-    //         isDeleted: true,
-    //       });
-    //     }
-    //   } catch (err) {
-    //     console.error("Error in saveDeletedImageMessage:", err);
-    //   }
-    // },
-
     async saveDeletedImageMessage(
       message: Message,
       room: Room,
-      type?: "text" | "image" | "file"
+      type?: "text" | "image" | "file",
     ) {
       if (!ditto) return;
       if (!userId) return;
@@ -431,7 +324,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         // Get current user info
         const currentUserResult = await ditto.store.execute(
           `SELECT * FROM ${userCollectionKey} WHERE _id = :id`,
-          { id: userId }
+          { id: userId },
         );
         const userValue = currentUserResult.items?.[0]?.value;
         const fullName = userValue?.name ?? userId;
@@ -439,7 +332,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         // Get room info
         const roomResult = await ditto.store.execute(
           `SELECT * FROM ${room.collectionId || "rooms"} WHERE _id = :id`,
-          { id: room._id }
+          { id: room._id },
         );
 
         if (roomResult.items.length === 0) {
@@ -462,17 +355,17 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         const thumbnailData = new Uint8Array(await thumbnailBlob.arrayBuffer());
         const thumbnailAttachment = await ditto.store.newAttachment(
           thumbnailData,
-          createAttachmentMetadata(userId, fullName, "thumbnail", imageFile)
+          createAttachmentMetadata(userId, fullName, "thumbnail", imageFile),
         );
 
         console.log("Creating large image attachment...");
         const largeImageBlob = await imageToBlob(await fileToImage(imageFile));
         const largeImageData = new Uint8Array(
-          await largeImageBlob.arrayBuffer()
+          await largeImageBlob.arrayBuffer(),
         );
         const largeAttachment = await ditto.store.newAttachment(
           largeImageData,
-          createAttachmentMetadata(userId, fullName, "large", imageFile)
+          createAttachmentMetadata(userId, fullName, "large", imageFile),
         );
 
         // Now create the message document with BOTH tokens
@@ -498,7 +391,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         // Insert the message with BOTH attachments in a single operation
         await ditto.store.execute(
           `INSERT INTO COLLECTION ${messagesId} (thumbnailImageToken ATTACHMENT, largeImageToken ATTACHMENT) DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE`,
-          { newDoc }
+          { newDoc },
         );
 
         console.log("Image message created successfully");
@@ -516,7 +409,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         // Get current user info
         const currentUserResult = await ditto.store.execute(
           `SELECT * FROM ${userCollectionKey} WHERE _id = :id`,
-          { id: userId }
+          { id: userId },
         );
         const userValue = currentUserResult.items?.[0]?.value;
         const fullName = userValue?.name ?? userId;
@@ -524,7 +417,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         // Get room info
         const roomResult = await ditto.store.execute(
           `SELECT * FROM ${room.collectionId || "rooms"} WHERE _id = :id`,
-          { id: room._id }
+          { id: room._id },
         );
 
         if (roomResult.items.length === 0) {
@@ -545,7 +438,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         const fileData = new Uint8Array(await file.arrayBuffer());
         const fileAttachment = await ditto.store.newAttachment(
           fileData,
-          createAttachmentMetadata(userId, fullName, "file", file)
+          createAttachmentMetadata(userId, fullName, "file", file),
         );
 
         // Now create the message document with file token
@@ -571,7 +464,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         // Insert the message with file attachment
         await ditto.store.execute(
           `INSERT INTO COLLECTION ${messagesId} (fileAttachmentToken ATTACHMENT) DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE`,
-          { newDoc }
+          { newDoc },
         );
 
         console.log("File message created successfully");
@@ -705,7 +598,7 @@ function fileToImage(file: File): Promise<HTMLImageElement> {
 
 // Helper function to convert Image or Canvas to Blob
 async function imageToBlob(
-  image: HTMLImageElement | HTMLCanvasElement
+  image: HTMLImageElement | HTMLCanvasElement,
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
     if (image instanceof HTMLCanvasElement) {
@@ -715,7 +608,7 @@ async function imageToBlob(
           else reject(new Error("Failed to convert canvas to blob"));
         },
         "image/jpeg",
-        1.0
+        1.0,
       );
     } else {
       const canvas = document.createElement("canvas");
@@ -733,7 +626,7 @@ async function imageToBlob(
           else reject(new Error("Failed to convert image to blob"));
         },
         "image/jpeg",
-        1.0
+        1.0,
       );
     }
   });
@@ -744,7 +637,7 @@ function createAttachmentMetadata(
   userId: string,
   username: string,
   type: "thumbnail" | "large" | "file",
-  file: File
+  file: File,
 ): Record<string, string> {
   const timestamp = new Date().toISOString();
   const cleanName = username.replace(/\s/g, "-");

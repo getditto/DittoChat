@@ -1,15 +1,9 @@
-import {
-  LiveQuery,
-  StoreObserver,
-  Subscription,
-  SyncSubscription,
-} from "@dittolive/ditto";
-import Room from "../types/Room";
+import { StoreObserver, SyncSubscription } from "@dittolive/ditto";
 import ChatUser from "../types/ChatUser";
 import { CreateSlice, DittoConfParams } from "../useChat";
 
 export interface ChatUserSlice {
-  chatUser: ChatUser | null;
+  currentUser: ChatUser | null;
   userObserver: StoreObserver | null;
   userSubscription: SyncSubscription | null;
   allUsers: ChatUser[];
@@ -29,10 +23,10 @@ export interface ChatUserSlice {
 export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
   _set,
   _get,
-  { ditto, userId, userCollectionKey }: DittoConfParams
+  { ditto, userId, userCollectionKey }: DittoConfParams,
 ) => {
   const store: ChatUserSlice = {
-    chatUser: null,
+    currentUser: null,
     userObserver: null,
     userSubscription: null,
     allUsers: [],
@@ -44,7 +38,7 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
         const doc: Record<string, any> = { ...user };
         await ditto.store.execute(
           `INSERT INTO ${userCollectionKey} DOCUMENTS (:newUser) ON ID CONFLICT DO UPDATE`,
-          { newUser: doc }
+          { newUser: doc },
         );
       } catch (err) {
         console.error("Error in addUser:", err);
@@ -60,7 +54,7 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
         const updated = { ...current, ...patch };
         await ditto.store.execute(
           `INSERT INTO ${userCollectionKey} DOCUMENTS (:newUser) ON ID CONFLICT DO UPDATE`,
-          { newUser: updated }
+          { newUser: updated },
         );
       } catch (err) {
         console.error("Error in updateUser:", err);
@@ -71,7 +65,7 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
       try {
         const result = await ditto.store.execute(
           `SELECT * FROM ${userCollectionKey} WHERE _id = :id`,
-          { id: userId }
+          { id: userId },
         );
         const userVal = result.items?.[0]?.value;
         return userVal ? (userVal as ChatUser) : null;
@@ -80,87 +74,85 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
         return null;
       }
     },
-  
-  // TODO: Subcription Rooms
 
-  //   async subscribeToRoom(roomId: string) {
-  //     if (!ditto || !userId) return;
-  //     try {
-  //       const user = await _get().findUserById(userId);
-  //       if (!user) return;
+    // TODO: Subcription Rooms
 
-  //       // Only subscribe if not already subscribed
-  //       if (!user.subscriptions || !user.subscriptions[roomId]) {
-  //         const now = new Date().toISOString();
-  //         const subscriptions = { ...user.subscriptions, [roomId]: now };
-  //         await _get().updateUser({ _id: userId, subscriptions });
-  //       }
-  //     } catch (err) {
-  //       console.error("Error in subscribeToRoom:", err);
-  //     }
-  //   },
+    //   async subscribeToRoom(roomId: string) {
+    //     if (!ditto || !userId) return;
+    //     try {
+    //       const user = await _get().findUserById(userId);
+    //       if (!user) return;
 
-  //   async markRoomAsRead(roomId: string) {
-  //     if (!ditto || !userId) return;
-  //     try {
-  //       const user = await _get().findUserById(userId);
-  //       if (!user) return;
+    //       // Only subscribe if not already subscribed
+    //       if (!user.subscriptions || !user.subscriptions[roomId]) {
+    //         const now = new Date().toISOString();
+    //         const subscriptions = { ...user.subscriptions, [roomId]: now };
+    //         await _get().updateUser({ _id: userId, subscriptions });
+    //       }
+    //     } catch (err) {
+    //       console.error("Error in subscribeToRoom:", err);
+    //     }
+    //   },
 
-  //       // Only mark as read if already subscribed
-  //       if (user.subscriptions && user.subscriptions[roomId]) {
-  //         const now = new Date().toISOString();
-  //         const subscriptions = { ...user.subscriptions, [roomId]: now };
-  //         await _get().updateUser({ _id: userId, subscriptions });
-  //       }
-  //     } catch (err) {
-  //       console.error("Error in markRoomAsRead:", err);
-  //     }
-  //   },
+    //   async markRoomAsRead(roomId: string) {
+    //     if (!ditto || !userId) return;
+    //     try {
+    //       const user = await _get().findUserById(userId);
+    //       if (!user) return;
 
-  //   // Add an unsubscribe function as well
-  //   async unsubscribeFromRoom(roomId: string) {
-  //     if (!ditto || !userId) return;
-  //     try {
-  //       const user = await _get().findUserById(userId);
-  //       if (!user || !user.subscriptions) return;
+    //       // Only mark as read if already subscribed
+    //       if (user.subscriptions && user.subscriptions[roomId]) {
+    //         const now = new Date().toISOString();
+    //         const subscriptions = { ...user.subscriptions, [roomId]: now };
+    //         await _get().updateUser({ _id: userId, subscriptions });
+    //       }
+    //     } catch (err) {
+    //       console.error("Error in markRoomAsRead:", err);
+    //     }
+    //   },
 
-  //       const subscriptions = { ...user.subscriptions };
-  //       delete subscriptions[roomId];
-  //       await _get().updateUser({ _id: userId, subscriptions });
-  //     } catch (err) {
-  //       console.error("Error in unsubscribeFromRoom:", err);
-  //     }
-  //   },
+    //   // Add an unsubscribe function as well
+    //   async unsubscribeFromRoom(roomId: string) {
+    //     if (!ditto || !userId) return;
+    //     try {
+    //       const user = await _get().findUserById(userId);
+    //       if (!user || !user.subscriptions) return;
+
+    //       const subscriptions = { ...user.subscriptions };
+    //       delete subscriptions[roomId];
+    //       await _get().updateUser({ _id: userId, subscriptions });
+    //     } catch (err) {
+    //       console.error("Error in unsubscribeFromRoom:", err);
+    //     }
+    //   },
   };
 
   if (ditto) {
     const userQuery = `SELECT * FROM ${userCollectionKey} WHERE _id = :id`;
     const allUsersQuery = `SELECT * FROM ${userCollectionKey}`;
 
-    // Single User: currentUserPublisher()
     const queryParams = { id: userId };
 
     store.userSubscription = ditto.sync.registerSubscription(
       userQuery,
-      queryParams
+      queryParams,
     );
 
     store.userObserver = ditto.store.registerObserver(
       userQuery,
       (result) => {
-        _set({ chatUser: (result.items?.[0]?.value as ChatUser) || null });
+        _set({ currentUser: (result.items?.[0]?.value as ChatUser) || null });
       },
-      queryParams
+      queryParams,
     );
 
-    // All Users: allUsersPublisher()
     store.allUsersSubscription = ditto.sync.registerSubscription(allUsersQuery);
 
     store.allUsersObserver = ditto.store.registerObserver(
       allUsersQuery,
       (result) => {
         _set({ allUsers: result.items.map((doc) => doc.value as ChatUser) });
-      }
+      },
     );
   }
 

@@ -4,12 +4,12 @@ import { EMPTY_MESSAGES } from "../constants";
 import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
 import { Icons } from "./Icons";
-import { useDittoChatStore } from "dittochatcore";
-import type MessageWithUser from "dittochatcore/dist/types/MessageWithUser";
-import type Message from "dittochatcore/dist/types/Message";
-import type ChatUser from "dittochatcore/dist/types/ChatUser";
+import { useDittoChatStore } from "@dittolive/ditto-chat-core";
+import type MessageWithUser from "@dittolive/ditto-chat-core/dist/types/MessageWithUser";
+import type Message from "@dittolive/ditto-chat-core/dist/types/Message";
+import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import Avatar from "./Avatar";
-import type Room from "dittochatcore/dist/types/Room";
+import type Room from "@dittolive/ditto-chat-core/dist/types/Room";
 
 interface ChatViewProps {
   chat: Chat;
@@ -23,19 +23,24 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
   const messages: MessageWithUser[] = useDittoChatStore(
     (state) => state.messagesByRoom[chat.id] || EMPTY_MESSAGES,
   );
-  const currentUser: ChatUser = useDittoChatStore((state) => state.chatUser);
+  const currentUser: ChatUser = useDittoChatStore((state) => state.currentUser);
   const allUsers: ChatUser[] = useDittoChatStore((state) => state.allUsers);
   const createMessage = useDittoChatStore((state) => state.createMessage);
   const createImageMessage = useDittoChatStore(
     (state) => state.createImageMessage,
   );
   const fetchAttachment = useDittoChatStore((state) => state.fetchAttachment);
-  const saveEditedTextMessage = useDittoChatStore((state) => state.saveEditedTextMessage);
-  const saveDeletedImageMessage = useDittoChatStore((state) => state.saveDeletedImageMessage);
-  const createFileMessage = useDittoChatStore((state) => state.createFileMessage);
+  const saveEditedTextMessage = useDittoChatStore(
+    (state) => state.saveEditedTextMessage,
+  );
+  const saveDeletedImageMessage = useDittoChatStore(
+    (state) => state.saveDeletedImageMessage,
+  );
+  const createFileMessage = useDittoChatStore(
+    (state) => state.createFileMessage,
+  );
   // const subscribeToRoom = useDittoChatStore((state: any) => state.subscribeToRoom as ((roomId: string) => Promise<void>) | undefined);
   // const markRoomAsRead = useDittoChatStore((state: any) => state.markRoomAsRead as ((roomId: string) => Promise<void>) | undefined);
-  const chatUser = useDittoChatStore((state: any) => state.chatUser as any);
 
   const rooms = useDittoChatStore((state) => state.rooms) as Room[];
   const room = (rooms || []).find((room) => room._id === chat.id);
@@ -50,10 +55,10 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
 
   // TODO: When the user opens/views the room, mark it as read (update subscription timestamp)
   // useEffect(() => {
-  //   if (room && markRoomAsRead && chatUser?.subscriptions && room._id in chatUser.subscriptions) {
+  //   if (room && markRoomAsRead && currentUser?.subscriptions && room._id in currentUser.subscriptions) {
   //     markRoomAsRead(room._id).catch(console.error);
   //   }
-  // }, [room, markRoomAsRead, chatUser]);
+  // }, [room, markRoomAsRead, currentUser]);
 
   const handleStartEdit = (message: Message) => {
     setEditingMessage(message);
@@ -117,16 +122,15 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
           <h2 className="text-xl font-semibold">{chatName}</h2>
 
           {/* TODO: Subscribe button */}
-          {/* {room && chatUser && (
+          {/* {room && currentUser && (
             <button
               onClick={() => {
                 if (subscribeToRoom) subscribeToRoom(room._id).catch(console.error);
               }}
               className="ml-3 text-sm px-2 py-1 border rounded text-(--text-color-light)">
-              {chatUser?.subscriptions && room._id in chatUser.subscriptions ? "Subscribed" : "Subscribe"}
+              {currentUser?.subscriptions && room._id in currentUser.subscriptions ? "Subscribed" : "Subscribe"}
             </button>
           )} */}
-
         </div>
       </header>
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -149,7 +153,8 @@ const ChatView: React.FC<ChatViewProps> = ({ chat, onBack }) => {
               onDeleteMessage={handleDeleteMessage}
               onAddReaction={(messageId, emoji) => {
                 // onAddReaction(chat.id, messageId, emoji)
-                console.log("Delete", messageId, emoji);
+                // TODO: Implement onAddReaction
+                console.log("Add Reaction", messageId, emoji);
               }}
             />
           );

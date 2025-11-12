@@ -1,5 +1,5 @@
 export default interface ChatUser {
-  _id?: string; // Ditto auto-generated 
+  _id?: string;
   name: string;
   subscriptions: Record<string, Date | null>;
   mentions: Record<string, string[]>;

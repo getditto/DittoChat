@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Icons } from "./Icons";
-import type Message from "dittochatcore/dist/types/Message";
-import { useDittoChatStore } from "dittochatcore";
-import ChatUser from "dittochatcore/dist/types/ChatUser";
+import type Message from "@dittolive/ditto-chat-core/dist/types/Message";
+import { useDittoChatStore } from "@dittolive/ditto-chat-core";
+import ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
+import Avatar from "./Avatar";
 
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
@@ -188,11 +189,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
                     onClick={() => handleMentionSelect(user.name)}
                     className="w-full text-left px-3 py-2 flex items-center space-x-3 hover:bg-(--secondary-bg)"
                   >
-                    {/*<img
-                      src={user.avatarUrl}
-                      alt={user.name}
-                      className="w-8 h-8 rounded-full"
-                    />*/}
+                    <Avatar isUser={true} />
                     <span className="font-semibold">{user.name}</span>
                   </button>
                 </li>
@@ -222,7 +219,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
             />
             <input
               type="file"
-              ref={documentFileInputRef} 
+              ref={documentFileInputRef}
               className="hidden"
               onChange={(e) => {
                 const file = e.target.files?.[0];
@@ -241,7 +238,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
               <span>Photo</span>
             </button>
             <button
-              onClick={() => documentFileInputRef.current?.click()} 
+              onClick={() => documentFileInputRef.current?.click()}
               className="w-full text-left px-4 py-2 text-sm hover:bg-(--secondary-bg) flex items-center space-x-3"
             >
               <Icons.fileText className="w-5 h-5 text-(--text-color-lightest)" />

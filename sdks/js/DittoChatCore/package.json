@@ -1,5 +1,5 @@
 {
-  "name": "dittochatcore",
+  "name": "@dittolive/ditto-chat-core",
   "version": "1.0.0",
   "main": "dist/index.umd.js",
   "module": "dist/index.es.js",
@@ -7,8 +7,13 @@
   "files": [
     "dist"
   ],
+  "author": "Ditto",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/getditto/DittoChat.git"
+  },
   "scripts": {
-    "dev": "vite",
     "build": "vite build && tsc --emitDeclarationOnly",
     "test": "vitest run",
     "test:watch": "vitest watch",
@@ -33,17 +38,10 @@
   "keywords": [
     "react",
     "typescript",
-    "vite",
-    "hooks",
-    "components",
-    "library"
+    "ditto",
+    "ditto-chat-core",
+    "ditto-chat"
   ],
-  "author": "Yuvaraj Nithyanandan",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/yuvarajnithyanandan/react-shared-lib.git"
-  },
   "dependencies": {
     "@dittolive/ditto": "^4.12.3",
     "immer": "^10.2.0",
