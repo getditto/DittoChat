@@ -81,6 +81,7 @@ function App() {
             String(import.meta.env.VITE_APP_DITTO_WEB_SOCKET),
           );
         });
+        await ditto.store.execute("ALTER SYSTEM SET DQL_STRICT_MODE = false");
         await ditto.disableSyncWithV3();
         ditto.startSync();
         return ditto;

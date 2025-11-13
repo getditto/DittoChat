@@ -1,4 +1,9 @@
-import { Ditto, StoreObserver, SyncSubscription } from "@dittolive/ditto";
+import {
+  Ditto,
+  QueryResult,
+  StoreObserver,
+  SyncSubscription,
+} from "@dittolive/ditto";
 import Room from "../types/Room";
 import ChatUser from "../types/ChatUser";
 import { ChatStore, CreateSlice, DittoConfParams } from "../useChat";
@@ -17,11 +22,17 @@ export interface RoomSlice {
   createDMRoom: (user: ChatUser) => Promise<void | Room>;
 }
 
-function saveRoomsToStore(
+function handleRoomsObserverResult(
   _set: StoreApi<ChatStore>["setState"],
-  rooms: Room[],
+  _get: StoreApi<ChatStore>["getState"],
+  observerResult: QueryResult<Room>,
 ) {
-  if (rooms.length === 0) return;
+  if (observerResult.items.length === 0) return;
+  const rooms = observerResult.items.map((doc) => {
+    const messagePublisher = _get().messagesPublisher;
+    messagePublisher(doc.value);
+    return doc.value;
+  });
   _set((state: ChatStore) => {
     return produce(state, (draft) => {
       const otherRooms = state.rooms.filter(
@@ -121,19 +132,13 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
     store.roomsObserver = ditto.store.registerObserver<Room>(
       roomsQuery,
       (result) => {
-        saveRoomsToStore(
-          _set,
-          result.items.map((doc) => doc.value),
-        );
+        handleRoomsObserverResult(_set, _get, result);
       },
     );
     store.dmRoomsObserver = ditto.store.registerObserver<Room>(
       dmRoomsQuery,
       (result) => {
-        saveRoomsToStore(
-          _set,
-          result.items.map((doc) => doc.value as Room),
-        );
+        handleRoomsObserverResult(_set, _get, result);
       },
       {
         userId,

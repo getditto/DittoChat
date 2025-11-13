@@ -13,8 +13,7 @@ const DittoChatUIWrapper = () => {
     <DittoChatUI
       // @ts-expect-error
       ditto={ditto?.ditto as Ditto}
-      // userId="43e9419a-f5ef-486e-912f-5ac8a318b9a9"
-      userId="690342270008f55100255f92"
+      userId="690342270008f55100255f92" // update actual user id
       userCollectionKey="users"
     />
   );
@@ -39,6 +38,7 @@ function App() {
             String(import.meta.env.VITE_APP_DITTO_WEB_SOCKET),
           );
         });
+        await ditto.store.execute("ALTER SYSTEM SET DQL_STRICT_MODE = false");
         await ditto.disableSyncWithV3();
         ditto.startSync();
         return ditto;

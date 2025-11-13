@@ -22,6 +22,7 @@ export type CreateSlice<T> = (
 export type ChatStore = RoomSlice & ChatUserSlice & MessageSlice;
 
 export let chatStore: StoreApi<ChatStore> | null = null;
+export let chatStoreSub: Function;
 
 export function useDittoChat<T>(params: DittoConfParams) {
   if (!chatStore) {
@@ -34,14 +35,6 @@ export function useDittoChat<T>(params: DittoConfParams) {
         })),
       [params.ditto],
     );
-
-    chatStore.subscribe((state, prevState) => {
-      if (state.rooms.length !== prevState.rooms.length) {
-        state.rooms.forEach((room) => {
-          state.messagesPublisher(room);
-        });
-      }
-    });
   }
 
   return useStore(chatStore);
