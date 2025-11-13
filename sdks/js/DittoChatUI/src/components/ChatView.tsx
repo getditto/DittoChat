@@ -41,8 +41,8 @@ function ChatView({ chat, onBack }: ChatViewProps) {
   const createFileMessage = useDittoChatStore(
     (state) => state.createFileMessage,
   );
-  // const subscribeToRoom = useDittoChatStore((state: any) => state.subscribeToRoom as ((roomId: string) => Promise<void>) | undefined);
-  // const markRoomAsRead = useDittoChatStore((state: any) => state.markRoomAsRead as ((roomId: string) => Promise<void>) | undefined);
+  const subscribeToRoom = useDittoChatStore((state: any) => state.subscribeToRoom as ((roomId: string) => Promise<void>) | undefined);
+  const markRoomAsRead = useDittoChatStore((state: any) => state.markRoomAsRead as ((roomId: string) => Promise<void>) | undefined);
 
   const rooms = useDittoChatStore((state) => state.rooms || EMPTY_ROOMS);
   const room = rooms.find((room) => room._id === chat.id);
@@ -56,11 +56,11 @@ function ChatView({ chat, onBack }: ChatViewProps) {
   }, [chat.messages]);
 
   // TODO: When the user opens/views the room, mark it as read (update subscription timestamp)
-  // useEffect(() => {
-  //   if (room && markRoomAsRead && currentUser?.subscriptions && room._id in currentUser.subscriptions) {
-  //     markRoomAsRead(room._id).catch(console.error);
-  //   }
-  // }, [room, markRoomAsRead, currentUser]);
+  useEffect(() => {
+    if (room && markRoomAsRead && currentUser?.subscriptions && room._id in currentUser.subscriptions) {
+      markRoomAsRead(room._id).catch(console.error);
+    }
+  }, [room, markRoomAsRead, currentUser]);
 
   const handleStartEdit = (message: Message) => {
     setEditingMessage(message);
@@ -123,7 +123,7 @@ function ChatView({ chat, onBack }: ChatViewProps) {
           <h2 className="text-xl font-semibold">{chatName}</h2>
 
           {/* TODO: Subscribe button */}
-          {/* {room && currentUser && (
+          {room && currentUser && (
             <button
               onClick={() => {
                 if (subscribeToRoom) subscribeToRoom(room._id).catch(console.error);
@@ -131,7 +131,7 @@ function ChatView({ chat, onBack }: ChatViewProps) {
               className="ml-3 text-sm px-2 py-1 border rounded text-(--text-color-light)">
               {currentUser?.subscriptions && room._id in currentUser.subscriptions ? "Subscribed" : "Subscribe"}
             </button>
-          )} */}
+          )}
         </div>
       </header>
       <div className="flex-1 overflow-y-auto p-4 space-y-4">

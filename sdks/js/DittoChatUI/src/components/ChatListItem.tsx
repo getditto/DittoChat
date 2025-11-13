@@ -4,6 +4,9 @@ import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import { formatDate } from "../utils";
 import clsx from "clsx";
 import Avatar from "./Avatar";
+import { useDittoChatStore } from "@dittolive/ditto-chat-core";
+import type MessageWithUser from "@dittolive/ditto-chat-core/dist/types/MessageWithUser";
+import { EMPTY_MESSAGES } from "../constants";
 
 interface ChatListItemProps {
   chat: Chat;
@@ -41,35 +44,39 @@ function ChatListItem({
     lastMessage?.userId === currentUserId
       ? "You"
       : lastMessageSender?.name.split(" ")[0];
-  // const currentUser = useDittoChatStore((state) => state.currentUser);
-  // const messagesForRoom = useDittoChatStore(
-  //   (state: any) => state.messagesByRoom?.[String(chat.id)] || [],
-  // );
+
+
+  const currentUser: ChatUser | null = useDittoChatStore(
+    (state) => state.currentUser,
+  );
+  const messages: MessageWithUser[] = useDittoChatStore(
+      (state) => state.messagesByRoom[chat.id] || EMPTY_MESSAGES,
+  );
 
   // Only show unread badges for rooms the user explicitly subscribed to
-  // const isSubscribed = !!(currentUser?.subscriptions && String(chat.id) in currentUser.subscriptions);
+  const isSubscribed = !!(currentUser?.subscriptions && chat.id in currentUser.subscriptions);
 
-  // const subscribedAt = currentUser?.subscriptions?.[String(chat.id)];
-  // const lastCreated = lastMessage ? new Date(lastMessage.createdOn) : null;
+  const subscribedAt = currentUser?.subscriptions?.[chat.id];
+  const lastCreated = lastMessage ? new Date(lastMessage.createdOn) : null;
 
-  // const unread = Boolean(
-  //   isSubscribed &&
-  //   lastMessage &&
-  //   lastMessage.userId !== currentUserId &&
-  //   (!subscribedAt || (lastCreated && new Date(String(subscribedAt)) < lastCreated))
-  // );
+  const unread = Boolean(
+    isSubscribed &&
+    lastMessage &&
+    lastMessage.userId !== currentUserId &&
+    (!subscribedAt || (lastCreated && new Date(subscribedAt) < lastCreated))
+  );
 
-  // const unreadCount = (() => {
-  //   if (!isSubscribed || !messagesForRoom || messagesForRoom.length === 0) return 0;
-  //   if (!subscribedAt) return messagesForRoom.length;
-  //   const since = new Date(String(subscribedAt));
-  //   return messagesForRoom.reduce((acc: number, m: any) => {
-  //     const msg = m?.message || m;
-  //     if (msg.userId === currentUserId) return acc;
-  //     const msgDate = new Date(msg.createdOn);
-  //     return msgDate > since ? acc + 1 : acc;
-  //   }, 0);
-  // })();
+  const unreadCount = (() => {
+    if (!isSubscribed || !messages || messages.length === 0) return 0;
+    if (!subscribedAt) return messages.length;
+    const since = new Date(subscribedAt);
+    return messages.reduce((acc: number, m: any) => {
+      const msg = m?.message || m;
+      if (msg.userId === currentUserId) return acc;
+      const msgDate = new Date(msg.createdOn);
+      return msgDate > since ? acc + 1 : acc;
+    }, 0);
+  })();
 
   return (
     <button
@@ -84,11 +91,11 @@ function ChatListItem({
       <div className="relative -top-4">
         <Avatar isUser={chat.type === "dm"} />
         {/* TODO: Unread Badge */}
-        {/* {unread && (
+        {unread && (
           <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1.5 text-xs flex items-center justify-center rounded-full bg-(--notification-badge-bg) border-2 border-white">
             {unreadCount > 0 ? unreadCount : null}
           </span>
-        )} */}
+        )} 
         {otherUserIsActive && (
           <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-(--active-status-bg) border-2 border-white"></span>
         )}

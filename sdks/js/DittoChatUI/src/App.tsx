@@ -13,7 +13,8 @@ const DittoChatUIWrapper = () => {
     <DittoChatUI
       // @ts-expect-error
       ditto={ditto?.ditto as Ditto}
-      userId="690342270008f55100255f92" // update actual user id
+      // userId="690342270008f55100255f92" // update actual user id
+      userId="6903511900bd187500bb5c12" // update actual user id
       userCollectionKey="users"
     />
   );
