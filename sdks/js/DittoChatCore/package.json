@@ -1,0 +1,52 @@
+{
+  "name": "@dittolive/ditto-chat-core",
+  "version": "1.0.0",
+  "main": "dist/index.umd.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "author": "Ditto",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/getditto/DittoChat.git"
+  },
+  "scripts": {
+    "build": "vite build && tsc --emitDeclarationOnly",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "@dittolive/ditto": "^4.12.3",
+    "react": "^18 || ^19"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.5.0",
+    "@testing-library/react": "^16.0.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^4.3.0",
+    "jsdom": "^24.0.0",
+    "react": "^19.1.1",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.0",
+    "vitest": "^2.1.2"
+  },
+  "keywords": [
+    "react",
+    "typescript",
+    "ditto",
+    "ditto-chat-core",
+    "ditto-chat"
+  ],
+  "dependencies": {
+    "@dittolive/ditto": "^4.12.3",
+    "immer": "^10.2.0",
+    "uuid": "^13.0.0",
+    "zustand": "^5.0.8"
+  }
+}
