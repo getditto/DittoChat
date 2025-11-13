@@ -24,20 +24,19 @@ export type ChatStore = RoomSlice & ChatUserSlice & MessageSlice;
 export let chatStore: StoreApi<ChatStore> | null = null;
 export let chatStoreSub: Function;
 
-export function useDittoChat<T>(params: DittoConfParams) {
-  if (!chatStore) {
-    chatStore = useMemo(
-      () =>
-        createStore<ChatStore>()((set, get) => ({
-          ...createRoomSlice(set, get, params),
-          ...createChatUserSlice(set, get, params),
-          ...createMessageSlice(set, get, params),
-        })),
-      [params.ditto],
-    );
-  }
+export function useDittoChat(params: DittoConfParams) {
+  const store = useMemo(() => {
+    if (!chatStore) {
+      chatStore = createStore<ChatStore>()((set, get) => ({
+        ...createRoomSlice(set, get, params),
+        ...createChatUserSlice(set, get, params),
+        ...createMessageSlice(set, get, params),
+      }));
+    }
+    return chatStore;
+  }, [params.ditto]);
 
-  return useStore(chatStore);
+  return useStore(store!);
 }
 
 export function useDittoChatStore<T = Partial<ChatStore>>(
