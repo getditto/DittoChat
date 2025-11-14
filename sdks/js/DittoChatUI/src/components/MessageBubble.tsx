@@ -1,20 +1,34 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Icons } from "./Icons";
 import type Message from "@dittolive/ditto-chat-core/dist/types/Message";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import { formatDate } from "../utils";
 import { useImageAttachment } from "../utils/useImageAttachment";
 import { AttachmentToken } from "@dittolive/ditto";
+import { EmojiClickData } from "emoji-picker-react";
+import QuickReaction from "./QuickReaction";
+
+type MessageReaction = {
+  id: number;
+  emoji: string;
+  userIds: string[];
+};
 
 interface MessageBubbleProps {
   message: Message;
   sender?: ChatUser;
+  currentUserId: string;
   isOwnMessage: boolean;
   isGroupChat: boolean;
   showSenderInfo: boolean;
   onStartEdit: (message: Message) => void;
   onDeleteMessage: (messageId: number | string) => void;
-  onAddReaction: (messageId: number | string, emoji: string) => void;
+  onAddReaction: (message: Message, reaction: EmojiClickData) => Promise<void>;
+  onRemoveReaction: (
+    message: Message,
+    userId: string,
+    emoji: string,
+  ) => Promise<void>;
   fetchAttachment?: (
     token: AttachmentToken,
     onProgress: (progress: number) => void,
@@ -55,58 +69,18 @@ function FormattedMessage({
   );
 }
 
-const EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
-
-function EmojiPicker({
-  onSelect,
-  closePicker,
-}: {
-  onSelect: (emoji: string) => void;
-  closePicker: () => void;
-}) {
-  const pickerRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        pickerRef.current &&
-        !pickerRef.current.contains(event.target as Node)
-      ) {
-        closePicker();
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [closePicker]);
-
-  return (
-    <div
-      ref={pickerRef}
-      className="absolute bottom-full mb-2 bg-white rounded-lg shadow-lg border border-(--border-color) p-1 flex gap-1 z-10"
-    >
-      {EMOJIS.map((emoji) => (
-        <button
-          key={emoji}
-          onClick={() => onSelect(emoji)}
-          className="text-2xl p-1 rounded-md hover:bg-(--secondary-bg-hover) transition-colors"
-          aria-label={`react with ${emoji}`}
-        >
-          {emoji}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 function MessageBubble({
   message,
   sender,
   isOwnMessage,
+  currentUserId,
   isGroupChat,
   showSenderInfo,
   fetchAttachment,
   onStartEdit,
   onDeleteMessage,
   onAddReaction,
+  onRemoveReaction,
 }: MessageBubbleProps) {
   const {
     imageUrl: thumbnailUrl,
@@ -134,7 +108,7 @@ function MessageBubble({
   const [showLargeImage, setShowLargeImage] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isActionsVisible, setIsActionsVisible] = useState(false);
-  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  const [reactions, setReactions] = useState<MessageReaction[]>([]);
 
   const hasImage = message.thumbnailImageToken || message.largeImageToken;
   const hasFile = !!message.fileAttachmentToken;
@@ -144,6 +118,23 @@ function MessageBubble({
     (!hasFile || message.isDeleted);
 
   const imageError = thumbnailError || largeImageError;
+
+  useEffect(() => {
+    const r = (message.reactions || []).reduce((acc, reaction) => {
+      const existingReaction = acc.find((r) => r.emoji === reaction.emoji);
+      if (existingReaction) {
+        existingReaction.userIds.push(reaction.userId);
+      } else {
+        acc.push({
+          id: acc.length + 1,
+          emoji: reaction.emoji,
+          userIds: [reaction.userId],
+        });
+      }
+      return acc;
+    }, [] as MessageReaction[]);
+    setReactions(r);
+  }, [message]);
 
   const handleThumbnailClick = () => {
     if (largeImageUrl) {
@@ -171,9 +162,14 @@ function MessageBubble({
     }
   };
 
-  const handleAddReactionClick = (emoji: string) => {
-    onAddReaction(message._id, emoji);
-    setIsEmojiPickerOpen(false);
+  const handleAddReactionClick = (emoji: EmojiClickData) => {
+    const existingReactionIndex = reactions.findIndex(
+      (reaction) =>
+        reaction.emoji === emoji.emoji &&
+        reaction.userIds.includes(currentUserId),
+    );
+    if (existingReactionIndex !== -1) return;
+    onAddReaction(message, emoji);
   };
 
   const senderName = isOwnMessage ? "You" : sender?.name || "Unknown User";
@@ -344,22 +340,6 @@ function MessageBubble({
               isActionsVisible ? "opacity-100" : "opacity-0"
             }`}
           >
-            <div className="relative">
-              {isEmojiPickerOpen && (
-                <EmojiPicker
-                  onSelect={handleAddReactionClick}
-                  closePicker={() => setIsEmojiPickerOpen(false)}
-                />
-              )}
-              <button
-                onClick={() => setIsEmojiPickerOpen((p) => !p)}
-                disabled={message.isDeleted}
-                className="p-1 rounded-full hover:bg-(--secondary-bg-hover) text-(--text-color-lightest) disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Add reaction"
-              >
-                <Icons.smile className="w-5 h-5" />
-              </button>
-            </div>
             <button
               onClick={() => {
                 onStartEdit(message);
@@ -380,7 +360,7 @@ function MessageBubble({
                 <Icons.moreHorizontal className="w-5 h-5" />
               </button>
               {isMenuOpen && (
-                <div className="absolute top-full mt-2 right-0 bg-white rounded-lg shadow-lg border border-(--border-color) w-40 z-10 py-1">
+                <div className="absolute top-full mt-2 right-0 bg-(--surface-color) rounded-lg shadow-lg border border-(--border-color) w-40 z-10 py-1">
                   {!message.isDeleted && (
                     <button
                       onClick={() => {
@@ -408,13 +388,13 @@ function MessageBubble({
       <div
         className={`flex items-center space-x-1 mt-1 ${isOwnMessage ? "justify-end" : ""}`}
       >
-        {/*// TODO: Implement reactions*/}
-        {/*{message.reactions.map((reaction) => {
-          const userHasReacted = reaction.userIds.includes(CURRENT_USER_ID);
+        {reactions.map((reaction) => {
+          const userHasReacted = reaction.userIds.includes(currentUserId);
           return (
             <button
-              key={reaction.emoji}
-              onClick={() => handleAddReactionClick(reaction.emoji)}
+              onClick={() =>
+                onRemoveReaction(message, currentUserId, reaction.emoji)
+              }
               className={`text-xs px-2 py-0.5 rounded-full flex items-center space-x-1 cursor-pointer transition-colors ${
                 userHasReacted
                   ? "bg-(--primary-color-lighter) border border-(--primary-color-light-border)"
@@ -425,29 +405,16 @@ function MessageBubble({
               <span
                 className={`font-medium ${userHasReacted ? "text-(--primary-color-dark-text)" : "text-(--text-color-light)"}`}
               >
-                {reaction.count}
+                {reaction.userIds.length}
               </span>
             </button>
           );
-        })}*/}
-        {!isOwnMessage && (
-          <div className="relative">
-            <button
-              onClick={() => setIsEmojiPickerOpen((p) => !p)}
-              disabled={message.isDeleted}
-              className="p-1 rounded-full hover:bg-(--secondary-bg-hover) text-(--text-color-lightest) disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="Add reaction"
-            >
-              <Icons.smile className="w-5 h-5" />
-            </button>
-            {isEmojiPickerOpen && (
-              <EmojiPicker
-                onSelect={handleAddReactionClick}
-                closePicker={() => setIsEmojiPickerOpen(false)}
-              />
-            )}
-          </div>
-        )}
+        })}
+        <QuickReaction
+          onSelect={handleAddReactionClick}
+          disabled={message.isDeleted}
+          isOwnMessage={isOwnMessage}
+        />
       </div>
 
       {showLargeImage && (largeImageUrl || thumbnailUrl) && (

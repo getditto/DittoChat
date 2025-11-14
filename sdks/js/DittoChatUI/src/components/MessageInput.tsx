@@ -156,7 +156,7 @@ function MessageInput({
   }, []);
 
   return (
-    <div className="p-4 bg-white border-t border-(--border-color) mt-auto flex-shrink-0">
+    <div className="p-4 bg-(--surface-color) border-t border-(--border-color) mt-auto flex-shrink-0">
       <div className="relative">
         {editingMessage && (
           <div className="bg-[rgba(var(--edit-bg),0.5)] rounded-lg p-3 mb-2 flex justify-between items-start">
@@ -180,7 +180,7 @@ function MessageInput({
         {isMentioning && filteredMentionUsers.length > 0 && (
           <div
             id="mention-popover"
-            className="absolute bottom-full mb-2 bg-white rounded-lg shadow-lg border border-(--border-color) w-64 z-20 overflow-hidden"
+            className="absolute bottom-full mb-2 bg-(--surface-color) rounded-lg shadow-lg border border-(--border-color) w-64 z-20 overflow-hidden"
           >
             <ul className="max-h-60 overflow-y-auto">
               {filteredMentionUsers.map((user) => (
@@ -201,7 +201,7 @@ function MessageInput({
         {isAttachMenuOpen && (
           <div
             ref={attachMenuRef}
-            className="absolute bottom-full mb-2 bg-white rounded-lg shadow-lg border border-(--border-color) w-48 z-10 py-1"
+            className="absolute bottom-full mb-2 bg-(--surface-color) rounded-lg shadow-lg border border-(--border-color) w-48 z-10 py-1"
           >
             <input
               type="file"

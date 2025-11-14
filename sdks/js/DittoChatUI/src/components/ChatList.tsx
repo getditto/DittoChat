@@ -95,12 +95,13 @@ function ChatList({
   };
 
   const cache = new CellMeasurerCache({
+    fixedWidth: true,
     defaultHeight: 60,
     minHeight: 40,
   });
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-(--surface-color)">
       <header className="pl-4 pr-4 border-b min-h-12 flex items-center border-(--border-color)">
         <h1 className="text-xl font-semibold">Chats</h1>
       </header>
@@ -124,7 +125,7 @@ function ChatList({
             </button>
           </div>
           {isDropdownOpen && (
-            <div className="origin-top absolute mt-2 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+            <div className="origin-top absolute mt-2 w-full rounded-md shadow-lg bg-(--surface-color) ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
               <div
                 className="py-1"
                 role="menu"

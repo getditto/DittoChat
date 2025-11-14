@@ -9,7 +9,8 @@ import type MessageWithUser from "@dittolive/ditto-chat-core/dist/types/MessageW
 import type Message from "@dittolive/ditto-chat-core/dist/types/Message";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import Avatar from "./Avatar";
-import type Room from "@dittolive/ditto-chat-core/dist/types/Room";
+import { EmojiClickData } from "emoji-picker-react";
+import { Reaction } from "@dittolive/ditto-chat-core/dist/types/Message";
 
 interface ChatViewProps {
   chat: Chat;
@@ -32,6 +33,12 @@ function ChatView({ chat, onBack }: ChatViewProps) {
     (state) => state.createImageMessage,
   );
   const fetchAttachment = useDittoChatStore((state) => state.fetchAttachment);
+  const addReactionToMessage = useDittoChatStore(
+    (state) => state.addReactionToMessage,
+  );
+  const removeReactionFromMessage = useDittoChatStore(
+    (state) => state.removeReactionFromMessage,
+  );
   const saveEditedTextMessage = useDittoChatStore(
     (state) => state.saveEditedTextMessage,
   );
@@ -92,6 +99,30 @@ function ChatView({ chat, onBack }: ChatViewProps) {
     }
   };
 
+  const handleAddReaction = async (message: Message, emoji: EmojiClickData) => {
+    if (!room) return;
+    const reaction: Reaction = {
+      emoji: emoji.emoji,
+      userId: currentUser?._id || "",
+      unified: emoji.unified,
+      unifiedWithoutSkinTone: emoji.unifiedWithoutSkinTone,
+    };
+    await addReactionToMessage(message, room, reaction);
+  };
+
+  const handleRemoveReaction = async (
+    message: Message,
+    userId: string,
+    emoji: string,
+  ) => {
+    if (!room) return;
+    const reaction = (message.reactions || []).find(
+      (r) => r.userId === userId && r.emoji === emoji,
+    );
+    if (!reaction) return;
+    await removeReactionFromMessage(message, room, reaction);
+  };
+
   let chatName = chat.name;
   let otherUserIsActive = false;
 
@@ -148,6 +179,7 @@ function ChatView({ chat, onBack }: ChatViewProps) {
             <MessageBubble
               key={message.id}
               message={message.message}
+              currentUserId={currentUser?._id || ""}
               sender={sender}
               isOwnMessage={isOwnMessage}
               isGroupChat={chat.type === "group"}
@@ -155,11 +187,8 @@ function ChatView({ chat, onBack }: ChatViewProps) {
               fetchAttachment={fetchAttachment}
               onStartEdit={handleStartEdit}
               onDeleteMessage={handleDeleteMessage}
-              onAddReaction={(messageId, emoji) => {
-                // onAddReaction(chat.id, messageId, emoji)
-                // TODO: Implement onAddReaction
-                console.log("Add Reaction", messageId, emoji);
-              }}
+              onAddReaction={handleAddReaction}
+              onRemoveReaction={handleRemoveReaction}
             />
           );
         })}

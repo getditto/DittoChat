@@ -164,57 +164,6 @@ export default function DittoChatUI({
     }
   }, [chats, newlyCreatedRoom]);
 
-  // const handleAddReaction = (
-  //   chatId: number | string,
-  //   messageId: number | string,
-  //   emoji: string,
-  // ) => {
-  //   setChats((prevChats) =>
-  //     prevChats.map((chat) => {
-  //       if (chat.id === chatId) {
-  //         const updatedMessages = chat.messages.map((msg) => {
-  //           if (msg.id === messageId) {
-  //             const newReactions = [...msg.reactions];
-  //             const existingReactionIndex = newReactions.findIndex(
-  //               (r) => r.emoji === emoji,
-  //             );
-
-  //             if (existingReactionIndex > -1) {
-  //               const reaction = newReactions[existingReactionIndex];
-  //               const userReactedIndex =
-  //                 reaction.userIds.indexOf(CURRENT_USER_ID);
-
-  //               if (userReactedIndex > -1) {
-  //                 // User removing their reaction
-  //                 reaction.userIds.splice(userReactedIndex, 1);
-  //                 reaction.count--;
-  //                 if (reaction.count === 0) {
-  //                   newReactions.splice(existingReactionIndex, 1);
-  //                 }
-  //               } else {
-  //                 // User adding reaction to existing emoji
-  //                 reaction.userIds.push(CURRENT_USER_ID);
-  //                 reaction.count++;
-  //               }
-  //             } else {
-  //               // New emoji reaction
-  //               newReactions.push({
-  //                 emoji,
-  //                 userIds: [CURRENT_USER_ID],
-  //                 count: 1,
-  //               });
-  //             }
-  //             return { ...msg, reactions: newReactions };
-  //           }
-  //           return msg;
-  //         });
-  //         return { ...chat, messages: updatedMessages };
-  //       }
-  //       return chat;
-  //     }),
-  //   );
-  // };
-
   // On desktop, default to selecting the first chat
   useEffect(() => {
     if (window.innerWidth >= 768 && !selectedChat) {
@@ -225,10 +174,12 @@ export default function DittoChatUI({
   return (
     <ToastProvider>
       <ChatNotificationObserver activeRoomId={selectedChat?.id} />
-      <div className="flex h-screen bg-white font-sans text-(--text-color) overflow-hidden">
+      <div className="flex h-screen bg-(--surface-color) font-sans text-(--text-color) overflow-hidden">
         {/* Chat List */}
         <aside
-          className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--border-color) flex flex-col ${activeScreen !== "list" && "hidden"} md:flex`}
+          className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--border-color) flex flex-col ${
+            activeScreen !== "list" && "hidden"
+          } md:flex`}
         >
           <ChatList
             chats={chats}
@@ -240,7 +191,9 @@ export default function DittoChatUI({
 
         {/* Main Content Area */}
         <main
-          className={`w-full flex-1 flex-col ${activeScreen === "list" && "hidden"} md:flex`}
+          className={`w-full flex-1 flex-col ${
+            activeScreen === "list" && "hidden"
+          } md:flex`}
         >
           {activeScreen === "chat" && selectedChat && (
             <ChatView
