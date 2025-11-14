@@ -17,6 +17,7 @@ import ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import Room from "@dittolive/ditto-chat-core/dist/types/Room";
 import Message from "@dittolive/ditto-chat-core/dist/types/Message";
 import NewRoomModal from "./components/NewRoomModal";
+import { ChatNotificationObserver } from "./components/ChatNotificationObserver";
 
 export default function DittoChatUI({
   ditto,
@@ -223,6 +224,7 @@ export default function DittoChatUI({
 
   return (
     <ToastProvider>
+      <ChatNotificationObserver activeRoomId={selectedChat?.id} />
       <div className="flex h-screen bg-white font-sans text-(--text-color) overflow-hidden">
         {/* Chat List */}
         <aside

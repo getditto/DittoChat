@@ -123,13 +123,16 @@ function ChatView({ chat, onBack }: ChatViewProps) {
           <h2 className="text-xl font-semibold">{chatName}</h2>
 
           {/* TODO: Subscribe button */}
-          {room && currentUser && (
+          {room && currentUser && chat.type === "group" && (
             <button
               onClick={() => {
                 if (subscribeToRoom) subscribeToRoom(room._id).catch(console.error);
               }}
-              className="ml-3 text-sm px-2 py-1 border rounded text-(--text-color-light)">
-              {currentUser?.subscriptions && room._id in currentUser.subscriptions ? "Subscribed" : "Subscribe"}
+              className="ml-3 text-sm px-2 py-1 border rounded text-(--text-color-light)"
+            >
+              {currentUser?.subscriptions && room._id in currentUser.subscriptions
+                ? "Subscribed"
+                : "Subscribe"}
             </button>
           )}
         </div>

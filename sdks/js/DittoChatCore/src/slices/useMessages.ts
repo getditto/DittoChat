@@ -41,6 +41,8 @@ export interface MessageSlice {
       error?: Error;
     }) => void,
   ) => void;
+  notificationHandler: ((message: MessageWithUser, room: Room) => void) | null;
+  registerNotificationHandler: (handler: (message: MessageWithUser, room: Room) => void) => void;
 }
 
 interface ChatRetentionPolicy {
@@ -58,6 +60,10 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     messagesByRoom: {},
     messageObserversByRoom: {},
     messageSubscriptionsByRoom: {},
+    notificationHandler: null,
+    registerNotificationHandler(handler) {
+      _set({ notificationHandler: handler });
+    },
 
     async messagesPublisher(room: Room, retentionDays?: number) {
       if (!ditto) return;
@@ -91,6 +97,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         // Register subscription
         const subscription = ditto.sync.registerSubscription(query, args);
         const allUsers = _get().allUsers;
+
         // Register observer
         const observer = ditto.store.registerObserver<Message>(
           query,
@@ -148,7 +155,35 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
                   } else {
                     // Regular message handling (not an edit)
                     if (existingIndex === -1) {
-                      // New message - add it
+
+                      // This is a new message. Check if we should notify.
+                      const currentState = _get(); // Get fresh state for checks
+                      const currentUser = currentState.currentUser;
+
+                      // Not our own message
+                      const isOwnMessage = message.userId === currentUser?._id;
+
+                      // Is it "Live"? (e.g., created in the last 10 seconds)
+                      // This prevents toasts for old messages when first loading the app.
+                      const isRecent =
+                        new Date(message.createdOn).getTime() >
+                        Date.now() - 10000;
+
+                      // Is user subscribed OR is it a DM
+                      const isSubscribed =
+                        currentUser?.subscriptions &&
+                        currentUser.subscriptions[roomId];
+                      const isDM = room.collectionId === "dm_rooms";
+
+                      if (!isOwnMessage && isRecent && (isSubscribed || isDM)) {
+                        // Trigger the UI handler if one is registered
+                        currentState.notificationHandler?.(
+                          messageWithUser,
+                          room,
+                        );
+                      }
+
+                      // New message - add it to the list
                       draft.messagesByRoom[roomId]!.push(mutableMessage);
                     } else {
                       // Existing message - update it (handles deletes and other updates)
@@ -164,7 +199,6 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
           },
           args,
         );
-
         _set({
           messageSubscriptionsByRoom: {
             ..._get().messageSubscriptionsByRoom,
