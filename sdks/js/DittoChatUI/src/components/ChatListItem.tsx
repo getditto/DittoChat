@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import type { Chat } from "../types";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import { formatDate } from "../utils";
@@ -24,6 +24,7 @@ function ChatListItem({
   onSelect,
 }: ChatListItemProps) {
   const lastMessage = chat.messages[chat.messages.length - 1];
+  const [unreadCount, setUnreadCount] = React.useState(0);
 
   let chatName = chat.name;
   let otherUserIsActive = false;
@@ -52,32 +53,23 @@ function ChatListItem({
     (state) => state.messagesByRoom[chat.id] || EMPTY_MESSAGES,
   );
 
-  // Only show unread badges for rooms the user explicitly subscribed to
-  const isSubscribed = !!(
-    currentUser?.subscriptions && chat.id in currentUser.subscriptions
+  const mentionedMsgIds = useDittoChatStore<string[]>(
+    (state) => state.currentUser?.mentions?.[chat.id] || [],
   );
 
   const subscribedAt = currentUser?.subscriptions?.[chat.id];
-  const lastCreated = lastMessage ? new Date(lastMessage.createdOn) : null;
 
-  const unread = Boolean(
-    isSubscribed &&
-      lastMessage &&
-      lastMessage.userId !== currentUserId &&
-      (!subscribedAt || (lastCreated && new Date(subscribedAt) < lastCreated)),
-  );
+  useEffect(() => {
+    const unreadMessages = messages.filter(
+      (message) =>
+        message.message.userId !== currentUserId &&
+        (mentionedMsgIds.includes(message.id) ||
+          new Date(message.message.createdOn).getTime() >
+            new Date(subscribedAt || new Date()).getTime()),
+    );
 
-  const unreadCount = (() => {
-    if (!isSubscribed || !messages || messages.length === 0) return 0;
-    if (!subscribedAt) return messages.length;
-    const since = new Date(subscribedAt);
-    return messages.reduce((acc: number, m: MessageWithUser) => {
-      const msg = m?.message || m;
-      if (msg.userId === currentUserId) return acc;
-      const msgDate = new Date(msg.createdOn);
-      return msgDate > since ? acc + 1 : acc;
-    }, 0);
-  })();
+    setUnreadCount(unreadMessages.length);
+  }, [subscribedAt, mentionedMsgIds, currentUserId, messages]);
 
   return (
     <button
@@ -91,10 +83,9 @@ function ChatListItem({
     >
       <div className="relative -top-4">
         <Avatar isUser={chat.type === "dm"} />
-        {/* TODO: Unread Badge */}
-        {unread && (
+        {unreadCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1.5 text-xs flex items-center justify-center rounded-full bg-(--notification-badge-bg) border-2 border-white">
-            {unreadCount > 0 ? unreadCount : null}
+            {unreadCount}
           </span>
         )}
         {otherUserIsActive && (

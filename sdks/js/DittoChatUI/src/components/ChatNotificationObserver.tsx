@@ -6,12 +6,13 @@ interface ChatNotificationObserverProps {
   activeRoomId?: string | number | null;
 }
 
-export const ChatNotificationObserver: React.FC<ChatNotificationObserverProps> = ({ 
-  activeRoomId 
-}) => {
+export const ChatNotificationObserver: React.FC<
+  ChatNotificationObserverProps
+> = ({ activeRoomId }) => {
   const registerNotificationHandler = useDittoChatStore(
-    (state) => state.registerNotificationHandler
+    (state) => state.registerNotificationHandler,
   );
+  const users = useDittoChatStore((state) => state.allUsers);
   const { addToast } = useToast();
 
   useEffect(() => {
@@ -20,23 +21,24 @@ export const ChatNotificationObserver: React.FC<ChatNotificationObserverProps> =
       if (activeRoomId === room._id) {
         return;
       }
-
-      const senderName = messageWithUser.user?.name || "Unknown User";
+      const user = users.find((u) => u._id === messageWithUser.message?.userId);
+      if (!user) return;
+      const senderName = user?.name || "Unknown User";
       const roomName = room.name;
       const isDM = room.collectionId === "dm_rooms";
-      
-      const title = isDM 
+
+      const title = isDM
         ? `New message from ${senderName}`
         : `#${roomName}: ${senderName}`;
-      
-      const preview = messageWithUser.message.text 
-        ? messageWithUser.message.text.substring(0, 30) + 
+
+      const preview = messageWithUser.message.text
+        ? messageWithUser.message.text.substring(0, 30) +
           (messageWithUser.message.text.length > 30 ? "..." : "")
         : "Sent an attachment";
-      
-      addToast(`${title}: ${preview}`, "info");
+
+      addToast(messageWithUser.id, `${title}: ${preview}`, "info");
     });
-  }, [registerNotificationHandler, addToast, activeRoomId]);
+  }, [registerNotificationHandler, addToast, activeRoomId, users]);
 
   return null;
 };

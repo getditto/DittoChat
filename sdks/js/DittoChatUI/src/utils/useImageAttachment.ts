@@ -15,7 +15,7 @@ type FetchAttachmentFn = (
 ) => void;
 
 interface UseImageAttachmentOptions {
-  token: AttachmentToken;
+  token: AttachmentToken | null;
   fetchAttachment?: FetchAttachmentFn;
   autoFetch?: boolean;
 }

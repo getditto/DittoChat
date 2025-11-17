@@ -109,14 +109,14 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
   // Helper: Handle message updates in state
   const handleMessageUpdate = (
-    roomId: string,
+    room: Room,
     message: Message,
     allUsers: ChatUser[],
   ) => {
     _set((state: ChatStore) => {
       return produce(state, (draft) => {
-        if (!draft.messagesByRoom[roomId]) {
-          draft.messagesByRoom[roomId] = [];
+        if (!draft.messagesByRoom[room._id]) {
+          draft.messagesByRoom[room._id] = [];
         }
 
         const user = allUsers.find((u) => u._id === message.userId);
@@ -132,30 +132,42 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
             typeof messageWithUser.message
           >,
         };
-
-        const existingIndex = draft.messagesByRoom[roomId]!.findIndex(
+        // Check for notifications on new messages
+        const existingIndex = draft.messagesByRoom[room._id]!.findIndex(
           (m) => m.id === message._id,
         );
 
+        if (
+          existingIndex === -1 &&
+          !message.archivedMessage &&
+          shouldNotify(message, room)
+        ) {
+          const user = allUsers.find((u) => u._id === message.userId);
+          _get().notificationHandler?.(
+            { message, user, id: message._id },
+            room,
+          );
+        }
+
         // Handle edited messages
         if (message.archivedMessage) {
-          const originalIndex = draft.messagesByRoom[roomId]!.findIndex(
+          const originalIndex = draft.messagesByRoom[room._id]!.findIndex(
             (m) => m.id === message.archivedMessage,
           );
 
           if (originalIndex !== -1) {
-            draft.messagesByRoom[roomId][originalIndex] = mutableMessage;
+            draft.messagesByRoom[room._id][originalIndex] = mutableMessage;
           } else if (existingIndex === -1) {
-            draft.messagesByRoom[roomId]!.push(mutableMessage);
+            draft.messagesByRoom[room._id]!.push(mutableMessage);
           } else {
-            draft.messagesByRoom[roomId]![existingIndex] = mutableMessage;
+            draft.messagesByRoom[room._id]![existingIndex] = mutableMessage;
           }
         } else {
           // Handle new/updated messages
           if (existingIndex === -1) {
-            draft.messagesByRoom[roomId]!.push(mutableMessage);
+            draft.messagesByRoom[room._id]!.push(mutableMessage);
           } else {
-            draft.messagesByRoom[roomId]![existingIndex] = mutableMessage;
+            draft.messagesByRoom[room._id]![existingIndex] = mutableMessage;
           }
         }
 
@@ -174,9 +186,13 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       new Date(message.createdOn).getTime() >
       Date.now() - MESSAGE_RECENCY_THRESHOLD;
     const isSubscribed = currentUser?.subscriptions?.[room._id];
+    const isMentioned = message.mentions?.some(
+      (mention) => mention.userId === currentUser?._id,
+    );
     const isDM = room.collectionId === "dm_rooms";
 
-    return !isOwnMessage && isRecent && (isSubscribed || isDM);
+    // return true;
+    return !isOwnMessage && isRecent && (isSubscribed || isDM || isMentioned);
   };
 
   // Helper: Create a message document
@@ -351,23 +367,8 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
           async (result) => {
             for (const item of result.items) {
               const message = item.value;
-              handleMessageUpdate(roomId, message, allUsers);
-
-              // Check for notifications on new messages
-              const existingIndex = _get().messagesByRoom[roomId]?.findIndex(
-                (m) => m.id === message._id,
-              );
-              if (
-                existingIndex === -1 &&
-                !message.archivedMessage &&
-                shouldNotify(message, room)
-              ) {
-                const user = allUsers.find((u) => u._id === message.userId);
-                _get().notificationHandler?.(
-                  { message, user, id: message._id },
-                  room,
-                );
-              }
+              // update message on the store
+              handleMessageUpdate(room, message, allUsers);
             }
           },
           args,

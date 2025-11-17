@@ -55,10 +55,7 @@ function ChatView({ chat, onBack }: ChatViewProps) {
     (state) =>
       state.subscribeToRoom as ((roomId: string) => Promise<void>) | undefined,
   );
-  const markRoomAsRead = useDittoChatStore(
-    (state) =>
-      state.markRoomAsRead as ((roomId: string) => Promise<void>) | undefined,
-  );
+  const markRoomAsRead = useDittoChatStore((state) => state.markRoomAsRead);
 
   const rooms = useDittoChatStore((state) => state.rooms || EMPTY_ROOMS);
   const room = rooms.find((room) => room._id === chat.id);
@@ -73,15 +70,9 @@ function ChatView({ chat, onBack }: ChatViewProps) {
 
   // TODO: When the user opens/views the room, mark it as read (update subscription timestamp)
   useEffect(() => {
-    if (
-      room &&
-      markRoomAsRead &&
-      currentUser?.subscriptions &&
-      room._id in currentUser.subscriptions
-    ) {
-      markRoomAsRead(room._id).catch(console.error);
-    }
-  }, [room, markRoomAsRead, currentUser]);
+    if (!room?._id) return;
+    markRoomAsRead(room._id).catch(console.error);
+  }, []);
 
   const handleStartEdit = (message: Message) => {
     setEditingMessage(message);

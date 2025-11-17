@@ -107,7 +107,9 @@ function MessageBubble({
     isLoading: isLoadingThumbnail,
     error: thumbnailError,
   } = useImageAttachment({
-    token: message.thumbnailImageToken,
+    token: message.thumbnailImageToken
+      ? (message.thumbnailImageToken as unknown as AttachmentToken)
+      : null,
     fetchAttachment,
     autoFetch: true,
   });
@@ -119,7 +121,9 @@ function MessageBubble({
     error: largeImageError,
     fetchImage: fetchLargeImage,
   } = useImageAttachment({
-    token: message.largeImageToken,
+    token: message.largeImageToken
+      ? (message.largeImageToken as unknown as AttachmentToken)
+      : null,
     fetchAttachment,
     autoFetch: false,
   });
