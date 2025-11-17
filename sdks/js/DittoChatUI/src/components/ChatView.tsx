@@ -10,7 +10,10 @@ import type Message from "@dittolive/ditto-chat-core/dist/types/Message";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import Avatar from "./Avatar";
 import { EmojiClickData } from "emoji-picker-react";
-import { Reaction } from "@dittolive/ditto-chat-core/dist/types/Message";
+import {
+  Reaction,
+  Mention,
+} from "@dittolive/ditto-chat-core/dist/types/Message";
 
 interface ChatViewProps {
   chat: Chat;
@@ -42,14 +45,20 @@ function ChatView({ chat, onBack }: ChatViewProps) {
   const saveEditedTextMessage = useDittoChatStore(
     (state) => state.saveEditedTextMessage,
   );
-  const saveDeletedImageMessage = useDittoChatStore(
-    (state) => state.saveDeletedImageMessage,
+  const saveDeletedMessage = useDittoChatStore(
+    (state) => state.saveDeletedMessage,
   );
   const createFileMessage = useDittoChatStore(
     (state) => state.createFileMessage,
   );
-  const subscribeToRoom = useDittoChatStore((state: any) => state.subscribeToRoom as ((roomId: string) => Promise<void>) | undefined);
-  const markRoomAsRead = useDittoChatStore((state: any) => state.markRoomAsRead as ((roomId: string) => Promise<void>) | undefined);
+  const subscribeToRoom = useDittoChatStore(
+    (state) =>
+      state.subscribeToRoom as ((roomId: string) => Promise<void>) | undefined,
+  );
+  const markRoomAsRead = useDittoChatStore(
+    (state) =>
+      state.markRoomAsRead as ((roomId: string) => Promise<void>) | undefined,
+  );
 
   const rooms = useDittoChatStore((state) => state.rooms || EMPTY_ROOMS);
   const room = rooms.find((room) => room._id === chat.id);
@@ -64,7 +73,12 @@ function ChatView({ chat, onBack }: ChatViewProps) {
 
   // TODO: When the user opens/views the room, mark it as read (update subscription timestamp)
   useEffect(() => {
-    if (room && markRoomAsRead && currentUser?.subscriptions && room._id in currentUser.subscriptions) {
+    if (
+      room &&
+      markRoomAsRead &&
+      currentUser?.subscriptions &&
+      room._id in currentUser.subscriptions
+    ) {
       markRoomAsRead(room._id).catch(console.error);
     }
   }, [room, markRoomAsRead, currentUser]);
@@ -77,9 +91,12 @@ function ChatView({ chat, onBack }: ChatViewProps) {
     setEditingMessage(null);
   };
 
-  const handleSaveEdit = async (messageId: string, newContent: string) => {
+  const handleSaveEdit = async (
+    newContent: string,
+    mentions: Mention[] = [],
+  ) => {
     if (!room || !editingMessage) return;
-    const updatedMessage = { ...editingMessage, text: newContent };
+    const updatedMessage = { ...editingMessage, text: newContent, mentions };
     await saveEditedTextMessage(updatedMessage, room);
     setEditingMessage(null);
   };
@@ -91,11 +108,11 @@ function ChatView({ chat, onBack }: ChatViewProps) {
     const msg = msgObj.message;
     // If message has file token, treat as file delete
     if (msg.fileAttachmentToken) {
-      await saveDeletedImageMessage(msg, room, "file");
+      await saveDeletedMessage(msg, room, "file");
     } else {
       // If message has image tokens, treat as image delete
       const isImage = !!msg.thumbnailImageToken || !!msg.largeImageToken;
-      await saveDeletedImageMessage(msg, room, isImage ? "image" : "text");
+      await saveDeletedMessage(msg, room, isImage ? "image" : "text");
     }
   };
 
@@ -157,11 +174,13 @@ function ChatView({ chat, onBack }: ChatViewProps) {
           {room && currentUser && chat.type === "group" && (
             <button
               onClick={() => {
-                if (subscribeToRoom) subscribeToRoom(room._id).catch(console.error);
+                if (subscribeToRoom)
+                  subscribeToRoom(room._id).catch(console.error);
               }}
               className="ml-3 text-sm px-2 py-1 border rounded text-(--text-color-light)"
             >
-              {currentUser?.subscriptions && room._id in currentUser.subscriptions
+              {currentUser?.subscriptions &&
+              room._id in currentUser.subscriptions
                 ? "Subscribed"
                 : "Subscribe"}
             </button>
@@ -195,9 +214,9 @@ function ChatView({ chat, onBack }: ChatViewProps) {
         <div ref={messagesEndRef} />
       </div>
       <MessageInput
-        onSendMessage={(content) => {
+        onSendMessage={(content: string, mentions: Mention[] = []) => {
           //TODO: Refactor room null check
-          if (room) createMessage(room, content).catch(console.error);
+          if (room) createMessage(room, content, mentions).catch(console.error);
         }}
         onSendImage={(file, caption) => {
           if (room)

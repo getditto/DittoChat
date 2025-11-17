@@ -41,33 +41,52 @@ interface MessageBubbleProps {
   ) => void;
 }
 
-function FormattedMessage({
-  content,
+const FormattedMessage: React.FC<{ message: Message; isOwn: boolean }> = ({
+  message,
   isOwn,
-}: {
-  content: string;
-  isOwn: boolean;
-}) {
-  const parts = content.split(/(@[A-Za-z\s\d]+)/g);
-  return (
-    <>
-      {parts.map((part, i) =>
-        part.startsWith("@") ? (
-          <span
-            key={i}
-            className={`font-semibold ${isOwn ? "text-(--mention-text-on-primary)" : "text-(--mention-text)"}`}
-          >
-            {part}
-          </span>
-        ) : (
-          <React.Fragment key={i}>
-            <span className="whitespace-pre-line">{part}</span>
-          </React.Fragment>
-        ),
-      )}
-    </>
+}) => {
+  const { text, mentions } = message;
+
+  if (!mentions || mentions.length === 0) {
+    return <>{text}</>;
+  }
+
+  const sortedMentions = [...mentions].sort(
+    (a, b) => a.startIndex - b.startIndex,
   );
-}
+
+  const finalParts: React.ReactNode[] = [];
+  let currentIndex = 0;
+
+  sortedMentions.forEach((mention, index) => {
+    if (mention.startIndex > currentIndex) {
+      finalParts.push(
+        <React.Fragment key={`text-${index}`}>
+          {text.slice(currentIndex, mention.startIndex)}
+        </React.Fragment>,
+      );
+    }
+    finalParts.push(
+      <span
+        key={`mention-${index}`}
+        className={`font-semibold ${isOwn ? "text-(--mention-text-on-primary)" : "text-(--mention-text)"}`}
+      >
+        {text.slice(mention.startIndex, mention.endIndex)}
+      </span>,
+    );
+    currentIndex = mention.endIndex;
+  });
+
+  if (currentIndex < text.length) {
+    finalParts.push(
+      <React.Fragment key="text-last">
+        {text.slice(currentIndex)}
+      </React.Fragment>,
+    );
+  }
+
+  return <>{finalParts}</>;
+};
 
 function MessageBubble({
   message,
@@ -324,10 +343,7 @@ function MessageBubble({
                     [deleted message]
                   </span>
                 ) : (
-                  <FormattedMessage
-                    content={message.text!}
-                    isOwn={isOwnMessage}
-                  />
+                  <FormattedMessage message={message} isOwn={isOwnMessage} />
                 )}
               </p>
             </div>

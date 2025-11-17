@@ -45,32 +45,33 @@ function ChatListItem({
       ? "You"
       : lastMessageSender?.name.split(" ")[0];
 
-
   const currentUser: ChatUser | null = useDittoChatStore(
     (state) => state.currentUser,
   );
   const messages: MessageWithUser[] = useDittoChatStore(
-      (state) => state.messagesByRoom[chat.id] || EMPTY_MESSAGES,
+    (state) => state.messagesByRoom[chat.id] || EMPTY_MESSAGES,
   );
 
   // Only show unread badges for rooms the user explicitly subscribed to
-  const isSubscribed = !!(currentUser?.subscriptions && chat.id in currentUser.subscriptions);
+  const isSubscribed = !!(
+    currentUser?.subscriptions && chat.id in currentUser.subscriptions
+  );
 
   const subscribedAt = currentUser?.subscriptions?.[chat.id];
   const lastCreated = lastMessage ? new Date(lastMessage.createdOn) : null;
 
   const unread = Boolean(
     isSubscribed &&
-    lastMessage &&
-    lastMessage.userId !== currentUserId &&
-    (!subscribedAt || (lastCreated && new Date(subscribedAt) < lastCreated))
+      lastMessage &&
+      lastMessage.userId !== currentUserId &&
+      (!subscribedAt || (lastCreated && new Date(subscribedAt) < lastCreated)),
   );
 
   const unreadCount = (() => {
     if (!isSubscribed || !messages || messages.length === 0) return 0;
     if (!subscribedAt) return messages.length;
     const since = new Date(subscribedAt);
-    return messages.reduce((acc: number, m: any) => {
+    return messages.reduce((acc: number, m: MessageWithUser) => {
       const msg = m?.message || m;
       if (msg.userId === currentUserId) return acc;
       const msgDate = new Date(msg.createdOn);
@@ -95,7 +96,7 @@ function ChatListItem({
           <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1.5 text-xs flex items-center justify-center rounded-full bg-(--notification-badge-bg) border-2 border-white">
             {unreadCount > 0 ? unreadCount : null}
           </span>
-        )} 
+        )}
         {otherUserIsActive && (
           <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-(--active-status-bg) border-2 border-white"></span>
         )}

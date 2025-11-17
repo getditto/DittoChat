@@ -6,6 +6,11 @@ export type Reaction = {
   unified?: string;
   unifiedWithoutSkinTone?: string;
 };
+export interface Mention {
+  userId: string;
+  startIndex: number;
+  endIndex: number;
+}
 
 export default interface Message {
   _id: string;
@@ -13,13 +18,14 @@ export default interface Message {
   roomId: string;
   text: string;
   userId: string;
-  largeImageToken?: Attachment;
-  thumbnailImageToken?: Attachment;
-  fileAttachmentToken?: Attachment;
+  largeImageToken?: Attachment | null;
+  thumbnailImageToken?: Attachment | null;
+  fileAttachmentToken?: Attachment | null;
 
   archivedMessage?: string;
   isArchived: boolean;
   isEdited?: boolean;
   isDeleted?: boolean;
   reactions?: Reaction[];
+  mentions?: Mention[];
 }

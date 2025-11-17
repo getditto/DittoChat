@@ -1,3 +1,4 @@
+import { AttachmentToken } from "@dittolive/ditto";
 import { useState, useEffect } from "react";
 
 interface FetchAttachmentResult {
@@ -8,13 +9,13 @@ interface FetchAttachmentResult {
 }
 
 type FetchAttachmentFn = (
-  token: any,
+  token: AttachmentToken,
   onProgress: (progress: number) => void,
-  onComplete: (result: FetchAttachmentResult) => void
+  onComplete: (result: FetchAttachmentResult) => void,
 ) => void;
 
 interface UseImageAttachmentOptions {
-  token: any;
+  token: AttachmentToken;
   fetchAttachment?: FetchAttachmentFn;
   autoFetch?: boolean;
 }
@@ -29,14 +30,14 @@ interface UseImageAttachmentReturn {
 
 /**
  * Hook to fetch and manage image attachments from Ditto
- * 
+ *
  * @param options - Configuration options
  * @param options.token - The attachment token to fetch
  * @param options.fetchAttachment - The Ditto fetchAttachment function
  * @param options.autoFetch - Whether to automatically fetch on mount (default: true)
- * 
+ *
  * @returns Object containing imageUrl, loading state, progress, error, and manual fetch function
- * 
+ *
  */
 export function useImageAttachment({
   token,
@@ -97,7 +98,7 @@ export function useImageAttachment({
           console.error("Image fetch failed:", result.error);
           setError("Failed to load image");
         }
-      }
+      },
     );
   };
 
@@ -122,12 +123,11 @@ export function useImageAttachment({
   };
 }
 
-
 // Utility function to convert various binary types into a Blob
- 
+
 function toBlobFromUint8(
   data: Uint8Array | ArrayBuffer | unknown,
-  mime = "image/jpeg"
+  mime = "image/jpeg",
 ): Blob {
   if (!data) throw new Error("No data provided for blob conversion");
   if (data instanceof Blob) return data;
@@ -136,12 +136,12 @@ function toBlobFromUint8(
     const view = data as ArrayBufferView;
     const copy = new Uint8Array(view.byteLength);
     copy.set(
-      new Uint8Array(view.buffer, view.byteOffset || 0, view.byteLength)
+      new Uint8Array(view.buffer, view.byteOffset || 0, view.byteLength),
     );
     return new Blob([copy], { type: mime });
   }
   try {
-    const ua = new Uint8Array(data as any);
+    const ua = new Uint8Array(data as unknown as Uint8Array);
     return new Blob([ua], { type: mime });
   } catch {
     throw new Error("Unsupported data type for blob conversion");
