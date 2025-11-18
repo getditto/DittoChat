@@ -189,3 +189,7 @@ lint/generated/
 lint/outputs/
 lint/tmp/
 # lint/reports/
+
+# web lib and builds
+node_modules/
+dist/
