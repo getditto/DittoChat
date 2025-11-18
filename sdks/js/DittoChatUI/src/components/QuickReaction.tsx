@@ -71,6 +71,27 @@ function EmojiPickerComponent({
   const yClass = positionY === "top" ? "bottom-full mb-2" : "top-full mt-2";
   const xClass = isOwnMessage ? "right-0" : "left-0";
 
+  // 1. State to store the value of the CSS variable
+  const [themeName, setThemeName] = useState("");
+
+  // 3. The effect that reads the CSS variable
+  useEffect(() => {
+    // Ensure the ref is connected to a DOM element
+    if (pickerRef.current) {
+      // getComputedStyle gives us the final, browser-computed CSS properties
+      const computedStyle = getComputedStyle(pickerRef.current);
+
+      // getPropertyValue gets the value of a specific CSS property
+      // .trim() is important because the value might have leading/trailing whitespace
+      const colorValue = computedStyle.getPropertyValue("--theme-name").trim();
+
+      // Update our state with the value we read
+      setThemeName(colorValue);
+    }
+    // 4. This effect should re-run whenever the `theme` changes,
+    // because a theme change will cause the CSS variable to have a new value.
+  }, [pickerRef]);
+
   return (
     <div
       ref={pickerRef}
@@ -94,6 +115,7 @@ function EmojiPickerComponent({
           setIsVisible(false);
           setTimeout(() => onSelect(emoji), 120);
         }}
+        theme={themeName === "dark" ? Theme.DARK : Theme.LIGHT}
         skinTonesDisabled={false}
         reactionsDefaultOpen={true}
       />

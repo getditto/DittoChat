@@ -24,7 +24,8 @@ export default function DittoChatUI({
   ditto,
   userCollectionKey,
   userId,
-}: DittoConfParams) {
+  theme = "light",
+}: DittoConfParams & { theme: "light" | "dark" }) {
   useDittoChat({
     ditto,
     userCollectionKey,
@@ -37,11 +38,12 @@ export default function DittoChatUI({
   const rooms: Room[] = useDittoChatStore((state) => state.rooms);
   const users: ChatUser[] = useDittoChatStore((state) => state.allUsers);
   const currentUser: ChatUser | null = useDittoChatStore(
-    (state) => state.currentUser
+    (state) => state.currentUser,
   );
 
   const loading = useDittoChatStore(
-    (state) => state.roomsLoading || state.usersLoading || state.messagesLoading
+    (state) =>
+      state.roomsLoading || state.usersLoading || state.messagesLoading,
   );
 
   const [activeScreen, setActiveScreen] = useState<
@@ -50,7 +52,7 @@ export default function DittoChatUI({
 
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [newlyCreatedRoom, setNewlyCreatedRoom] = useState<string | undefined>(
-    undefined
+    undefined,
   );
 
   const latestMessages = useDittoChatStore((state) => {
@@ -64,7 +66,7 @@ export default function DittoChatUI({
       .filter((msg): msg is Message => msg !== null);
     const sortedMessages = latestMessages.sort(
       (a, b) =>
-        new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime()
+        new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime(),
     );
     return sortedMessages;
   });
@@ -176,61 +178,65 @@ export default function DittoChatUI({
   }, []);
 
   return (
-    <ToastProvider>
-      <ChatNotificationObserver activeRoomId={selectedChat?.id} />
-      <div className="flex h-screen bg-(--surface-color) font-sans text-(--text-color) overflow-hidden">
-        {/* Chat List */}
-        <aside
-          className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--border-color) flex flex-col ${
-            activeScreen !== "list" && "hidden"
-          } md:flex`}
-        >
-          {loading ? (
-            <ChatListSkeleton />
-          ) : (
-            <ChatList
-              chats={chats}
-              onSelectChat={handleSelectChat}
-              onNewMessage={handleNewMessage}
-              selectedChatId={selectedChat?.id || ""}
-            />
-          )}
-        </aside>
+    <div className="web-chat-root">
+      <div className={theme}>
+        <ToastProvider>
+          <ChatNotificationObserver activeRoomId={selectedChat?.id} />
+          <div className="flex h-screen bg-(--surface-color) font-sans text-(--text-color) overflow-hidden">
+            {/* Chat List */}
+            <aside
+              className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--border-color) flex flex-col ${
+                activeScreen !== "list" && "hidden"
+              } md:flex`}
+            >
+              {loading ? (
+                <ChatListSkeleton />
+              ) : (
+                <ChatList
+                  chats={chats}
+                  onSelectChat={handleSelectChat}
+                  onNewMessage={handleNewMessage}
+                  selectedChatId={selectedChat?.id || ""}
+                />
+              )}
+            </aside>
 
-        {/* Main Content Area */}
-        <main
-          className={`w-full flex-1 flex-col ${
-            activeScreen === "list" && "hidden"
-          } md:flex`}
-        >
-          {activeScreen === "chat" && selectedChat && (
-            <ChatView
-              key={selectedChat.id}
-              chat={selectedChat}
-              onBack={handleBack}
-            />
-          )}
-          {activeScreen === "newMessage" && (
-            <NewMessageModal
-              onClose={handleBack}
-              onNewDMCreate={handleNewDMCreate}
-            />
-          )}
-          {activeScreen === "newRoom" && (
-            <NewRoomModal
-              onClose={handleBack}
-              onCreateRoom={handleNewRoomCreate}
-            />
-          )}
-          {activeScreen === "list" && !selectedChat && (
-            <div className="hidden md:flex flex-col items-center justify-center h-full bg-(--surface-color-light) text-(--text-color-lightest)">
-              <Icons.messageCircle className="w-24 h-24 text-(--text-color-disabled) mb-4" />
-              <p className="text-lg font-medium">Select a conversation</p>
-              <p className="text-sm">or start a new message</p>
-            </div>
-          )}
-        </main>
+            {/* Main Content Area */}
+            <main
+              className={`w-full flex-1 flex-col ${
+                activeScreen === "list" && "hidden"
+              } md:flex`}
+            >
+              {activeScreen === "chat" && selectedChat && (
+                <ChatView
+                  key={selectedChat.id}
+                  chat={selectedChat}
+                  onBack={handleBack}
+                />
+              )}
+              {activeScreen === "newMessage" && (
+                <NewMessageModal
+                  onClose={handleBack}
+                  onNewDMCreate={handleNewDMCreate}
+                />
+              )}
+              {activeScreen === "newRoom" && (
+                <NewRoomModal
+                  onClose={handleBack}
+                  onCreateRoom={handleNewRoomCreate}
+                />
+              )}
+              {activeScreen === "list" && !selectedChat && (
+                <div className="hidden md:flex flex-col items-center justify-center h-full bg-(--surface-color-light) text-(--text-color-lightest)">
+                  <Icons.messageCircle className="w-24 h-24 text-(--text-color-disabled) mb-4" />
+                  <p className="text-lg font-medium">Select a conversation</p>
+                  <p className="text-sm">or start a new message</p>
+                </div>
+              )}
+            </main>
+          </div>
+        </ToastProvider>
       </div>
-    </ToastProvider>
+    </div>
   );
 }
