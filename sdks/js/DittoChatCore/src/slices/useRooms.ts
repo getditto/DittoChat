@@ -14,6 +14,7 @@ import { StoreApi } from "zustand";
 export interface RoomSlice {
   rooms: Room[];
   dmRooms: Room[];
+  roomsLoading: boolean;
   roomsObserver: StoreObserver | null;
   roomsSubscription: SyncSubscription | null;
   dmRoomsObserver: StoreObserver | null;
@@ -39,6 +40,7 @@ function handleRoomsObserverResult(
         (room) => room.collectionId !== rooms[0].collectionId,
       );
       draft.rooms = otherRooms.concat(rooms);
+      draft.roomsLoading = false;
       return draft;
     });
   });
@@ -96,6 +98,7 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
   const store: RoomSlice = {
     rooms: [],
     dmRooms: [],
+    roomsLoading: true,
     roomsObserver: null,
     roomsSubscription: null,
     dmRoomsObserver: null,

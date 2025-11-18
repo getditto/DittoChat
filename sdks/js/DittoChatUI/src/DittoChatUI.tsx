@@ -18,6 +18,7 @@ import Room from "@dittolive/ditto-chat-core/dist/types/Room";
 import Message from "@dittolive/ditto-chat-core/dist/types/Message";
 import NewRoomModal from "./components/NewRoomModal";
 import { ChatNotificationObserver } from "./components/ChatNotificationObserver";
+import ChatListSkeleton from "./components/ChatListSkeleton";
 
 export default function DittoChatUI({
   ditto,
@@ -37,6 +38,10 @@ export default function DittoChatUI({
   const users: ChatUser[] = useDittoChatStore((state) => state.allUsers);
   const currentUser: ChatUser | null = useDittoChatStore(
     (state) => state.currentUser
+  );
+
+  const loading = useDittoChatStore(
+    (state) => state.roomsLoading || state.usersLoading || state.messagesLoading
   );
 
   const [activeScreen, setActiveScreen] = useState<
@@ -70,7 +75,6 @@ export default function DittoChatUI({
 
   useEffect(() => {
     if (!rooms.length || !users.length) return;
-
     const userMap = new Map(users.map((u) => [u._id, u]));
     const messageMap = new Map<string, Message>();
     for (const msg of latestMessages) {
@@ -181,12 +185,16 @@ export default function DittoChatUI({
             activeScreen !== "list" && "hidden"
           } md:flex`}
         >
-          <ChatList
-            chats={chats}
-            onSelectChat={handleSelectChat}
-            onNewMessage={handleNewMessage}
-            selectedChatId={selectedChat?.id || ""}
-          />
+          {loading ? (
+            <ChatListSkeleton />
+          ) : (
+            <ChatList
+              chats={chats}
+              onSelectChat={handleSelectChat}
+              onNewMessage={handleNewMessage}
+              selectedChatId={selectedChat?.id || ""}
+            />
+          )}
         </aside>
 
         {/* Main Content Area */}
