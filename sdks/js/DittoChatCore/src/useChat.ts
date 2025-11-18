@@ -1,4 +1,4 @@
-import { Ditto } from "@dittolive/ditto";
+import { Ditto, StoreObserver, SyncSubscription } from "@dittolive/ditto";
 import { useStore } from "zustand";
 import { createStore, StoreApi } from "zustand/vanilla";
 import { useShallow } from "zustand/react/shallow";
@@ -19,10 +19,20 @@ export type CreateSlice<T> = (
   params: DittoConfParams,
 ) => T;
 
-export type ChatStore = RoomSlice & ChatUserSlice & MessageSlice;
+export type ChatStore = RoomSlice &
+  ChatUserSlice &
+  MessageSlice & { chatLogout: () => void };
 
 export let chatStore: StoreApi<ChatStore> | null = null;
 export let chatStoreSub: Function;
+
+function cancelSubscriptionOrObserver(
+  subscription: SyncSubscription | StoreObserver | null,
+) {
+  if (subscription && !subscription.isCancelled) {
+    subscription.cancel();
+  }
+}
 
 export function useDittoChat(params: DittoConfParams) {
   const store = useMemo(() => {
@@ -31,6 +41,23 @@ export function useDittoChat(params: DittoConfParams) {
         ...createRoomSlice(set, get, params),
         ...createChatUserSlice(set, get, params),
         ...createMessageSlice(set, get, params),
+        chatLogout: () => {
+          const state = get();
+          cancelSubscriptionOrObserver(state.roomsSubscription);
+          cancelSubscriptionOrObserver(state.roomsObserver);
+          cancelSubscriptionOrObserver(state.dmRoomsSubscription);
+          cancelSubscriptionOrObserver(state.dmRoomsObserver);
+          Object.values(state.messageSubscriptionsByRoom || {}).map((sub) =>
+            cancelSubscriptionOrObserver(sub),
+          );
+          Object.values(state.messageObserversByRoom || {}).map((sub) =>
+            cancelSubscriptionOrObserver(sub),
+          );
+          cancelSubscriptionOrObserver(state.userObserver);
+          cancelSubscriptionOrObserver(state.userSubscription);
+          cancelSubscriptionOrObserver(state.allUsersObserver);
+          cancelSubscriptionOrObserver(state.allUsersSubscription);
+        },
       }));
     }
     return chatStore;
