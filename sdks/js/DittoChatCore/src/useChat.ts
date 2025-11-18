@@ -11,6 +11,7 @@ export type DittoConfParams = {
   ditto: Ditto | null;
   userId: string;
   userCollectionKey: string;
+  retentionDays?: number;
 };
 
 export type CreateSlice<T> = (

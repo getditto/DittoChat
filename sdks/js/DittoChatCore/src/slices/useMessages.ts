@@ -68,14 +68,14 @@ interface AttachmentResult {
   error?: Error;
 }
 
-const CHAT_RETENTION_DAYS = 30;
+const DEFAULT_RETENTION_DAYS = 30;
 const MESSAGE_RECENCY_THRESHOLD = 10000; // 10 seconds
 const THUMBNAIL_MAX_SIZE = 282;
 
 export const createMessageSlice: CreateSlice<MessageSlice> = (
   _set,
   _get,
-  { ditto, userId, userCollectionKey }: DittoConfParams
+  { ditto, userId, userCollectionKey, retentionDays: globalRetentionDays }
 ) => {
   // Helper: Get room details
   const getRoomDetails = async (room: Room) => {
@@ -339,14 +339,20 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       _set({ notificationHandler: handler });
     },
 
-    async messagesPublisher(room: Room, retentionDays = CHAT_RETENTION_DAYS) {
+    async messagesPublisher(room: Room, retentionDays?: number) {
       if (!ditto) return;
 
       const roomId = room._id;
       if (_get().messageSubscriptionsByRoom[roomId]) return;
 
+      const effectiveRetentionDays =
+        retentionDays ??
+        room.retentionDays ??
+        globalRetentionDays ??
+        DEFAULT_RETENTION_DAYS;
+
       const retentionDate = new Date(
-        Date.now() - retentionDays * 24 * 60 * 60 * 1000
+        Date.now() - effectiveRetentionDays * 24 * 60 * 60 * 1000
       );
       const query = `SELECT * FROM COLLECTION ${room.messagesId} (thumbnailImageToken ATTACHMENT, largeImageToken ATTACHMENT, fileAttachmentToken ATTACHMENT)
         WHERE roomId = :roomId AND createdOn >= :date AND isArchived = false
@@ -388,7 +394,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         console.error("Error in messagesPublisher:", err);
       }
     },
-
+    
     async createMessage(room: Room, text: string, mentions: Mention[] = []) {
       if (!ditto || !userId) return;
 

@@ -18,7 +18,7 @@ export interface RoomSlice {
   roomsSubscription: SyncSubscription | null;
   dmRoomsObserver: StoreObserver | null;
   dmRoomsSubscription: SyncSubscription | null;
-  createRoom: (name: string) => Promise<void | Room>;
+  createRoom: (name: string, retentionDays?: number) => Promise<void | Room>;
   createDMRoom: (user: ChatUser) => Promise<void | Room>;
 }
 
@@ -51,6 +51,7 @@ async function createRoomBase({
   collectionId,
   messagesId,
   participants = [],
+  retentionDays,
 }: {
   ditto: Ditto | null;
   currentUserId: string;
@@ -58,6 +59,7 @@ async function createRoomBase({
   collectionId: "rooms" | "dm_rooms";
   messagesId: "messages" | "dm_messages";
   participants?: string[];
+  retentionDays?: number;
 }) {
   if (!ditto) return;
 
@@ -73,6 +75,7 @@ async function createRoomBase({
       createdBy: currentUserId,
       createdOn: new Date().toISOString(),
       participants: participants || undefined,
+      ...(retentionDays !== undefined && { retentionDays }),
     };
 
     const query = `INSERT INTO \`${collectionId}\` DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE`;
@@ -83,6 +86,7 @@ async function createRoomBase({
     console.error(`Error creating ${collectionId}:`, error);
   }
 }
+
 
 export const createRoomSlice: CreateSlice<RoomSlice> = (
   _set,
@@ -97,7 +101,7 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
     dmRoomsObserver: null,
     dmRoomsSubscription: null,
 
-    createRoom(name: string) {
+    createRoom(name: string, retentionDays?: number) {
       const currentUser = _get().currentUser;
       return createRoomBase({
         ditto,
@@ -105,6 +109,7 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
         name,
         collectionId: "rooms",
         messagesId: "messages",
+        retentionDays,
       });
     },
 
