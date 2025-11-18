@@ -34,11 +34,11 @@ function App() {
             enableDittoCloudSync: false,
             customAuthURL: String(import.meta.env.VITE_APP_DITTO_AUTH_URL),
           }),
-          "testing",
+          "testing"
         );
         ditto.updateTransportConfig((config) => {
           config.connect.websocketURLs.push(
-            String(import.meta.env.VITE_APP_DITTO_WEB_SOCKET),
+            String(import.meta.env.VITE_APP_DITTO_WEB_SOCKET)
           );
         });
         await ditto.store.execute("ALTER SYSTEM SET DQL_STRICT_MODE = false");

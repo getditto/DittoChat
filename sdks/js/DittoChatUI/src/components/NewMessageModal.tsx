@@ -13,11 +13,11 @@ function NewMessageModal({ onClose, onNewDMCreate }: NewMessageModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
   const users: ChatUser[] = useDittoChatStore((state) =>
-    state.allUsers.filter((user) => user._id !== state.currentUser?._id),
+    state.allUsers.filter((user) => user._id !== state.currentUser?._id)
   );
 
   const filteredUsers = users.filter((user) =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()),
+    user.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

@@ -11,7 +11,7 @@ interface FetchAttachmentResult {
 type FetchAttachmentFn = (
   token: AttachmentToken,
   onProgress: (progress: number) => void,
-  onComplete: (result: FetchAttachmentResult) => void,
+  onComplete: (result: FetchAttachmentResult) => void
 ) => void;
 
 interface UseImageAttachmentOptions {
@@ -98,7 +98,7 @@ export function useImageAttachment({
           console.error("Image fetch failed:", result.error);
           setError("Failed to load image");
         }
-      },
+      }
     );
   };
 
@@ -127,7 +127,7 @@ export function useImageAttachment({
 
 function toBlobFromUint8(
   data: Uint8Array | ArrayBuffer | unknown,
-  mime = "image/jpeg",
+  mime = "image/jpeg"
 ): Blob {
   if (!data) throw new Error("No data provided for blob conversion");
   if (data instanceof Blob) return data;
@@ -136,7 +136,7 @@ function toBlobFromUint8(
     const view = data as ArrayBufferView;
     const copy = new Uint8Array(view.byteLength);
     copy.set(
-      new Uint8Array(view.buffer, view.byteOffset || 0, view.byteLength),
+      new Uint8Array(view.buffer, view.byteOffset || 0, view.byteLength)
     );
     return new Blob([copy], { type: mime });
   }

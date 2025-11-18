@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
         dittoChatUI = DittoChatUI(this, ChatConfig(
             ditto,
             usersCollection = "users",
-            userId = "ditto-system-user-id"
+            userId = "e86547d3-f93c-41c5-8d79-2b446b3ede8a"
         ))
         ditto.disableSyncWithV3()
         ditto.startSync()

@@ -22,7 +22,7 @@ interface DittoChat {
 }
 
 @Singleton
-internal class DittoChatImpl @Inject constructor(
+class DittoChatImpl @Inject constructor(
     private val localStore: LocalData,
     private val p2pStore: DittoData
 ) : DittoChat {

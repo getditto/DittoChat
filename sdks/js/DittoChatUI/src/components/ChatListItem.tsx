@@ -32,7 +32,7 @@ function ChatListItem({
   if (chat.type === "dm") {
     // TODO: implement DM user avathar
     const otherUser = chat.participants.find(
-      (user) => user._id !== currentUserId,
+      (user) => user._id !== currentUserId
     );
 
     chatName = otherUser?.name || "Unknown User";
@@ -47,14 +47,14 @@ function ChatListItem({
       : lastMessageSender?.name.split(" ")[0];
 
   const currentUser: ChatUser | null = useDittoChatStore(
-    (state) => state.currentUser,
+    (state) => state.currentUser
   );
   const messages: MessageWithUser[] = useDittoChatStore(
-    (state) => state.messagesByRoom[chat.id] || EMPTY_MESSAGES,
+    (state) => state.messagesByRoom[chat.id] || EMPTY_MESSAGES
   );
 
   const mentionedMsgIds = useDittoChatStore<string[]>(
-    (state) => state.currentUser?.mentions?.[chat.id] || [],
+    (state) => state.currentUser?.mentions?.[chat.id] || []
   );
 
   const subscribedAt = currentUser?.subscriptions?.[chat.id];
@@ -65,7 +65,7 @@ function ChatListItem({
         message.message.userId !== currentUserId &&
         (mentionedMsgIds.includes(message.id) ||
           new Date(message.message.createdOn).getTime() >
-            new Date(subscribedAt || new Date()).getTime()),
+            new Date(subscribedAt || new Date()).getTime())
     );
 
     setUnreadCount(unreadMessages.length);
@@ -78,7 +78,7 @@ function ChatListItem({
         "w-full text-left px-3 py-3 flex items-center space-x-3 transition-colors border-b",
         isSelected
           ? "bg-(--primary-color-light) rounded-xl border-b-(--surface-color)"
-          : "hover:bg-(--surface-color-light) border-b-(--border-color)",
+          : "hover:bg-(--surface-color-light) border-b-(--border-color)"
       )}
     >
       <div className="relative -top-4">

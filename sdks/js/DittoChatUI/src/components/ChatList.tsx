@@ -30,7 +30,7 @@ function ChatList({
   const listRef = useRef<List | null>(null);
   const users = useDittoChatStore((state) => state.allUsers);
   const currentUserId = useDittoChatStore<string>(
-    (state) => state.currentUser?._id || "",
+    (state) => state.currentUser?._id || ""
   );
 
   // search state moved outside for brevity - keep your useState if needed
@@ -52,9 +52,9 @@ function ChatList({
   const filteredChats = useMemo(
     () =>
       chats.filter((chat) =>
-        (chat.name || "DM").toLowerCase().includes(searchTerm.toLowerCase()),
+        (chat.name || "DM").toLowerCase().includes(searchTerm.toLowerCase())
       ),
-    [chats, searchTerm],
+    [chats, searchTerm]
   );
 
   const selectedIndex = useMemo(() => {

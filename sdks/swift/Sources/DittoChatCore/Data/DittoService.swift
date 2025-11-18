@@ -16,6 +16,7 @@ class DittoService: DittoDataInterface {
     @Published fileprivate private(set) var allPublicRooms: [Room] = []
     private var allPublicRoomsCancellable: AnyCancellable = AnyCancellable({})
     private var cancellables = Set<AnyCancellable>()
+    // TODO convert to new DQL ones
     private var usersSubscription: DittoSubscription
 
     // private in-memory stores ohttps://docs.ditto.live/dql/legacy-to-dql-adoptionf subscriptions for rooms and messages
@@ -34,6 +35,7 @@ class DittoService: DittoDataInterface {
         self.ditto = ditto
         self.privateStore = privateStore
         self.usersKey = usersCollection
+        // TODO: Convert to DQL
         self.usersSubscription = ditto.store[usersCollection].findAll().subscribe()
         self.chatRetentionPolicy = chatRetentionPolicy
 
@@ -216,9 +218,7 @@ extension DittoService {
             }
             .removeDuplicates()
             .compactMap { $0 } // Remove nil values
-            .asyncMap {
-                await self.convertChat(message: $0)
-            }.eraseToAnyPublisher()
+            .eraseToAnyPublisher()
     }
 
     func messagesPublisher(for room: Room, retentionDays: Int?) -> AnyPublisher<[Message], Never> {
@@ -231,83 +231,16 @@ extension DittoService {
                     """
         let args: [String: Any?] = [
             "roomId": room.id,
-            "date": retentionDaysAgo.ISO8601Format(),
-            "dateMs": retentionDaysAgo.timeIntervalSince1970InMilliSeconds
+            "date": retentionDaysAgo.ISO8601Format()
         ]
 
         return ditto.store.observePublisher(query: query, arguments: args, mapTo: Message.self)
-            .asyncMap {
-                var map: [Message] = []
-                for message in $0 {
-                    map.append(await self.convertChat(message: message))
-                }
-                return map
-            }
             .catch { error in
                 assertionFailure("ERROR with \(#function)" + error.localizedDescription)
                 return Empty<[Message], Never>()
             }
             .removeDuplicates()
             .eraseToAnyPublisher()
-
-    }
-
-    /// Converts the given chat message from the TAK format to our internal format if it has not already been converted
-    /// - Parameter message: The message to check to see if conversion is needed
-    /// - Returns: The same message just with hasBeenConverted set to true if it was false or empty
-
-    @MainActor
-    func convertChat(message: Message) async -> Message {
-        guard message.hasBeenConverted != true else { return message }
-
-        var message = message
-        message.hasBeenConverted = true
-
-        message.text = message.msg //Shared
-
-        if !message.authorId.isEmpty {
-            message.userId = message.authorId
-        } else if !message.d.isEmpty {
-            message.userId = message.d
-        }
-
-        message.createdOn = message.timeMs
-
-        // Create the TAK user if it doesnt already exist
-        if !message.authorId.isEmpty {
-            let user = ChatUser(id: message.authorId, name: message.authorCs, subscriptions: [:], mentions: [:])
-            _ = try? await ditto.store.execute(
-                query: """
-                        INSERT INTO COLLECTION `\(usersKey)` (`\(subscriptionsKey)` MAP, `\(mentionsKey)` MAP)
-                        DOCUMENTS (:user)
-                        ON ID CONFLICT DO NOTHING
-                        """,
-                arguments: ["user": user.docDictionary()]
-            )
-        } else if !message.d.isEmpty {
-            let user = ChatUser(id: message.d, name: message.e, subscriptions: [:], mentions: [:])
-            _ = try? await ditto.store.execute(
-                query: """
-                        INSERT INTO COLLECTION `\(usersKey)` (`\(subscriptionsKey)` MAP, `\(mentionsKey)` MAP)
-                        DOCUMENTS (:user)
-                        ON ID CONFLICT DO NOTHING
-                        """,
-                arguments: ["user": user.docDictionary()]
-            )
-        }
-
-        // Update the currently existing TAK chat message with a Ditto Chat compatable one
-        
-        _ = try? await ditto.store.execute(
-            query: """
-                    INSERT INTO chat
-                    DOCUMENTS (:message)
-                    ON ID CONFLICT DO UPDATE
-                    """,
-            arguments: ["message": message.docDictionary()]
-        )
-
-        return message
     }
 
     func createMessage(for room: Room, text: String) {
@@ -320,7 +253,7 @@ extension DittoService {
             let userDictionary = userQuery?.items.first?.value
             let query = "INSERT INTO `\(room.messagesId)` DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE"
             let fullName = userDictionary?["name"] as? String
-            let message = Message(roomId: room.id, message: text, userName: fullName ?? userId, userId: userId, peerKey: "", hasBeenConverted: true).docDictionary()
+            let message = Message(roomId: room.id, message: text, userName: fullName ?? userId, userId: userId, peerKey: "").docDictionary()
 
             do {
                 try await ditto.store.execute(query: query,arguments: ["newDoc": message])
@@ -644,7 +577,7 @@ extension DittoService {
                     dbIdKey: publicKey,
                     nameKey: publicRoomTitleKey,
                     collectionIdKey: publicRoomsCollectionId,
-                    messagesIdKey: publicMessagesIdKey,//PUBLIC_MESSAGES_ID,
+                    messagesIdKey: publicMessagesCollectionId,//PUBLIC_MESSAGES_ID,
                     createdOnKey: DateFormatter.isoDate.string(from: Date()),
                 ]
 

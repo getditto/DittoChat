@@ -36,7 +36,7 @@ export default function DittoChatUI({
   const rooms: Room[] = useDittoChatStore((state) => state.rooms);
   const users: ChatUser[] = useDittoChatStore((state) => state.allUsers);
   const currentUser: ChatUser | null = useDittoChatStore(
-    (state) => state.currentUser,
+    (state) => state.currentUser
   );
 
   const [activeScreen, setActiveScreen] = useState<
@@ -45,7 +45,7 @@ export default function DittoChatUI({
 
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [newlyCreatedRoom, setNewlyCreatedRoom] = useState<string | undefined>(
-    undefined,
+    undefined
   );
 
   const latestMessages = useDittoChatStore((state) => {
@@ -59,7 +59,7 @@ export default function DittoChatUI({
       .filter((msg): msg is Message => msg !== null);
     const sortedMessages = latestMessages.sort(
       (a, b) =>
-        new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime(),
+        new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime()
     );
     return sortedMessages;
   });

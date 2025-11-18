@@ -1,6 +1,7 @@
 package com.ditto.dittochat
 
 import android.content.Context
+import com.ditto.dittochat.ui.DittoChatUI
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
@@ -30,9 +31,11 @@ object DittoChatModule {
             token = ""
         )
         val ditto = Ditto(androidDependencies, identity)
+        ditto.disableSyncWithV3()
         ditto.updateTransportConfig { config ->
             config.connect.websocketUrls.add("wss://i83inp.cloud.dittolive.app/")
         }
+        ditto.startSync()
 
         return ditto
     }
@@ -69,5 +72,13 @@ object DittoChatModule {
         p2pStore: DittoData
     ): DittoChat {
         return DittoChatImpl(localStore, p2pStore)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDittoChatUI(
+        dittoChat: DittoChat
+    ): DittoChatUI {
+        return DittoChatUI(dittoChat)
     }
 }

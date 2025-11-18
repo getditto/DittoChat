@@ -23,7 +23,7 @@ export interface ChatUserSlice {
 export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
   _set,
   _get,
-  { ditto, userId, userCollectionKey }: DittoConfParams,
+  { ditto, userId, userCollectionKey }: DittoConfParams
 ) => {
   const store: ChatUserSlice = {
     currentUser: null,
@@ -37,7 +37,7 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
       try {
         await ditto.store.execute(
           `INSERT INTO ${userCollectionKey} DOCUMENTS (:newUser) ON ID CONFLICT DO UPDATE`,
-          { newUser: user },
+          { newUser: user }
         );
       } catch (err) {
         console.error("Error in addUser:", err);
@@ -53,7 +53,7 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
         const updated = { ...current, ...patch };
         await ditto.store.execute(
           `INSERT INTO ${userCollectionKey} DOCUMENTS (:newUser) ON ID CONFLICT DO UPDATE`,
-          { newUser: updated },
+          { newUser: updated }
         );
       } catch (err) {
         console.error("Error in updateUser:", err);
@@ -64,7 +64,7 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
       try {
         const result = await ditto.store.execute<ChatUser>(
           `SELECT * FROM ${userCollectionKey} WHERE _id = :id`,
-          { id: userId },
+          { id: userId }
         );
         return result.items?.[0]?.value;
       } catch (err) {
@@ -72,8 +72,6 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
         return null;
       }
     },
-
-    // TODO: Subcription Rooms
 
     async subscribeToRoom(roomId: string) {
       if (!ditto || !userId) return;
@@ -144,7 +142,7 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
 
     store.userSubscription = ditto.sync.registerSubscription(
       userQuery,
-      queryParams,
+      queryParams
     );
 
     store.userObserver = ditto.store.registerObserver<ChatUser>(
@@ -152,7 +150,7 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
       (result) => {
         _set({ currentUser: result.items?.[0]?.value });
       },
-      queryParams,
+      queryParams
     );
 
     store.allUsersSubscription = ditto.sync.registerSubscription(allUsersQuery);
@@ -161,7 +159,7 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
       allUsersQuery,
       (result) => {
         _set({ allUsers: result.items.map((doc) => doc.value) });
-      },
+      }
     );
   }
 

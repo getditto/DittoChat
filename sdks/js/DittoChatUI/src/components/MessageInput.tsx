@@ -32,7 +32,7 @@ function MessageInput({
   // Mention states
   const [isMentioning, setIsMentioning] = useState(false);
   const [filteredMentionUsers, setFilteredMentionUsers] = useState<ChatUser[]>(
-    [],
+    []
   );
   const [highlightedMentionIndex, setHighlightedMentionIndex] = useState(0);
 
@@ -90,7 +90,7 @@ function MessageInput({
       if (e.key === "ArrowDown") {
         e.preventDefault();
         setHighlightedMentionIndex(
-          (prev) => (prev + 1) % filteredMentionUsers.length,
+          (prev) => (prev + 1) % filteredMentionUsers.length
         );
         return;
       }
@@ -99,7 +99,7 @@ function MessageInput({
         setHighlightedMentionIndex(
           (prev) =>
             (prev - 1 + filteredMentionUsers.length) %
-            filteredMentionUsers.length,
+            filteredMentionUsers.length
         );
         return;
       }
@@ -202,7 +202,7 @@ function MessageInput({
       const mentionQuery = mentionMatch[1];
       // Filter available users based on the query.
       const filteredUsers = users.filter((user) =>
-        user.name.toLowerCase().includes(mentionQuery.toLowerCase()),
+        user.name.toLowerCase().includes(mentionQuery.toLowerCase())
       );
 
       if (filteredUsers.length > 0) {
@@ -283,8 +283,8 @@ function MessageInput({
     // Add the new mention to the list and re-sort by start index.
     setMentions(
       [...updatedMentions, newMention].sort(
-        (a, b) => a.startIndex - b.startIndex,
-      ),
+        (a, b) => a.startIndex - b.startIndex
+      )
     );
     setText(newText);
     setIsMentioning(false);
@@ -312,7 +312,7 @@ function MessageInput({
     }
 
     const sortedMentions = [...mentions].sort(
-      (a, b) => a.startIndex - b.startIndex,
+      (a, b) => a.startIndex - b.startIndex
     );
     const finalParts: React.ReactNode[] = [];
     let currentIndex = 0;
@@ -322,13 +322,13 @@ function MessageInput({
         finalParts.push(
           <React.Fragment key={`text-${index}`}>
             {text.slice(currentIndex, mention.startIndex)}
-          </React.Fragment>,
+          </React.Fragment>
         );
       }
       finalParts.push(
         <span key={`mention-${index}`} className="text-(--mention-text)">
           {text.slice(mention.startIndex, mention.endIndex)}
-        </span>,
+        </span>
       );
       currentIndex = mention.endIndex;
     });
@@ -337,7 +337,7 @@ function MessageInput({
       finalParts.push(
         <React.Fragment key="text-last">
           {text.slice(currentIndex)}
-        </React.Fragment>,
+        </React.Fragment>
       );
     }
 
@@ -405,7 +405,7 @@ function MessageInput({
                       "w-full text-left px-3 py-2 flex items-center space-x-3 hover:bg-(--secondary-bg)",
                       index === highlightedMentionIndex
                         ? "bg-(--secondary-bg)"
-                        : "",
+                        : ""
                     )}
                   >
                     <Avatar isUser={true} />

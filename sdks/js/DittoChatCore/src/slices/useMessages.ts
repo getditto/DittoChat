@@ -21,43 +21,43 @@ export interface MessageSlice {
   createMessage: (
     room: Room,
     text: string,
-    mentions?: Mention[],
+    mentions?: Mention[]
   ) => Promise<void>;
   saveEditedTextMessage: (message: Message, room: Room) => Promise<void>;
   saveDeletedMessage: (
     message: Message,
     room: Room,
-    type?: "text" | "image" | "file",
+    type?: "text" | "image" | "file"
   ) => Promise<void>;
   createImageMessage: (
     room: Room,
     imageFile: File,
-    text?: string,
+    text?: string
   ) => Promise<void>;
   createFileMessage: (room: Room, file: File, text?: string) => Promise<void>;
   fetchAttachment: (
     token: AttachmentToken,
     onProgress: (progress: number) => void,
-    onComplete: (result: AttachmentResult) => void,
+    onComplete: (result: AttachmentResult) => void
   ) => void;
   notificationHandler: ((message: MessageWithUser, room: Room) => void) | null;
   registerNotificationHandler: (
-    handler: (message: MessageWithUser, room: Room) => void,
+    handler: (message: MessageWithUser, room: Room) => void
   ) => void;
   updateMessageReactions: (
     message: Message,
     room: Room,
-    reactions: Reaction[],
+    reactions: Reaction[]
   ) => Promise<void>;
   addReactionToMessage: (
     message: Message,
     room: Room,
-    reaction: Reaction,
+    reaction: Reaction
   ) => Promise<void>;
   removeReactionFromMessage: (
     message: Message,
     room: Room,
-    reaction: Reaction,
+    reaction: Reaction
   ) => Promise<void>;
 }
 
@@ -75,7 +75,7 @@ const THUMBNAIL_MAX_SIZE = 282;
 export const createMessageSlice: CreateSlice<MessageSlice> = (
   _set,
   _get,
-  { ditto, userId, userCollectionKey }: DittoConfParams,
+  { ditto, userId, userCollectionKey }: DittoConfParams
 ) => {
   // Helper: Get room details
   const getRoomDetails = async (room: Room) => {
@@ -83,7 +83,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
     const result = await ditto.store.execute<Room>(
       `SELECT * FROM ${room.collectionId || "rooms"} WHERE _id = :id`,
-      { id: room._id },
+      { id: room._id }
     );
 
     if (result.items.length === 0) throw new Error("Room not found");
@@ -97,7 +97,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
     const result = await ditto.store.execute<ChatUser>(
       `SELECT * FROM ${userCollectionKey} WHERE _id = :id`,
-      { id: userId },
+      { id: userId }
     );
 
     const userValue = result.items?.[0]?.value;
@@ -111,7 +111,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
   const handleMessageUpdate = (
     room: Room,
     message: Message,
-    allUsers: ChatUser[],
+    allUsers: ChatUser[]
   ) => {
     _set((state: ChatStore) => {
       return produce(state, (draft) => {
@@ -134,7 +134,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         };
         // Check for notifications on new messages
         const existingIndex = draft.messagesByRoom[room._id]!.findIndex(
-          (m) => m.id === message._id,
+          (m) => m.id === message._id
         );
 
         if (
@@ -145,14 +145,14 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
           const user = allUsers.find((u) => u._id === message.userId);
           _get().notificationHandler?.(
             { message, user, id: message._id },
-            room,
+            room
           );
         }
 
         // Handle edited messages
         if (message.archivedMessage) {
           const originalIndex = draft.messagesByRoom[room._id]!.findIndex(
-            (m) => m.id === message.archivedMessage,
+            (m) => m.id === message.archivedMessage
           );
 
           if (originalIndex !== -1) {
@@ -187,7 +187,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       Date.now() - MESSAGE_RECENCY_THRESHOLD;
     const isSubscribed = currentUser?.subscriptions?.[room._id];
     const isMentioned = message.mentions?.some(
-      (mention) => mention.userId === currentUser?._id,
+      (mention) => mention.userId === currentUser?._id
     );
     const isDM = room.collectionId === "dm_rooms";
 
@@ -199,7 +199,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
   const createMessageDocument = async (
     room: Room,
     messageData: Partial<Message> & { text: string },
-    collectionSpec: string = "",
+    collectionSpec: string = ""
   ) => {
     if (!ditto || !userId)
       throw new Error("Ditto not initialized or user not found");
@@ -227,7 +227,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       : actualRoom.messagesId;
     await ditto.store.execute(
       `INSERT INTO ${collectionClause} DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE`,
-      { newDoc },
+      { newDoc }
     );
     if (messageData.mentions && messageData.mentions.length > 0) {
       // Update user mentions
@@ -244,9 +244,9 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
           return ditto.store.execute(
             `UPDATE users SET mentions = :mentions WHERE _id = :id`,
-            { id: user._id, mentions: userMentions },
+            { id: user._id, mentions: userMentions }
           );
-        }),
+        })
       );
     }
 
@@ -257,13 +257,13 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
   const archiveAndCreateMessage = async (
     message: Message,
     room: Room,
-    newMessageData: Partial<Message>,
+    newMessageData: Partial<Message>
   ) => {
     if (!ditto) throw new Error("Ditto not initialized");
 
     await ditto.store.execute(
       `UPDATE ${room.messagesId} SET isArchived = :isArchived WHERE _id = :id`,
-      { id: message._id, isArchived: true },
+      { id: message._id, isArchived: true }
     );
 
     return createMessageDocument(room, {
@@ -279,7 +279,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     room: Room,
     file: File,
     text: string | undefined,
-    attachmentType: "image" | "file",
+    attachmentType: "image" | "file"
   ) => {
     if (!ditto || !userId)
       throw new Error("Ditto not initialized or user not found");
@@ -297,20 +297,20 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       const thumbnailData = new Uint8Array(await thumbnailBlob.arrayBuffer());
       attachments.thumbnailImageToken = await ditto.store.newAttachment(
         thumbnailData,
-        createAttachmentMetadata(user.id, user.name, "thumbnail", file),
+        createAttachmentMetadata(user.id, user.name, "thumbnail", file)
       );
 
       const largeImageBlob = await imageToBlob(await fileToImage(file));
       const largeImageData = new Uint8Array(await largeImageBlob.arrayBuffer());
       attachments.largeImageToken = await ditto.store.newAttachment(
         largeImageData,
-        createAttachmentMetadata(user.id, user.name, "large", file),
+        createAttachmentMetadata(user.id, user.name, "large", file)
       );
     } else {
       const fileData = new Uint8Array(await file.arrayBuffer());
       attachments.fileAttachmentToken = await ditto.store.newAttachment(
         fileData,
-        createAttachmentMetadata(user.id, user.name, "file", file),
+        createAttachmentMetadata(user.id, user.name, "file", file)
       );
     }
 
@@ -325,7 +325,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         text: text || (attachmentType === "file" ? file.name : ""),
         ...attachments,
       },
-      collectionSpec,
+      collectionSpec
     );
   };
 
@@ -346,7 +346,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       if (_get().messageSubscriptionsByRoom[roomId]) return;
 
       const retentionDate = new Date(
-        Date.now() - retentionDays * 24 * 60 * 60 * 1000,
+        Date.now() - retentionDays * 24 * 60 * 60 * 1000
       );
       const query = `SELECT * FROM COLLECTION ${room.messagesId} (thumbnailImageToken ATTACHMENT, largeImageToken ATTACHMENT, fileAttachmentToken ATTACHMENT)
         WHERE roomId = :roomId AND createdOn >= :date AND isArchived = false
@@ -371,7 +371,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
               handleMessageUpdate(room, message, allUsers);
             }
           },
-          args,
+          args
         );
 
         _set({
@@ -418,7 +418,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     async saveDeletedMessage(
       message: Message,
       room: Room,
-      type: "text" | "image" | "file" = "text",
+      type: "text" | "image" | "file" = "text"
     ) {
       const deletedText = {
         text: "[deleted message]",
@@ -515,7 +515,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     async updateMessageReactions(
       message: Message,
       room: Room,
-      reactions: Reaction[],
+      reactions: Reaction[]
     ) {
       if (!ditto || !userId) return;
 
@@ -532,7 +532,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       _set((state: ChatStore) =>
         produce(state, (draft) => {
           draft.messagesByRoom[roomId][index].message.reactions = reactions;
-        }),
+        })
       );
 
       // Async DB update with rollback on error
@@ -540,7 +540,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         try {
           await ditto.store.execute(
             `UPDATE ${room.messagesId} SET reactions = :reactions WHERE _id = :id`,
-            { id: originalMessage._id, reactions },
+            { id: originalMessage._id, reactions }
           );
         } catch (err) {
           console.error("Error updating reactions, rolling back:", err);
@@ -548,7 +548,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
             produce(state, (draft) => {
               draft.messagesByRoom[roomId][index].message.reactions =
                 previousReactions;
-            }),
+            })
           );
         }
       }, 0);
@@ -557,7 +557,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     async addReactionToMessage(
       message: Message,
       room: Room,
-      reaction: Reaction,
+      reaction: Reaction
     ) {
       if (!ditto || !userId) return;
 
@@ -573,7 +573,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     async removeReactionFromMessage(
       message: Message,
       room: Room,
-      reaction: Reaction,
+      reaction: Reaction
     ) {
       if (!ditto || !userId) return;
 
@@ -583,7 +583,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
       const originalMessage = roomMessages[messageIndex].message;
       const reactions = (originalMessage.reactions || []).filter(
-        (r) => !(r.emoji === reaction.emoji && r.userId === reaction.userId),
+        (r) => !(r.emoji === reaction.emoji && r.userId === reaction.userId)
       );
       await _get().updateMessageReactions(originalMessage, room, reactions);
     },
@@ -630,7 +630,7 @@ function fileToImage(file: File): Promise<HTMLImageElement> {
 }
 
 async function imageToBlob(
-  image: HTMLImageElement | HTMLCanvasElement,
+  image: HTMLImageElement | HTMLCanvasElement
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const convertToBlob = (canvas: HTMLCanvasElement) => {
@@ -638,7 +638,7 @@ async function imageToBlob(
         (blob) =>
           blob ? resolve(blob) : reject(new Error("Failed to convert to blob")),
         "image/jpeg",
-        1.0,
+        1.0
       );
     };
 
@@ -663,7 +663,7 @@ function createAttachmentMetadata(
   userId: string,
   username: string,
   type: "thumbnail" | "large" | "file",
-  file: File,
+  file: File
 ): Record<string, string> {
   const timestamp = new Date().toISOString();
   const cleanName = username.replace(/\s/g, "-");

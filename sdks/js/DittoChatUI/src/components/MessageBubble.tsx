@@ -27,7 +27,7 @@ interface MessageBubbleProps {
   onRemoveReaction: (
     message: Message,
     userId: string,
-    emoji: string,
+    emoji: string
   ) => Promise<void>;
   fetchAttachment?: (
     token: AttachmentToken,
@@ -37,7 +37,7 @@ interface MessageBubbleProps {
       data?: Uint8Array;
       metadata?: Record<string, string>;
       error?: Error;
-    }) => void,
+    }) => void
   ) => void;
 }
 
@@ -52,7 +52,7 @@ const FormattedMessage: React.FC<{ message: Message; isOwn: boolean }> = ({
   }
 
   const sortedMentions = [...mentions].sort(
-    (a, b) => a.startIndex - b.startIndex,
+    (a, b) => a.startIndex - b.startIndex
   );
 
   const finalParts: React.ReactNode[] = [];
@@ -63,16 +63,18 @@ const FormattedMessage: React.FC<{ message: Message; isOwn: boolean }> = ({
       finalParts.push(
         <React.Fragment key={`text-${index}`}>
           {text.slice(currentIndex, mention.startIndex)}
-        </React.Fragment>,
+        </React.Fragment>
       );
     }
     finalParts.push(
       <span
         key={`mention-${index}`}
-        className={`font-semibold ${isOwn ? "text-(--mention-text-on-primary)" : "text-(--mention-text)"}`}
+        className={`font-semibold ${
+          isOwn ? "text-(--mention-text-on-primary)" : "text-(--mention-text)"
+        }`}
       >
         {text.slice(mention.startIndex, mention.endIndex)}
-      </span>,
+      </span>
     );
     currentIndex = mention.endIndex;
   });
@@ -81,7 +83,7 @@ const FormattedMessage: React.FC<{ message: Message; isOwn: boolean }> = ({
     finalParts.push(
       <React.Fragment key="text-last">
         {text.slice(currentIndex)}
-      </React.Fragment>,
+      </React.Fragment>
     );
   }
 
@@ -189,7 +191,7 @@ function MessageBubble({
     const existingReactionIndex = reactions.findIndex(
       (reaction) =>
         reaction.emoji === emoji.emoji &&
-        reaction.userIds.includes(currentUserId),
+        reaction.userIds.includes(currentUserId)
     );
     if (existingReactionIndex !== -1) return;
     onAddReaction(message, emoji);
@@ -217,7 +219,9 @@ function MessageBubble({
     >
       {showSenderInfo && (
         <div
-          className={`flex items-baseline text-xs text-(--text-color-lightest) mb-1 ${isOwnMessage ? "justify-end" : ""}`}
+          className={`flex items-baseline text-xs text-(--text-color-lightest) mb-1 ${
+            isOwnMessage ? "justify-end" : ""
+          }`}
         >
           {(isGroupChat || !isOwnMessage) && (
             <span className="mr-1">{senderName}</span>
@@ -233,10 +237,14 @@ function MessageBubble({
       )}
 
       <div
-        className={`flex items-center gap-2 ${isOwnMessage ? "flex-row-reverse" : "flex-row"}`}
+        className={`flex items-center gap-2 ${
+          isOwnMessage ? "flex-row-reverse" : "flex-row"
+        }`}
       >
         <div
-          className={`flex flex-col max-w-xs md:max-w-md lg:max-w-lg ${isOwnMessage ? "items-end" : "items-start"}`}
+          className={`flex flex-col max-w-xs md:max-w-md lg:max-w-lg ${
+            isOwnMessage ? "items-end" : "items-start"
+          }`}
         >
           {hasImage && !message.isDeleted && (
             <div className={`relative ${hasText ? "mb-1" : ""}`}>
@@ -316,7 +324,7 @@ function MessageBubble({
                           if (result.success && result.data) {
                             const blob = new Blob(
                               [new Uint8Array(result.data)],
-                              { type: "application/octet-stream" },
+                              { type: "application/octet-stream" }
                             );
                             const url = URL.createObjectURL(blob);
                             const a = document.createElement("a");
@@ -327,7 +335,7 @@ function MessageBubble({
                             document.body.removeChild(a);
                             URL.revokeObjectURL(url);
                           }
-                        },
+                        }
                       );
                     }
                   }}
@@ -406,7 +414,9 @@ function MessageBubble({
       </div>
 
       <div
-        className={`flex items-center space-x-1 mt-1 ${isOwnMessage ? "justify-end" : ""}`}
+        className={`flex items-center space-x-1 mt-1 ${
+          isOwnMessage ? "justify-end" : ""
+        }`}
       >
         {reactions.map((reaction) => {
           const userHasReacted = reaction.userIds.includes(currentUserId);
@@ -423,7 +433,11 @@ function MessageBubble({
             >
               <span>{reaction.emoji}</span>
               <span
-                className={`font-medium ${userHasReacted ? "text-(--primary-color-dark-text)" : "text-(--text-color-light)"}`}
+                className={`font-medium ${
+                  userHasReacted
+                    ? "text-(--primary-color-dark-text)"
+                    : "text-(--text-color-light)"
+                }`}
               >
                 {reaction.userIds.length}
               </span>

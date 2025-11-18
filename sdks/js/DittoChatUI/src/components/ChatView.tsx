@@ -25,35 +25,35 @@ function ChatView({ chat, onBack }: ChatViewProps) {
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
 
   const messages: MessageWithUser[] = useDittoChatStore(
-    (state) => state.messagesByRoom[chat.id] || EMPTY_MESSAGES,
+    (state) => state.messagesByRoom[chat.id] || EMPTY_MESSAGES
   );
   const currentUser: ChatUser | null = useDittoChatStore(
-    (state) => state.currentUser,
+    (state) => state.currentUser
   );
   const allUsers: ChatUser[] = useDittoChatStore((state) => state.allUsers);
   const createMessage = useDittoChatStore((state) => state.createMessage);
   const createImageMessage = useDittoChatStore(
-    (state) => state.createImageMessage,
+    (state) => state.createImageMessage
   );
   const fetchAttachment = useDittoChatStore((state) => state.fetchAttachment);
   const addReactionToMessage = useDittoChatStore(
-    (state) => state.addReactionToMessage,
+    (state) => state.addReactionToMessage
   );
   const removeReactionFromMessage = useDittoChatStore(
-    (state) => state.removeReactionFromMessage,
+    (state) => state.removeReactionFromMessage
   );
   const saveEditedTextMessage = useDittoChatStore(
-    (state) => state.saveEditedTextMessage,
+    (state) => state.saveEditedTextMessage
   );
   const saveDeletedMessage = useDittoChatStore(
-    (state) => state.saveDeletedMessage,
+    (state) => state.saveDeletedMessage
   );
   const createFileMessage = useDittoChatStore(
-    (state) => state.createFileMessage,
+    (state) => state.createFileMessage
   );
   const subscribeToRoom = useDittoChatStore(
     (state) =>
-      state.subscribeToRoom as ((roomId: string) => Promise<void>) | undefined,
+      state.subscribeToRoom as ((roomId: string) => Promise<void>) | undefined
   );
   const markRoomAsRead = useDittoChatStore((state) => state.markRoomAsRead);
 
@@ -84,7 +84,7 @@ function ChatView({ chat, onBack }: ChatViewProps) {
 
   const handleSaveEdit = async (
     newContent: string,
-    mentions: Mention[] = [],
+    mentions: Mention[] = []
   ) => {
     if (!room || !editingMessage) return;
     const updatedMessage = { ...editingMessage, text: newContent, mentions };
@@ -121,11 +121,11 @@ function ChatView({ chat, onBack }: ChatViewProps) {
   const handleRemoveReaction = async (
     message: Message,
     userId: string,
-    emoji: string,
+    emoji: string
   ) => {
     if (!room) return;
     const reaction = (message.reactions || []).find(
-      (r) => r.userId === userId && r.emoji === emoji,
+      (r) => r.userId === userId && r.emoji === emoji
     );
     if (!reaction) return;
     await removeReactionFromMessage(message, room, reaction);
@@ -136,7 +136,7 @@ function ChatView({ chat, onBack }: ChatViewProps) {
 
   if (chat.type === "dm") {
     const otherUser = chat.participants.find(
-      (user) => user._id !== currentUser?._id,
+      (user) => user._id !== currentUser?._id
     );
     chatName = otherUser?.name || "Unknown User";
     // TODO: Implement user status
@@ -181,7 +181,7 @@ function ChatView({ chat, onBack }: ChatViewProps) {
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => {
           const sender = allUsers.find(
-            (user) => user._id === message.message.userId,
+            (user) => user._id === message.message.userId
           );
           const isOwnMessage = message.message.userId === currentUser?._id;
 

@@ -2,13 +2,17 @@ import React, { createContext, useContext, useState, useCallback } from "react";
 import Toast from "./Toast";
 
 type ToastMessage = {
-  id: number;
+  id: string;
   message: string;
   type: "success" | "info" | "error";
 };
 
 type ToastContextType = {
-  addToast: (id: string, message: string, type?: ToastMessage["type"]) => void;
+  addToast: (
+    id: string | undefined,
+    message: string,
+    type?: ToastMessage["type"]
+  ) => void;
 };
 
 const ToastContext = createContext<ToastContextType | null>(null);
@@ -25,10 +29,14 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const addToast = useCallback(
-    (id = Date.now(), message: string, type: ToastMessage["type"] = "info") => {
+    (
+      id: string | undefined = Date.now().toString(),
+      message: string,
+      type: ToastMessage["type"] = "info"
+    ) => {
       setToasts((prevToasts) => {
         const isToastAlreadyDisplayed = prevToasts.some(
-          (toast) => toast.id === id,
+          (toast) => toast.id === id
         );
         if (!isToastAlreadyDisplayed) {
           return [...prevToasts, { id, message, type }];
@@ -36,10 +44,10 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
         return prevToasts;
       });
     },
-    [],
+    []
   );
 
-  const removeToast = useCallback((id: number) => {
+  const removeToast = useCallback((id: string) => {
     setToasts((prevToasts) => prevToasts.filter((toast) => toast.id !== id));
   }, []);
 
