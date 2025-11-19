@@ -72,7 +72,7 @@ function ChatView({ chat, onBack }: ChatViewProps) {
   useEffect(() => {
     if (!room?._id) return;
     markRoomAsRead(room._id).catch(console.error);
-  }, []);
+  }, [messages.length, room?._id, markRoomAsRead]);
 
   const handleStartEdit = (message: Message) => {
     setEditingMessage(message);
@@ -160,23 +160,42 @@ function ChatView({ chat, onBack }: ChatViewProps) {
             )}
           </div>
           <h2 className="text-xl font-semibold">{chatName}</h2>
-
-          {/* TODO: Subscribe button */}
-          {room && currentUser && chat.type === "group" && (
-            <button
-              onClick={() => {
-                if (subscribeToRoom)
-                  subscribeToRoom(room._id).catch(console.error);
-              }}
-              className="ml-3 text-sm px-2 py-1 border rounded text-(--text-color-light)"
-            >
-              {currentUser?.subscriptions &&
-              room._id in currentUser.subscriptions
-                ? "Subscribed"
-                : "Subscribe"}
-            </button>
-          )}
         </div>
+
+        {room && currentUser && chat.type === "group" && (
+          <button
+            onClick={() => {
+              if (subscribeToRoom)
+                subscribeToRoom(room._id).catch(console.error);
+            }}
+            className="ml-auto text-sm px-3 py-1.5 border rounded-md text-(--text-color-light) flex items-center hover:bg-(--secondary-bg) transition-colors"
+          >
+            {currentUser?.subscriptions &&
+            room._id in currentUser.subscriptions ? (
+              "Subscribed"
+            ) : (
+              <>
+                <span className="flex items-center justify-center w-5 h-5 mr-2 bg-(--disabled-bg) rounded">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={3}
+                    stroke="currentColor"
+                    className="w-3.5 h-3.5 text-(--text-color)"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 4.5v15m7.5-7.5h-15"
+                    />
+                  </svg>
+                </span>
+                Add Room
+              </>
+            )}
+          </button>
+        )}
       </header>
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => {

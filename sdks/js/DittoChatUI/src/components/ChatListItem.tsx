@@ -83,11 +83,6 @@ function ChatListItem({
     >
       <div className="relative -top-4">
         <Avatar isUser={chat.type === "dm"} />
-        {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1.5 text-xs flex items-center justify-center rounded-full bg-(--notification-badge-bg) border-2 border-white">
-            {unreadCount}
-          </span>
-        )}
         {otherUserIsActive && (
           <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-(--active-status-bg) border-2 border-white"></span>
         )}
@@ -99,12 +94,19 @@ function ChatListItem({
             {lastMessage && formatDate(lastMessage.createdOn)}
           </p>
         </div>
-        <p className="text-(--text-color-lighter) font-normal line-clamp-2">
-          {senderName && <span className="font-medium">{senderName}: </span>}
-          {lastMessage && lastMessage?.thumbnailImageToken
-            ? "Image"
-            : lastMessage?.text}
-        </p>
+        <div className="flex justify-between items-start mt-0.5">
+          <p className="text-(--text-color-lighter) font-normal line-clamp-2 pr-2">
+            {senderName && <span className="font-medium">{senderName}: </span>}
+            {lastMessage && lastMessage?.thumbnailImageToken
+              ? "Image"
+              : lastMessage?.text}
+          </p>
+            {unreadCount > 0 && !isSelected && (
+            <span className="flex-shrink-0 min-w-[1.25rem] h-5 px-1.5 text-xs flex items-center justify-center rounded-full bg-(--notification-badge-bg) text-white font-medium">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
+        </div>
       </div>
     </button>
   );
