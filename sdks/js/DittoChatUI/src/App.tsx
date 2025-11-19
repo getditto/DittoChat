@@ -13,7 +13,7 @@ const DittoChatUIWrapper = () => {
     <div>
       <DittoChatUI
         // @ts-expect-error
-        theme="dark"
+        theme="light"
         ditto={ditto?.ditto as Ditto}
         // userId="690342270008f55100255f92" // update actual user id
         userId="6903511900bd187500bb5c12" // update actual user id

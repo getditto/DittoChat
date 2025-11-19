@@ -25,6 +25,7 @@ const DittoChatUIWrapper = () => {
     <DittoChatUI
       // @ts-expect-error
       ditto={ditto?.ditto as Ditto}
+      theme="auto"
       userId={userId}
       userCollectionKey="users"
     />

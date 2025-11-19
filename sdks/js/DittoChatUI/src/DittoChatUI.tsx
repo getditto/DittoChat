@@ -4,7 +4,6 @@ import ChatList from "./components/ChatList";
 import ChatView from "./components/ChatView";
 import NewMessageModal from "./components/NewMessageModal";
 import { Icons } from "./components/Icons";
-// import { useToast } from "./components/ToastProvider";
 import {
   useDittoChat,
   useDittoChatStore,
@@ -20,12 +19,22 @@ import NewRoomModal from "./components/NewRoomModal";
 import { ChatNotificationObserver } from "./components/ChatNotificationObserver";
 import ChatListSkeleton from "./components/ChatListSkeleton";
 
+const getSystemTheme = () => {
+  if (
+    window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches
+  ) {
+    return "dark";
+  }
+  return "light";
+};
+
 export default function DittoChatUI({
   ditto,
   userCollectionKey,
   userId,
   theme = "light",
-}: DittoConfParams & { theme: "light" | "dark" }) {
+}: DittoConfParams & { theme: "light" | "dark" | "auto" }) {
   useDittoChat({
     ditto,
     userCollectionKey,
@@ -37,6 +46,9 @@ export default function DittoChatUI({
   const createRoom = useDittoChatStore((state) => state.createRoom);
   const rooms: Room[] = useDittoChatStore((state) => state.rooms);
   const users: ChatUser[] = useDittoChatStore((state) => state.allUsers);
+  const [themeName, setThemeName] = useState(
+    theme === "auto" ? getSystemTheme() : theme,
+  );
   const currentUser: ChatUser | null = useDittoChatStore(
     (state) => state.currentUser,
   );
@@ -125,6 +137,33 @@ export default function DittoChatUI({
     setChats([...chatsWithMessages, ...chatsWithoutMessages]);
   }, [rooms, latestMessages, users]);
 
+  // EFFECT 1: This effect sets up the listener for OS theme changes.
+  useEffect(() => {
+    const mediaQueryList = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const handleChange = (e: MediaQueryListEvent) => {
+      const newTheme = e.matches ? "dark" : "light";
+      setThemeName(newTheme);
+    };
+
+    if (theme === "auto") {
+      mediaQueryList.addEventListener("change", handleChange);
+    } else {
+      mediaQueryList.removeEventListener("change", handleChange);
+    }
+    // This is the cleanup function that will be called when the component unmounts
+    return () => {
+      mediaQueryList.removeEventListener("change", handleChange);
+    };
+  }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem("ditto-web-chat-theme", themeName);
+    return () => {
+      localStorage.removeItem("ditto-web-chat-theme");
+    };
+  }, [themeName]);
+
   const handleSelectChat = (chat: Chat) => {
     setSelectedChat(chat);
     setActiveScreen("chat");
@@ -179,7 +218,7 @@ export default function DittoChatUI({
 
   return (
     <div className="web-chat-root">
-      <div className={theme}>
+      <div className={themeName}>
         <ToastProvider>
           <ChatNotificationObserver activeRoomId={selectedChat?.id} />
           <div className="flex h-screen bg-(--surface-color) font-sans text-(--text-color) overflow-hidden">
