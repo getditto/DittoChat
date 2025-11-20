@@ -35,6 +35,9 @@ export default defineConfig({
     setupFiles: "./src/test/setup.ts",
     css: true,
     coverage: {
+      provider: "v8",
+      reporter: ["text", "json-summary", "json", "html"],
+      reportsDirectory: "coverage",
       exclude: [
         "src/App.tsx",
         "src/index.tsx",
