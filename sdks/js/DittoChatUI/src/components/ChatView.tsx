@@ -162,7 +162,7 @@ function ChatView({ chat, onBack }: ChatViewProps) {
           <h2 className="text-xl font-semibold">{chatName}</h2>
         </div>
 
-        {room && currentUser && chat.type === "group" && (
+        {/* {room && currentUser && chat.type === "group" && (
           <button
             onClick={() => {
               if (subscribeToRoom)
@@ -191,7 +191,26 @@ function ChatView({ chat, onBack }: ChatViewProps) {
                     />
                   </svg>
                 </span>
-                Add Room
+                 Subscribe
+              </>
+            )}
+          </button>
+        )} */}
+        {room && currentUser && chat.type === "group" && (
+          <button
+            onClick={() => {
+              if (subscribeToRoom)
+                subscribeToRoom(room._id).catch(console.error);
+            }}
+            className="ml-auto flex items-center space-x-2 px-3 py-1.5 rounded-full bg-(--secondary-bg) hover:bg-(--secondary-bg-hover) text-(--text-color-lighter) font-medium"
+          >
+            {currentUser?.subscriptions &&
+              room._id in currentUser.subscriptions ? (
+              "Subscribed"
+            ) : (
+              <>
+                <Icons.plus className="w-5 h-5" />
+                <span>Subscribe</span>
               </>
             )}
           </button>
