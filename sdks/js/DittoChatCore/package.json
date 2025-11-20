@@ -16,9 +16,9 @@
   },
   "scripts": {
     "build": "vite build && tsc --emitDeclarationOnly",
-    "test": "vitest run",
-    "test:watch": "vitest watch",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "peerDependencies": {
     "@dittolive/ditto": "^4.12.3",
