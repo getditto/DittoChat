@@ -1,9 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { createMockDitto, createTestStore } from "./setup";
+import { createMockDitto, createTestStore, MockDitto } from "./setup";
+import ChatUser from "../src/types/ChatUser";
 
 describe("useChatUser Slice", () => {
   let store: ReturnType<typeof createTestStore>;
-  let mockDitto: any;
+  let mockDitto: MockDitto;
 
   beforeEach(() => {
     mockDitto = createMockDitto();
@@ -356,15 +357,15 @@ describe("useChatUser Slice", () => {
     it("sets up allUsers observer and subscription", () => {
       // Check that registerSubscription was called with the allUsers query
       const subscriptionCalls = mockDitto.sync.registerSubscription.mock.calls;
-      const allUsersCall = subscriptionCalls.find((call: any[]) =>
-        call[0].includes("SELECT * FROM users") && call.length === 1
+      const allUsersCall = subscriptionCalls.find((call: unknown[]) =>
+        (call[0] as string).includes("SELECT * FROM users") && call.length === 1
       );
       expect(allUsersCall).toBeDefined();
 
       // Check that registerObserver was called with the allUsers query
       const observerCalls = mockDitto.store.registerObserver.mock.calls;
-      const allUsersObserverCall = observerCalls.find((call: any[]) =>
-        call[0].includes("SELECT * FROM users") && !call[0].includes("WHERE")
+      const allUsersObserverCall = observerCalls.find((call: unknown[]) =>
+        (call[0] as string).includes("SELECT * FROM users") && !(call[0] as string).includes("WHERE")
       );
       expect(allUsersObserverCall).toBeDefined();
     });
@@ -372,8 +373,8 @@ describe("useChatUser Slice", () => {
     it("user observer callback updates currentUser state", () => {
       // Get the observer callback that was registered
       const observerCalls = mockDitto.store.registerObserver.mock.calls;
-      const userObserverCall = observerCalls.find((call: any[]) =>
-        call[0].includes("SELECT * FROM users WHERE _id")
+      const userObserverCall = observerCalls.find((call: unknown[]) =>
+        (call[0] as string).includes("SELECT * FROM users WHERE _id")
       );
 
       expect(userObserverCall).toBeDefined();
@@ -390,8 +391,8 @@ describe("useChatUser Slice", () => {
     it("allUsers observer callback updates allUsers state", () => {
       // Get the observer callback that was registered
       const observerCalls = mockDitto.store.registerObserver.mock.calls;
-      const allUsersObserverCall = observerCalls.find((call: any[]) =>
-        call[0].includes("SELECT * FROM users") && !call[0].includes("WHERE")
+      const allUsersObserverCall = observerCalls.find((call: unknown[]) =>
+        (call[0] as string).includes("SELECT * FROM users") && !(call[0] as string).includes("WHERE")
       );
 
       expect(allUsersObserverCall).toBeDefined();
@@ -437,7 +438,7 @@ describe("useChatUser Slice", () => {
     });
 
     it("updateUser returns early when _id is missing", async () => {
-      await store.getState().updateUser({ name: "Test" } as any);
+      await store.getState().updateUser({ name: "Test" } as unknown as ChatUser & { _id: string });
 
       // Should not call execute
       expect(mockDitto.store.execute).not.toHaveBeenCalled();

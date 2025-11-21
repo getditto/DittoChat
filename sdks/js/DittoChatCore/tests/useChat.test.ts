@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { useDittoChat, useDittoChatStore } from "../src/useChat";
-import { createMockDitto } from "./setup";
+import { createMockDitto, MockDitto } from "./setup";
 
 // Mock the slices to verify aggregation
 vi.mock("../src/slices/useRooms", () => ({
@@ -40,8 +40,8 @@ vi.mock("../src/slices/useMessages", () => ({
 }));
 
 describe("useDittoChat", () => {
-  let mockDitto: any;
-  const mockParams = {
+  let mockDitto: MockDitto;
+  const mockParams: { ditto: MockDitto | null; userId: string; userCollectionKey: string } = {
     ditto: null,
     userId: "test-user",
     userCollectionKey: "users",
@@ -69,18 +69,18 @@ describe("useDittoChat", () => {
     const state = result.current;
 
     // Spy on the cancel methods for all subscription types
-    const roomsSubCancel = vi.spyOn(state.roomsSubscription as any, "cancel");
-    const roomsObsCancel = vi.spyOn(state.roomsObserver as any, "cancel");
-    const dmRoomsSubCancel = vi.spyOn(state.dmRoomsSubscription as any, "cancel");
-    const dmRoomsObsCancel = vi.spyOn(state.dmRoomsObserver as any, "cancel");
-    const userSubCancel = vi.spyOn(state.userSubscription as any, "cancel");
-    const userObsCancel = vi.spyOn(state.userObserver as any, "cancel");
-    const allUsersSubCancel = vi.spyOn(state.allUsersSubscription as any, "cancel");
-    const allUsersObsCancel = vi.spyOn(state.allUsersObserver as any, "cancel");
+    const roomsSubCancel = vi.spyOn(state.roomsSubscription as NonNullable<typeof state.roomsSubscription>, "cancel");
+    const roomsObsCancel = vi.spyOn(state.roomsObserver as NonNullable<typeof state.roomsObserver>, "cancel");
+    const dmRoomsSubCancel = vi.spyOn(state.dmRoomsSubscription as NonNullable<typeof state.dmRoomsSubscription>, "cancel");
+    const dmRoomsObsCancel = vi.spyOn(state.dmRoomsObserver as NonNullable<typeof state.dmRoomsObserver>, "cancel");
+    const userSubCancel = vi.spyOn(state.userSubscription as NonNullable<typeof state.userSubscription>, "cancel");
+    const userObsCancel = vi.spyOn(state.userObserver as NonNullable<typeof state.userObserver>, "cancel");
+    const allUsersSubCancel = vi.spyOn(state.allUsersSubscription as NonNullable<typeof state.allUsersSubscription>, "cancel");
+    const allUsersObsCancel = vi.spyOn(state.allUsersObserver as NonNullable<typeof state.allUsersObserver>, "cancel");
 
     // Accessing nested subscription in messageSubscriptionsByRoom
-    const msgSubCancel = vi.spyOn(state.messageSubscriptionsByRoom["room-1"] as any, "cancel");
-    const msgObsCancel = vi.spyOn(state.messageObserversByRoom["room-1"] as any, "cancel");
+    const msgSubCancel = vi.spyOn(state.messageSubscriptionsByRoom["room-1"] as NonNullable<typeof state.messageSubscriptionsByRoom["room-1"]>, "cancel");
+    const msgObsCancel = vi.spyOn(state.messageObserversByRoom["room-1"] as NonNullable<typeof state.messageObserversByRoom["room-1"]>, "cancel");
 
     state.chatLogout();
 
@@ -152,8 +152,8 @@ describe("useDittoChat", () => {
 
     // Mock some subscriptions as already cancelled
     const alreadyCancelledSub = { cancel: vi.fn(), isCancelled: true };
-    vi.spyOn(state.roomsSubscription as any, 'isCancelled', 'get').mockReturnValue(true);
-    const cancelSpy = vi.spyOn(state.roomsSubscription as any, "cancel");
+    vi.spyOn(state.roomsSubscription as NonNullable<typeof state.roomsSubscription>, 'isCancelled', 'get').mockReturnValue(true);
+    const cancelSpy = vi.spyOn(state.roomsSubscription as NonNullable<typeof state.roomsSubscription>, "cancel");
 
     state.chatLogout();
 
@@ -164,8 +164,8 @@ describe("useDittoChat", () => {
 });
 
 describe("useDittoChatStore", () => {
-  let mockDitto: any;
-  const mockParams = {
+  let mockDitto: MockDitto;
+  const mockParams: { ditto: MockDitto | null; userId: string; userCollectionKey: string } = {
     ditto: null,
     userId: "test-user",
     userCollectionKey: "users",

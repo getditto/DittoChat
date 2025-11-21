@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { useDittoChat } from "../src/useChat";
-import { createMockDitto } from "./setup";
+import { createMockDitto, MockDitto } from "./setup";
 
 // Mock the slices to return null/undefined for message subscriptions
 vi.mock("../src/slices/useRooms", () => ({
@@ -38,8 +38,8 @@ vi.mock("../src/slices/useMessages", () => ({
 }));
 
 describe("useDittoChat - Edge Cases with Null Subscriptions", () => {
-    let mockDitto: any;
-    const mockParams = {
+    let mockDitto: MockDitto;
+    const mockParams: { ditto: MockDitto | null; userId: string; userCollectionKey: string } = {
         ditto: null,
         userId: "test-user",
         userCollectionKey: "users",

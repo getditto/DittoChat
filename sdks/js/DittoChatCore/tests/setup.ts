@@ -1,9 +1,13 @@
 import { vi } from "vitest";
+import { Ditto } from "@dittolive/ditto";
 import { createStore } from "zustand";
 import { createRoomSlice } from "../src/slices/useRooms";
 import { createChatUserSlice } from "../src/slices/useChatUser";
 import { createMessageSlice } from "../src/slices/useMessages";
 import { ChatStore } from "../src/useChat";
+
+// Type for the mock Ditto instance used in tests
+export type MockDitto = ReturnType<typeof createMockDitto>;
 
 // Mock Blob.arrayBuffer 
 if (!Blob.prototype.arrayBuffer) {
@@ -21,7 +25,7 @@ HTMLCanvasElement.prototype.getContext = vi.fn((contextId: string) => {
     };
   }
   return null;
-}) as any;
+}) as unknown as typeof HTMLCanvasElement.prototype.getContext;
 
 HTMLCanvasElement.prototype.toBlob = vi.fn((callback) => {
   callback(new Blob(["mock-image-data"], { type: "image/jpeg" }));
@@ -33,9 +37,9 @@ global.FileReader = class {
     // @ts-ignore
     this.onload({ target: { result: "data:image/png;base64,fake-data" } });
   }
-  onload() {}
-  onerror() {}
-} as any;
+  onload() { }
+  onerror() { }
+} as unknown as typeof FileReader;
 
 // Mock Image
 global.Image = class {
@@ -47,9 +51,9 @@ global.Image = class {
       this.onload();
     }, 10);
   }
-  onload() {}
-  onerror() {}
-} as any;
+  onload() { }
+  onerror() { }
+} as unknown as typeof Image;
 
 export const createMockDitto = () => ({
   store: {
@@ -67,9 +71,9 @@ export const createMockDitto = () => ({
   },
 });
 
-export const createTestStore = (mockDitto: any) => {
+export const createTestStore = (mockDitto: MockDitto | null) => {
   const params = {
-    ditto: mockDitto,
+    ditto: mockDitto as unknown as Ditto, // Cast needed for mock compatibility with Ditto type
     userId: "test-user-id",
     userCollectionKey: "users",
   };
@@ -78,5 +82,6 @@ export const createTestStore = (mockDitto: any) => {
     ...createRoomSlice(set, get, params),
     ...createChatUserSlice(set, get, params),
     ...createMessageSlice(set, get, params),
+    chatLogout: vi.fn(), // Mock implementation for tests
   }));
 };

@@ -1,9 +1,12 @@
+import { MockDitto } from "./setup";
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { createMockDitto, createTestStore } from "./setup";
+import Message from "../src/types/Message";
+import { AttachmentToken, QueryResult, AttachmentFetchEvent } from "@dittolive/ditto";
 
 describe("useMessages Slice", () => {
   let store: ReturnType<typeof createTestStore>;
-  let mockDitto: any;
+  let mockDitto: MockDitto;
 
   const mockRoom = {
     _id: "room-1",
@@ -111,7 +114,7 @@ describe("useMessages Slice", () => {
         isArchived: false,
       };
 
-      await store.getState().saveDeletedMessage(originalMsg as any, mockRoom);
+      await store.getState().saveDeletedMessage(originalMsg as Message, mockRoom);
 
       expect(mockDitto.store.execute).toHaveBeenCalledWith(
         expect.stringContaining(`UPDATE ${mockRoom.messagesId} SET isArchived`),
@@ -140,7 +143,7 @@ describe("useMessages Slice", () => {
         isArchived: false,
       };
 
-      await store.getState().saveDeletedMessage(message as any, mockRoom, "image");
+      await store.getState().saveDeletedMessage(message as Message, mockRoom, "image");
 
       expect(mockDitto.store.execute).toHaveBeenCalledWith(
         expect.stringContaining("INSERT INTO"),
@@ -163,7 +166,7 @@ describe("useMessages Slice", () => {
         isArchived: false,
       };
 
-      await store.getState().saveDeletedMessage(message as any, mockRoom, "file");
+      await store.getState().saveDeletedMessage(message as Message, mockRoom, "file");
 
       expect(mockDitto.store.execute).toHaveBeenCalledWith(
         expect.stringContaining("INSERT INTO"),
@@ -188,7 +191,7 @@ describe("useMessages Slice", () => {
         isArchived: false,
       };
 
-      await store.getState().saveEditedTextMessage(originalMsg as any, mockRoom);
+      await store.getState().saveEditedTextMessage(originalMsg as Message, mockRoom);
 
       expect(mockDitto.store.execute).toHaveBeenCalledWith(
         expect.stringContaining(`UPDATE ${mockRoom.messagesId} SET isArchived`),
@@ -290,7 +293,7 @@ describe("useMessages Slice", () => {
           messagesByRoom: {
             [mockRoom._id]: [
               {
-                message: initialMessage as any,
+                message: initialMessage as Message,
                 id: messageId,
                 user: null,
               },
@@ -302,7 +305,7 @@ describe("useMessages Slice", () => {
 
         await store
           .getState()
-          .addReactionToMessage(initialMessage as any, mockRoom, reaction);
+          .addReactionToMessage(initialMessage as Message, mockRoom, reaction);
 
         await vi.runAllTimersAsync();
 
@@ -320,22 +323,22 @@ describe("useMessages Slice", () => {
       });
 
       it("throws when message not found", async () => {
-        const message = { _id: "nonexistent", text: "Test" } as any;
+        const message = { _id: "nonexistent", text: "Test" } as Partial<Message>;
         const reaction = { userId: "user-1", emoji: "👍" };
 
         store.setState({ messagesByRoom: { [mockRoom._id]: [] } });
 
         await expect(
-          store.getState().addReactionToMessage(message, mockRoom, reaction)
+          store.getState().addReactionToMessage(message as Message, mockRoom, reaction)
         ).rejects.toThrow("Message not found");
       });
 
       it("returns early when ditto is null", async () => {
         const storeWithoutDitto = createTestStore(null);
-        const message = { _id: "msg-1", text: "Test" } as any;
+        const message = { _id: "msg-1", text: "Test" } as Partial<Message>;
         const reaction = { userId: "user-1", emoji: "👍" };
 
-        await storeWithoutDitto.getState().addReactionToMessage(message, mockRoom, reaction);
+        await storeWithoutDitto.getState().addReactionToMessage(message as Message, mockRoom, reaction);
 
         expect(mockDitto.store.execute).not.toHaveBeenCalled();
       });
@@ -360,7 +363,7 @@ describe("useMessages Slice", () => {
         store.setState((state) => ({
           messagesByRoom: {
             [mockRoom._id]: [
-              { message: initialMessage as any, id: messageId, user: null },
+              { message: initialMessage as Message, id: messageId, user: null },
             ],
           },
         }));
@@ -368,7 +371,7 @@ describe("useMessages Slice", () => {
         await store
           .getState()
           .removeReactionFromMessage(
-            initialMessage as any,
+            initialMessage as Message,
             mockRoom,
             reactionToRemove
           );
@@ -385,22 +388,22 @@ describe("useMessages Slice", () => {
       });
 
       it("throws when message not found", async () => {
-        const message = { _id: "nonexistent", text: "Test" } as any;
+        const message = { _id: "nonexistent", text: "Test" } as Partial<Message>;
         const reaction = { userId: "user-1", emoji: "👍" };
 
         store.setState({ messagesByRoom: { [mockRoom._id]: [] } });
 
         await expect(
-          store.getState().removeReactionFromMessage(message, mockRoom, reaction)
+          store.getState().removeReactionFromMessage(message as Message, mockRoom, reaction)
         ).rejects.toThrow("Message not found");
       });
 
       it("returns early when ditto is null", async () => {
         const storeWithoutDitto = createTestStore(null);
-        const message = { _id: "msg-1", text: "Test" } as any;
+        const message = { _id: "msg-1", text: "Test" } as Partial<Message>;
         const reaction = { userId: "user-1", emoji: "👍" };
 
-        await storeWithoutDitto.getState().removeReactionFromMessage(message, mockRoom, reaction);
+        await storeWithoutDitto.getState().removeReactionFromMessage(message as Message, mockRoom, reaction);
 
         expect(mockDitto.store.execute).not.toHaveBeenCalled();
       });
@@ -422,14 +425,14 @@ describe("useMessages Slice", () => {
 
         store.setState({
           messagesByRoom: {
-            [mockRoom._id]: [{ message: message as any, id: message._id, user: null }],
+            [mockRoom._id]: [{ message: message as Message, id: message._id, user: null }],
           },
         });
 
         mockDitto.store.execute.mockRejectedValueOnce(new Error("Update Error"));
 
         const newReactions = [{ userId: "test-user-id", emoji: "👍" }];
-        await store.getState().updateMessageReactions(message as any, mockRoom, newReactions);
+        await store.getState().updateMessageReactions(message as Message, mockRoom, newReactions);
 
         await vi.runAllTimersAsync();
 
@@ -446,20 +449,20 @@ describe("useMessages Slice", () => {
       });
 
       it("throws when message not found", async () => {
-        const message = { _id: "nonexistent", text: "Test" } as any;
+        const message = { _id: "nonexistent", text: "Test" } as Partial<Message>;
 
         store.setState({ messagesByRoom: { [mockRoom._id]: [] } });
 
         await expect(
-          store.getState().updateMessageReactions(message, mockRoom, [])
+          store.getState().updateMessageReactions(message as Message, mockRoom, [])
         ).rejects.toThrow("Message not found");
       });
 
       it("returns early when ditto is null", async () => {
         const storeWithoutDitto = createTestStore(null);
-        const message = { _id: "msg-1", text: "Test" } as any;
+        const message = { _id: "msg-1", text: "Test" } as Partial<Message>;
 
-        await storeWithoutDitto.getState().updateMessageReactions(message, mockRoom, []);
+        await storeWithoutDitto.getState().updateMessageReactions(message as Message, mockRoom, []);
 
         expect(mockDitto.store.execute).not.toHaveBeenCalled();
       });
@@ -467,20 +470,22 @@ describe("useMessages Slice", () => {
   });
 
   describe("fetchAttachment", () => {
-    it("handles progress and completion", () => {
+    it("handles progress and completion", async () => {
       const token = { id: "token-123", len: 100, metadata: {} };
       const onProgress = vi.fn();
       const onComplete = vi.fn();
 
-      mockDitto.store.fetchAttachment.mockImplementation((token: any, cb: any) => {
+      mockDitto.store.fetchAttachment.mockImplementation((token: AttachmentToken, cb: (event: AttachmentFetchEvent) => void) => {
         cb({ type: "Progress", downloadedBytes: 50, totalBytes: 100 });
         cb({
           type: "Completed",
-          attachment: { getData: () => new Uint8Array([1, 2, 3]), metadata: {} },
+          attachment: { getData: () => Promise.resolve(new Uint8Array([1, 2, 3])), metadata: {} } as Parameters<typeof cb>[0] extends { type: "Completed"; attachment: infer A } ? A : never,
         });
       });
 
-      store.getState().fetchAttachment(token as any, onProgress, onComplete);
+      store.getState().fetchAttachment(token as AttachmentToken, onProgress, onComplete);
+
+      await vi.runAllTimersAsync();
 
       expect(onProgress).toHaveBeenCalledWith(0.5);
       expect(onComplete).toHaveBeenCalledWith(
@@ -494,7 +499,7 @@ describe("useMessages Slice", () => {
       const onComplete = vi.fn();
       const token = { id: "token-123", len: 100, metadata: {} };
 
-      storeWithoutDitto.getState().fetchAttachment(token as any, onProgress, onComplete);
+      storeWithoutDitto.getState().fetchAttachment(token as AttachmentToken, onProgress, onComplete);
 
       expect(onComplete).toHaveBeenCalledWith({
         success: false,
@@ -507,7 +512,7 @@ describe("useMessages Slice", () => {
       const onProgress = vi.fn();
       const onComplete = vi.fn();
 
-      store.getState().fetchAttachment(null as any, onProgress, onComplete);
+      store.getState().fetchAttachment(null as unknown as AttachmentToken, onProgress, onComplete);
 
       expect(onComplete).toHaveBeenCalledWith({
         success: false,
@@ -521,11 +526,11 @@ describe("useMessages Slice", () => {
       const onProgress = vi.fn();
       const onComplete = vi.fn();
 
-      mockDitto.store.fetchAttachment.mockImplementation((token: any, cb: any) => {
+      mockDitto.store.fetchAttachment.mockImplementation((token: AttachmentToken, cb: (event: AttachmentFetchEvent) => void) => {
         cb({ type: "Deleted" });
       });
 
-      store.getState().fetchAttachment(token as any, onProgress, onComplete);
+      store.getState().fetchAttachment(token as AttachmentToken, onProgress, onComplete);
 
       expect(onComplete).toHaveBeenCalledWith({
         success: false,
@@ -539,7 +544,7 @@ describe("useMessages Slice", () => {
       const onProgress = vi.fn();
       const onComplete = vi.fn();
 
-      mockDitto.store.fetchAttachment.mockImplementation((token: any, cb: any) => {
+      mockDitto.store.fetchAttachment.mockImplementation((token: AttachmentToken, cb: (event: AttachmentFetchEvent) => void) => {
         cb({
           type: "Completed",
           attachment: {
@@ -547,11 +552,11 @@ describe("useMessages Slice", () => {
               throw new Error("getData failed");
             },
             metadata: {},
-          },
+          } as Parameters<typeof cb>[0] extends { type: "Completed"; attachment: infer A } ? A : never,
         });
       });
 
-      store.getState().fetchAttachment(token as any, onProgress, onComplete);
+      store.getState().fetchAttachment(token as AttachmentToken, onProgress, onComplete);
 
       expect(onComplete).toHaveBeenCalledWith({
         success: false,
@@ -568,7 +573,7 @@ describe("useMessages Slice", () => {
         throw new Error("Fetch failed");
       });
 
-      store.getState().fetchAttachment(token as any, onProgress, onComplete);
+      store.getState().fetchAttachment(token as AttachmentToken, onProgress, onComplete);
 
       expect(onComplete).toHaveBeenCalledWith({
         success: false,
@@ -581,17 +586,17 @@ describe("useMessages Slice", () => {
       const onProgress = vi.fn();
       const onComplete = vi.fn();
 
-      mockDitto.store.fetchAttachment.mockImplementation((token: any, cb: any) => {
+      mockDitto.store.fetchAttachment.mockImplementation((token: AttachmentToken, cb: (event: AttachmentFetchEvent) => void) => {
         cb({
           type: "Completed",
           attachment: {
             getData: () => Promise.resolve(new Uint8Array([1, 2, 3])),
             metadata: { test: "metadata" },
-          },
+          } as Parameters<typeof cb>[0] extends { type: "Completed"; attachment: infer A } ? A : never,
         });
       });
 
-      store.getState().fetchAttachment(token as any, onProgress, onComplete);
+      store.getState().fetchAttachment(token as AttachmentToken, onProgress, onComplete);
 
       // Wait for async getData to complete
       await vi.runAllTimersAsync();
@@ -606,7 +611,7 @@ describe("useMessages Slice", () => {
 
   describe("messagesPublisher", () => {
     it("updates state on incoming messages", async () => {
-      let observerCallback: any;
+      let observerCallback!: (result: Partial<QueryResult<Message>>) => void;
       mockDitto.store.registerObserver = vi.fn((query, cb) => {
         if (query.includes(`FROM COLLECTION ${mockRoom.messagesId}`)) {
           observerCallback = cb;
@@ -628,7 +633,7 @@ describe("useMessages Slice", () => {
 
       observerCallback({
         items: [{ value: incomingMsg }],
-      });
+      } as unknown as Partial<QueryResult<Message>>);
 
       const messages = store.getState().messagesByRoom[mockRoom._id];
       expect(messages).toHaveLength(1);
@@ -713,7 +718,7 @@ describe("useMessages Slice", () => {
         },
       });
 
-      let observerCallback: any;
+      let observerCallback!: (result: Partial<QueryResult<Message>>) => void;
       mockDitto.store.registerObserver = vi.fn((query, cb) => {
         observerCallback = cb;
         return { stop: vi.fn() };
@@ -730,14 +735,14 @@ describe("useMessages Slice", () => {
         isArchived: false,
       };
 
-      observerCallback({ items: [{ value: newMessage }] });
+      observerCallback({ items: [{ value: newMessage }] } as unknown as Partial<QueryResult<Message>>);
 
       expect(handler).toHaveBeenCalled();
     });
   });
 
   describe("Message update logic (handleMessageUpdate)", () => {
-    let observerCallback: any;
+    let observerCallback!: (result: Partial<QueryResult<Message>>) => void;
 
     beforeEach(async () => {
       mockDitto.store.registerObserver = vi.fn((query, cb) => {
@@ -762,7 +767,7 @@ describe("useMessages Slice", () => {
           isArchived: false,
         };
 
-        observerCallback({ items: [{ value: originalMessage }] });
+        observerCallback({ items: [{ value: originalMessage }] } as unknown as Partial<QueryResult<Message>>);
 
         // Verify original message is in state
         let messages = store.getState().messagesByRoom[mockRoom._id];
@@ -781,7 +786,7 @@ describe("useMessages Slice", () => {
           archivedMessage: "original-msg-1", // Points to original
         };
 
-        observerCallback({ items: [{ value: editedMessage }] });
+        observerCallback({ items: [{ value: editedMessage }] } as unknown as Partial<QueryResult<Message>>);
 
         // Verify: should replace at original index (originalIndex !== -1)
         messages = store.getState().messagesByRoom[mockRoom._id];
@@ -804,7 +809,7 @@ describe("useMessages Slice", () => {
           archivedMessage: "nonexistent-original", // Original not in state
         };
 
-        observerCallback({ items: [{ value: editedMessage }] });
+        observerCallback({ items: [{ value: editedMessage }] } as unknown as Partial<QueryResult<Message>>);
 
         // Verify: should push (originalIndex === -1 && existingIndex === -1)
         const messages = store.getState().messagesByRoom[mockRoom._id];
@@ -826,7 +831,7 @@ describe("useMessages Slice", () => {
           archivedMessage: "some-original",
         };
 
-        observerCallback({ items: [{ value: archivedMessage }] });
+        observerCallback({ items: [{ value: archivedMessage }] } as unknown as Partial<QueryResult<Message>>);
 
         // Verify it's in state
         let messages = store.getState().messagesByRoom[mockRoom._id];
@@ -839,7 +844,7 @@ describe("useMessages Slice", () => {
           reactions: [{ userId: "user-1", emoji: "👍" }],
         };
 
-        observerCallback({ items: [{ value: updatedArchivedMessage }] });
+        observerCallback({ items: [{ value: updatedArchivedMessage }] } as unknown as Partial<QueryResult<Message>>);
 
         // Verify: should update at existing index (originalIndex === -1 && existingIndex !== -1)
         messages = store.getState().messagesByRoom[mockRoom._id];
@@ -860,7 +865,7 @@ describe("useMessages Slice", () => {
           isArchived: false,
         };
 
-        observerCallback({ items: [{ value: newMessage }] });
+        observerCallback({ items: [{ value: newMessage }] } as unknown as Partial<QueryResult<Message>>);
 
         // Verify: should push (existingIndex === -1)
         const messages = store.getState().messagesByRoom[mockRoom._id];
@@ -881,7 +886,7 @@ describe("useMessages Slice", () => {
           reactions: [],
         };
 
-        observerCallback({ items: [{ value: originalMessage }] });
+        observerCallback({ items: [{ value: originalMessage }] } as unknown as Partial<QueryResult<Message>>);
 
         // Verify it's in state
         let messages = store.getState().messagesByRoom[mockRoom._id];
@@ -894,7 +899,7 @@ describe("useMessages Slice", () => {
           reactions: [{ userId: "user-1", emoji: "❤️" }],
         };
 
-        observerCallback({ items: [{ value: updatedMessage }] });
+        observerCallback({ items: [{ value: updatedMessage }] } as unknown as Partial<QueryResult<Message>>);
 
         // Verify: should update at existing index (existingIndex !== -1)
         messages = store.getState().messagesByRoom[mockRoom._id];
@@ -932,7 +937,7 @@ describe("useMessages Slice", () => {
           },
         ];
 
-        observerCallback({ items: messages.map(value => ({ value })) });
+        observerCallback({ items: messages.map(value => ({ value })) } as unknown as Partial<QueryResult<Message>>);
 
         const stateMessages = store.getState().messagesByRoom[mockRoom._id];
         expect(stateMessages).toHaveLength(3);
@@ -942,7 +947,7 @@ describe("useMessages Slice", () => {
       });
 
       it("handles empty result items", async () => {
-        observerCallback({ items: [] });
+        observerCallback({ items: [] } as unknown as Partial<QueryResult<Message>>);
 
         const messages = store.getState().messagesByRoom[mockRoom._id];
         expect(messages).toEqual([]);
@@ -971,7 +976,7 @@ describe("useMessages Slice", () => {
           },
         ];
 
-        observerCallback({ items: originalMessages.map(value => ({ value })) });
+        observerCallback({ items: originalMessages.map(value => ({ value })) } as unknown as Partial<QueryResult<Message>>);
 
         let messages = store.getState().messagesByRoom[mockRoom._id];
         expect(messages).toHaveLength(2);
@@ -1009,7 +1014,7 @@ describe("useMessages Slice", () => {
           },
         ];
 
-        observerCallback({ items: mixedUpdate.map(value => ({ value })) });
+        observerCallback({ items: mixedUpdate.map(value => ({ value })) } as unknown as Partial<QueryResult<Message>>);
 
         messages = store.getState().messagesByRoom[mockRoom._id];
         expect(messages).toHaveLength(3);

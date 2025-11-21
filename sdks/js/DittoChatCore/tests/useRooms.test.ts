@@ -1,9 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { createMockDitto, createTestStore } from "./setup";
+import { createMockDitto, createTestStore, MockDitto } from "./setup";
+import { QueryResult } from "@dittolive/ditto";
+import Room from "../src/types/Room";
+import ChatUser from "../src/types/ChatUser";
 
 describe("useRooms Slice", () => {
   let store: ReturnType<typeof createTestStore>;
-  let mockDitto: any;
+  let mockDitto: MockDitto;
 
   beforeEach(() => {
     mockDitto = createMockDitto();
@@ -213,7 +216,7 @@ describe("useRooms Slice", () => {
           name: "Bob",
           subscriptions: {},
           mentions: {},
-        } as any,
+        } as ChatUser,
       });
 
       const targetUser = {
@@ -232,7 +235,7 @@ describe("useRooms Slice", () => {
         name: "Alice",
         subscriptions: {},
         mentions: {},
-      } as any;
+      } as ChatUser;
 
       expect(() => store.getState().createDMRoom(targetUser)).toThrow("Invalid users");
     });
@@ -283,7 +286,7 @@ describe("useRooms Slice", () => {
   describe("Observer callbacks", () => {
     describe("Rooms observer", () => {
       it("updates local state when Ditto observer receives new rooms", () => {
-        let observerCallback: any;
+        let observerCallback!: (result: Partial<QueryResult<Room>>) => void;
 
         mockDitto.store.registerObserver = vi.fn((query, cb) => {
           if (query.toLowerCase().includes("from rooms") && !query.includes("dm_rooms")) {
@@ -308,7 +311,7 @@ describe("useRooms Slice", () => {
 
         observerCallback({
           items: [{ value: newRoom }],
-        });
+        } as Partial<QueryResult<Room>>);
 
         expect(store.getState().rooms).toHaveLength(1);
         expect(store.getState().rooms[0].name).toBe("Observer Room");
@@ -316,7 +319,7 @@ describe("useRooms Slice", () => {
       });
 
       it("handles multiple rooms in observer callback", () => {
-        let observerCallback: any;
+        let observerCallback!: (result: Partial<QueryResult<Room>>) => void;
 
         mockDitto.store.registerObserver = vi.fn((query, cb) => {
           if (query.toLowerCase().includes("from rooms") && !query.includes("dm_rooms")) {
@@ -350,7 +353,7 @@ describe("useRooms Slice", () => {
 
         observerCallback({
           items: rooms.map(value => ({ value })),
-        });
+        } as Partial<QueryResult<Room>>);
 
         expect(store.getState().rooms).toHaveLength(2);
         expect(store.getState().rooms[0].name).toBe("Room 1");
@@ -358,7 +361,7 @@ describe("useRooms Slice", () => {
       });
 
       it("handles empty observer result", () => {
-        let observerCallback: any;
+        let observerCallback!: (result: Partial<QueryResult<Room>>) => void;
 
         mockDitto.store.registerObserver = vi.fn((query, cb) => {
           if (query.toLowerCase().includes("from rooms") && !query.includes("dm_rooms")) {
@@ -369,13 +372,13 @@ describe("useRooms Slice", () => {
 
         store = createTestStore(mockDitto);
 
-        observerCallback({ items: [] });
+        observerCallback({ items: [] } as Partial<QueryResult<Room>>);
 
         expect(store.getState().rooms).toHaveLength(0);
       });
 
       it("calls messagesPublisher for each room", () => {
-        let observerCallback: any;
+        let observerCallback!: (result: Partial<QueryResult<Room>>) => void;
         const messagesPublisherSpy = vi.fn();
 
         mockDitto.store.registerObserver = vi.fn((query, cb) => {
@@ -400,13 +403,13 @@ describe("useRooms Slice", () => {
 
         observerCallback({
           items: [{ value: newRoom }],
-        });
+        } as Partial<QueryResult<Room>>);
 
         expect(messagesPublisherSpy).toHaveBeenCalledWith(newRoom);
       });
 
       it("filters and replaces rooms by collectionId", () => {
-        let observerCallback: any;
+        let observerCallback!: (result: Partial<QueryResult<Room>>) => void;
 
         mockDitto.store.registerObserver = vi.fn((query, cb) => {
           if (query.toLowerCase().includes("from rooms") && !query.includes("dm_rooms")) {
@@ -446,7 +449,7 @@ describe("useRooms Slice", () => {
 
         observerCallback({
           items: [{ value: regularRoom }],
-        });
+        } as Partial<QueryResult<Room>>);
 
         // Should have both DM room and regular room
         expect(store.getState().rooms).toHaveLength(2);
@@ -457,7 +460,7 @@ describe("useRooms Slice", () => {
 
     describe("DM rooms observer", () => {
       it("updates local state when DM rooms observer receives new rooms", () => {
-        let dmObserverCallback: any;
+        let dmObserverCallback!: (result: Partial<QueryResult<Room>>) => void;
 
         mockDitto.store.registerObserver = vi.fn((query, cb) => {
           if (query.includes("dm_rooms")) {
@@ -483,7 +486,7 @@ describe("useRooms Slice", () => {
 
         dmObserverCallback({
           items: [{ value: newDMRoom }],
-        });
+        } as Partial<QueryResult<Room>>);
 
         expect(store.getState().rooms).toHaveLength(1);
         expect(store.getState().rooms[0].collectionId).toBe("dm_rooms");
