@@ -1,7 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook } from "@testing-library/react";
-import { useDittoChat, useDittoChatStore } from "../src/useChat";
+import { useDittoChat, useDittoChatStore, DittoConfParams } from "../src/useChat";
 import { createMockDitto, MockDitto } from "./setup";
+import { Ditto } from "@dittolive/ditto";
 
 // Mock the slices to verify aggregation
 vi.mock("../src/slices/useRooms", () => ({
@@ -41,7 +42,7 @@ vi.mock("../src/slices/useMessages", () => ({
 
 describe("useDittoChat", () => {
   let mockDitto: MockDitto;
-  const mockParams: { ditto: MockDitto | null; userId: string; userCollectionKey: string } = {
+  const mockParams: DittoConfParams = {
     ditto: null,
     userId: "test-user",
     userCollectionKey: "users",
@@ -49,7 +50,7 @@ describe("useDittoChat", () => {
 
   beforeEach(() => {
     mockDitto = createMockDitto();
-    mockParams.ditto = mockDitto;
+    mockParams.ditto = mockDitto as unknown as Ditto;
   });
 
   it("initializes the store with aggregated state", () => {
@@ -112,11 +113,7 @@ describe("useDittoChat", () => {
 
     // This should not throw
     expect(() => {
-      const get = () => stateWithNulls;
-      const chatLogoutFn = state.chatLogout;
-      // We need to test the internal logic, but since chatLogout uses get(),
-      // we can't easily override it. Instead, we just verify it doesn't crash
-      // when subscriptions are null
+      stateWithNulls.chatLogout();
     }).not.toThrow();
   });
 
@@ -151,9 +148,8 @@ describe("useDittoChat", () => {
     const state = result.current;
 
     // Mock some subscriptions as already cancelled
-    const alreadyCancelledSub = { cancel: vi.fn(), isCancelled: true };
     vi.spyOn(state.roomsSubscription as NonNullable<typeof state.roomsSubscription>, 'isCancelled', 'get').mockReturnValue(true);
-    const cancelSpy = vi.spyOn(state.roomsSubscription as NonNullable<typeof state.roomsSubscription>, "cancel");
+    vi.spyOn(state.roomsSubscription as NonNullable<typeof state.roomsSubscription>, "cancel");
 
     state.chatLogout();
 
@@ -165,7 +161,7 @@ describe("useDittoChat", () => {
 
 describe("useDittoChatStore", () => {
   let mockDitto: MockDitto;
-  const mockParams: { ditto: MockDitto | null; userId: string; userCollectionKey: string } = {
+  const mockParams: DittoConfParams = {
     ditto: null,
     userId: "test-user",
     userCollectionKey: "users",
@@ -173,7 +169,7 @@ describe("useDittoChatStore", () => {
 
   beforeEach(() => {
     mockDitto = createMockDitto();
-    mockParams.ditto = mockDitto;
+    mockParams.ditto = mockDitto as unknown as Ditto;
     // Ensure chatStore is initialized for these tests
     renderHook(() => useDittoChat(mockParams));
   });
