@@ -11,7 +11,7 @@ vi.mock("../Icons", () => ({
 
 // Mock EmojiPicker
 vi.mock("emoji-picker-react", () => ({
-    default: ({ onEmojiClick }: any) => (
+    default: ({ onEmojiClick }: { onEmojiClick: (emoji: { emoji: string }) => void }) => (
         <div data-testid="emoji-picker">
             <button onClick={() => onEmojiClick({ emoji: "👍" })}>Thumbs Up</button>
         </div>
@@ -22,6 +22,8 @@ vi.mock("emoji-picker-react", () => ({
 describe("QuickReaction", () => {
     const defaultProps = {
         onSelect: vi.fn(),
+        AutoSizer: ({ children }: { children: (args: { height: number; width: number }) => React.ReactNode }) => children({ height: 600, width: 400 }),
+        CellMeasurer: ({ children }: { children: React.ReactNode }) => children,
         disabled: false,
         isOwnMessage: false,
     };
@@ -68,6 +70,27 @@ describe("QuickReaction", () => {
         });
 
         fireEvent.click(screen.getByText("Thumbs Up"));
+
+        await waitFor(() => {
+            expect(screen.queryByTestId("emoji-picker")).not.toBeInTheDocument();
+        });
+    });
+
+    it("closes picker when clicking outside", async () => {
+        render(
+            <div>
+                <div data-testid="outside">Outside</div>
+                <QuickReaction {...defaultProps} />
+            </div>
+        );
+
+        fireEvent.click(screen.getByRole("button"));
+
+        await waitFor(() => {
+            expect(screen.getByTestId("emoji-picker")).toBeInTheDocument();
+        });
+
+        fireEvent.mouseDown(screen.getByTestId("outside"));
 
         await waitFor(() => {
             expect(screen.queryByTestId("emoji-picker")).not.toBeInTheDocument();

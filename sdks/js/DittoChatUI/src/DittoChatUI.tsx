@@ -1,5 +1,5 @@
 import "./index.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import ChatList from "./components/ChatList";
 import ChatView from "./components/ChatView";
 import NewMessageModal from "./components/NewMessageModal";
@@ -67,11 +67,13 @@ export default function DittoChatUI({
     undefined,
   );
 
-  const latestMessages = useDittoChatStore((state) => {
-    const roomKeys = Object.keys(state.messagesByRoom);
+  const messagesByRoom = useDittoChatStore((state) => state.messagesByRoom);
+
+  const latestMessages = useMemo(() => {
+    const roomKeys = Object.keys(messagesByRoom);
     const latestMessages: Message[] = roomKeys
       .map((key) => {
-        const messages = state.messagesByRoom[key];
+        const messages = messagesByRoom[key];
         if (!messages || messages.length === 0) return null;
         return messages[messages.length - 1].message;
       })
@@ -81,7 +83,7 @@ export default function DittoChatUI({
         new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime(),
     );
     return sortedMessages;
-  });
+  }, [messagesByRoom]);
 
   const isDM = (room: Room) => {
     return room.participants?.length === 2;
@@ -224,9 +226,8 @@ export default function DittoChatUI({
           <div className="flex h-screen bg-(--surface-color) font-sans text-(--text-color) overflow-hidden">
             {/* Chat List */}
             <aside
-              className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--border-color) flex flex-col ${
-                activeScreen !== "list" && "hidden"
-              } md:flex`}
+              className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--border-color) flex flex-col ${activeScreen !== "list" && "hidden"
+                } md:flex`}
             >
               {loading ? (
                 <ChatListSkeleton />
@@ -242,9 +243,8 @@ export default function DittoChatUI({
 
             {/* Main Content Area */}
             <main
-              className={`w-full flex-1 flex-col ${
-                activeScreen === "list" && "hidden"
-              } md:flex`}
+              className={`w-full flex-1 flex-col ${activeScreen === "list" && "hidden"
+                } md:flex`}
             >
               {activeScreen === "chat" && selectedChat && (
                 <ChatView
@@ -265,7 +265,7 @@ export default function DittoChatUI({
                   onCreateRoom={handleNewRoomCreate}
                 />
               )}
-              {activeScreen === "list" && !selectedChat && (
+              {(!selectedChat && (activeScreen === "list" || activeScreen === "chat")) && (
                 <div className="hidden md:flex flex-col items-center justify-center h-full bg-(--surface-color-light) text-(--text-color-lightest)">
                   <Icons.messageCircle className="w-24 h-24 text-(--text-color-disabled) mb-4" />
                   <p className="text-lg font-medium">Select a conversation</p>

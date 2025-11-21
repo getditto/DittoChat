@@ -5,7 +5,7 @@ import React from "react";
 
 // Mock Toast component to avoid animation delays in tests
 vi.mock("../Toast", () => ({
-    default: ({ message, onClose }: any) => (
+    default: ({ message, onClose }: { message: string; onClose: () => void }) => (
         <div data-testid="toast">
             {message}
             <button onClick={onClose}>Close</button>

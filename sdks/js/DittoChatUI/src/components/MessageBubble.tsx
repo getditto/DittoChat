@@ -14,7 +14,7 @@ type MessageReaction = {
   userIds: string[];
 };
 
-interface MessageBubbleProps {
+export interface MessageBubbleProps {
   message: Message;
   sender?: ChatUser;
   currentUserId: string;
@@ -69,9 +69,8 @@ const FormattedMessage: React.FC<{ message: Message; isOwn: boolean }> = ({
     finalParts.push(
       <span
         key={`mention-${index}`}
-        className={`font-semibold ${
-          isOwn ? "text-(--mention-text-on-primary)" : "text-(--mention-text)"
-        }`}
+        className={`font-semibold ${isOwn ? "text-(--mention-text-on-primary)" : "text-(--mention-text)"
+          }`}
       >
         {text.slice(mention.startIndex, mention.endIndex)}
       </span>
@@ -219,9 +218,8 @@ function MessageBubble({
     >
       {showSenderInfo && (
         <div
-          className={`flex items-baseline text-xs text-(--text-color-lightest) mb-1 ${
-            isOwnMessage ? "justify-end" : ""
-          }`}
+          className={`flex items-baseline text-xs text-(--text-color-lightest) mb-1 ${isOwnMessage ? "justify-end" : ""
+            }`}
         >
           {(isGroupChat || !isOwnMessage) && (
             <span className="mr-1">{senderName}</span>
@@ -237,14 +235,12 @@ function MessageBubble({
       )}
 
       <div
-        className={`flex items-center gap-2 ${
-          isOwnMessage ? "flex-row-reverse" : "flex-row"
-        }`}
+        className={`flex items-center gap-2 ${isOwnMessage ? "flex-row-reverse" : "flex-row"
+          }`}
       >
         <div
-          className={`flex flex-col max-w-xs md:max-w-md lg:max-w-lg ${
-            isOwnMessage ? "items-end" : "items-start"
-          }`}
+          className={`flex flex-col max-w-xs md:max-w-md lg:max-w-lg ${isOwnMessage ? "items-end" : "items-start"
+            }`}
         >
           {hasImage && !message.isDeleted && (
             <div className={`relative ${hasText ? "mb-1" : ""}`}>
@@ -319,7 +315,7 @@ function MessageBubble({
                     if (fetchAttachment && message.fileAttachmentToken) {
                       fetchAttachment(
                         message.fileAttachmentToken as unknown as AttachmentToken,
-                        () => {},
+                        () => { },
                         (result) => {
                           if (result.success && result.data) {
                             const blob = new Blob(
@@ -364,9 +360,8 @@ function MessageBubble({
 
         {isOwnMessage && (
           <div
-            className={`relative flex items-center transition-opacity duration-200 ${
-              isActionsVisible ? "opacity-100" : "opacity-0"
-            }`}
+            className={`relative flex items-center transition-opacity duration-200 ${isActionsVisible ? "opacity-100" : "opacity-0"
+              }`}
           >
             <button
               onClick={() => {
@@ -414,30 +409,28 @@ function MessageBubble({
       </div>
 
       <div
-        className={`flex items-center space-x-1 mt-1 ${
-          isOwnMessage ? "justify-end" : ""
-        }`}
+        className={`flex items-center space-x-1 mt-1 ${isOwnMessage ? "justify-end" : ""
+          }`}
       >
         {reactions.map((reaction) => {
           const userHasReacted = reaction.userIds.includes(currentUserId);
           return (
             <button
+              key={reaction.emoji}
               onClick={() =>
                 onRemoveReaction(message, currentUserId, reaction.emoji)
               }
-              className={`text-xs px-2 py-0.5 rounded-full flex items-center space-x-1 cursor-pointer transition-colors ${
-                userHasReacted
-                  ? "bg-(--primary-color-lighter) border border-(--primary-color-light-border)"
-                  : "bg-(--secondary-bg-hover) hover:bg-(--disabled-bg)"
-              }`}
+              className={`text-xs px-2 py-0.5 rounded-full flex items-center space-x-1 cursor-pointer transition-colors ${userHasReacted
+                ? "bg-(--primary-color-lighter) border border-(--primary-color-light-border)"
+                : "bg-(--secondary-bg-hover) hover:bg-(--disabled-bg)"
+                }`}
             >
               <span>{reaction.emoji}</span>
               <span
-                className={`font-medium ${
-                  userHasReacted
-                    ? "text-(--primary-color-dark-text)"
-                    : "text-(--text-color-light)"
-                }`}
+                className={`font-medium ${userHasReacted
+                  ? "text-(--primary-color-dark-text)"
+                  : "text-(--text-color-light)"
+                  }`}
               >
                 {reaction.userIds.length}
               </span>

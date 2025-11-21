@@ -2,7 +2,9 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import ChatListItem from "../ChatListItem";
 import type { Chat } from "../../types";
+import type { ChatStore } from "@dittolive/ditto-chat-core";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
+import type MessageWithUser from "@dittolive/ditto-chat-core/dist/types/MessageWithUser";
 
 // Mock dependencies
 vi.mock("../Avatar", () => ({
@@ -11,7 +13,7 @@ vi.mock("../Avatar", () => ({
 
 const mockUseDittoChatStore = vi.fn();
 vi.mock("@dittolive/ditto-chat-core", () => ({
-    useDittoChatStore: (selector: any) => mockUseDittoChatStore(selector),
+    useDittoChatStore: <T,>(selector: (state: ChatStore) => T) => mockUseDittoChatStore(selector),
 }));
 
 const mockChat: Chat = {

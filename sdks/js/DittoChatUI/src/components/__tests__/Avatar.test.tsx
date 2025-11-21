@@ -5,8 +5,8 @@ import Avatar from "../Avatar";
 // Mock Icons
 vi.mock("../Icons", () => ({
     Icons: {
-        userProfile: ({ className }: any) => <div data-testid="icon-user-profile" className={className} />,
-        hashtag: ({ className }: any) => <div data-testid="icon-hashtag" className={className} />,
+        userProfile: ({ className }: { className?: string }) => <div data-testid="icon-user-profile" className={className} />,
+        hashtag: ({ className }: { className?: string }) => <div data-testid="icon-hashtag" className={className} />,
     },
 }));
 

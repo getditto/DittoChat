@@ -1,7 +1,8 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import MessageInput from "../MessageInput";
-import { useDittoChatStore } from "@dittolive/ditto-chat-core";
+import type { ChatStore } from "@dittolive/ditto-chat-core";
+import type Message from "@dittolive/ditto-chat-core/dist/types/Message";
 
 // Mock dependencies
 vi.mock("../Icons", () => ({
@@ -19,8 +20,9 @@ vi.mock("../Avatar", () => ({
     default: () => <div data-testid="avatar" />,
 }));
 
+const mockUseDittoChatStore = vi.fn();
 vi.mock("@dittolive/ditto-chat-core", () => ({
-    useDittoChatStore: vi.fn((selector) => selector({ allUsers: [] })),
+    useDittoChatStore: <T,>(selector: (state: ChatStore) => T) => mockUseDittoChatStore(selector),
 }));
 
 // Mock scrollIntoView
@@ -38,6 +40,10 @@ describe("MessageInput", () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        mockUseDittoChatStore.mockImplementation((selector) => {
+            const state = { allUsers: [] };
+            return selector(state as unknown as ChatStore);
+        });
     });
 
     it("renders input field", () => {
@@ -86,11 +92,15 @@ describe("MessageInput", () => {
     });
 
     it("populates input when editing message", () => {
-        const editingMessage = {
+        const editingMessage: Message = {
             _id: "msg-1",
+            roomId: "room-1",
             text: "Editing this",
+            createdOn: new Date().toISOString(),
+            userId: "user-1",
+            isArchived: false,
             mentions: [],
-        } as any;
+        };
 
         render(<MessageInput {...defaultProps} editingMessage={editingMessage} />);
         expect(screen.getByPlaceholderText("Edit message...")).toHaveValue("Editing this");
@@ -98,11 +108,15 @@ describe("MessageInput", () => {
     });
 
     it("calls onSaveEdit when editing", () => {
-        const editingMessage = {
+        const editingMessage: Message = {
             _id: "msg-1",
+            roomId: "room-1",
             text: "Old text",
+            createdOn: new Date().toISOString(),
+            userId: "user-1",
+            isArchived: false,
             mentions: [],
-        } as any;
+        };
 
         render(<MessageInput {...defaultProps} editingMessage={editingMessage} />);
         const input = screen.getByPlaceholderText("Edit message...");
@@ -115,10 +129,14 @@ describe("MessageInput", () => {
     });
 
     it("calls onCancelEdit", () => {
-        const editingMessage = {
+        const editingMessage: Message = {
             _id: "msg-1",
+            roomId: "room-1",
             text: "Old text",
-        } as any;
+            createdOn: new Date().toISOString(),
+            userId: "user-1",
+            isArchived: false,
+        };
 
         render(<MessageInput {...defaultProps} editingMessage={editingMessage} />);
         const cancelButton = screen.getByTestId("icon-x").parentElement!;
@@ -128,7 +146,7 @@ describe("MessageInput", () => {
     });
     it("shows mentions popup when typing @", () => {
         const mockUsers = [{ _id: "user-2", name: "Bob" }];
-        (useDittoChatStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: any) => selector({ allUsers: mockUsers }));
+        mockUseDittoChatStore.mockImplementation((selector) => selector({ allUsers: mockUsers } as unknown as ChatStore));
 
         render(<MessageInput {...defaultProps} />);
         const input = screen.getByPlaceholderText("Message...");
@@ -140,20 +158,145 @@ describe("MessageInput", () => {
         expect(input).toHaveValue("@Bob ");
     });
 
-    it("calls onSendFile when file is selected", async () => {
+    it("calls onSendImage when image is selected", async () => {
         const { container } = render(<MessageInput {...defaultProps} />);
         const attachButton = screen.getByTestId("icon-paperclip").parentElement!;
         fireEvent.click(attachButton);
 
         const inputs = container.querySelectorAll('input[type="file"]');
-        const fileInput = inputs[1];
+        const imageInput = inputs[0]; // First input is for images
 
-        const file = new File(["hello"], "hello.png", { type: "image/png" });
+        const file = new File(["image"], "image.png", { type: "image/png" });
 
-        fireEvent.change(fileInput, { target: { files: [file] } });
+        fireEvent.change(imageInput, { target: { files: [file] } });
 
         await waitFor(() => {
-            expect(defaultProps.onSendFile).toHaveBeenCalled();
+            expect(defaultProps.onSendImage).toHaveBeenCalled();
         });
+    });
+
+    it("navigates mentions with keyboard", () => {
+        const mockUsers = [
+            { _id: "user-2", name: "Alice" },
+            { _id: "user-3", name: "Bob" },
+        ];
+        mockUseDittoChatStore.mockImplementation((selector) => selector({ allUsers: mockUsers } as unknown as ChatStore));
+
+        render(<MessageInput {...defaultProps} />);
+        const input = screen.getByPlaceholderText("Message...");
+
+        // Open mentions
+        fireEvent.change(input, { target: { value: "@" } });
+        expect(screen.getByText("Alice")).toBeInTheDocument();
+        expect(screen.getByText("Bob")).toBeInTheDocument();
+
+        // Navigate down
+        fireEvent.keyDown(input, { key: "ArrowDown" });
+        // Navigate up (wrap around)
+        fireEvent.keyDown(input, { key: "ArrowUp" });
+
+        // Select Alice
+        fireEvent.keyDown(input, { key: "Enter" });
+
+        expect(input).toHaveValue("@Alice ");
+    });
+
+    it("filters mentions based on input", () => {
+        const mockUsers = [
+            { _id: "user-2", name: "Alice" },
+            { _id: "user-3", name: "Bob" },
+        ];
+        mockUseDittoChatStore.mockImplementation((selector) => selector({ allUsers: mockUsers } as unknown as ChatStore));
+
+        render(<MessageInput {...defaultProps} />);
+        const input = screen.getByPlaceholderText("Message...");
+
+        fireEvent.change(input, { target: { value: "@Bo" } });
+        expect(screen.queryByText("Alice")).not.toBeInTheDocument();
+        expect(screen.getByText("Bob")).toBeInTheDocument();
+    });
+
+    it("closes mention popover on Escape", () => {
+        const mockUsers = [{ _id: "user-2", name: "Alice" }];
+        mockUseDittoChatStore.mockImplementation((selector) => selector({ allUsers: mockUsers } as unknown as ChatStore));
+
+        render(<MessageInput {...defaultProps} />);
+        const input = screen.getByPlaceholderText("Message...");
+
+        fireEvent.change(input, { target: { value: "@" } });
+        expect(screen.getByText("Alice")).toBeInTheDocument();
+
+        fireEvent.keyDown(input, { key: "Escape" });
+        expect(screen.queryByText("Alice")).not.toBeInTheDocument();
+    });
+
+    it("updates mention positions when editing text", () => {
+        const mockUsers = [{ _id: "user-2", name: "Alice" }];
+        mockUseDittoChatStore.mockImplementation((selector) => selector({ allUsers: mockUsers } as unknown as ChatStore));
+
+        render(<MessageInput {...defaultProps} />);
+        const input = screen.getByPlaceholderText("Message...");
+
+        // Create mention
+        fireEvent.change(input, { target: { value: "@" } });
+        fireEvent.click(screen.getByText("Alice"));
+        expect(input).toHaveValue("@Alice ");
+
+        // Add text before mention
+        fireEvent.change(input, { target: { value: "Hello @Alice " } });
+
+        // Verify mention is still valid by sending
+        const sendButton = screen.getByTestId("icon-arrow-up").parentElement!;
+        fireEvent.click(sendButton);
+
+        expect(defaultProps.onSendMessage).toHaveBeenCalledWith(
+            "Hello @Alice ",
+            expect.arrayContaining([
+                expect.objectContaining({
+                    userId: "user-2",
+                    startIndex: 6, // "Hello " is 6 chars
+                })
+            ])
+        );
+    });
+
+    it("removes damaged mentions", () => {
+        const mockUsers = [{ _id: "user-2", name: "Alice" }];
+        mockUseDittoChatStore.mockImplementation((selector) => selector({ allUsers: mockUsers } as unknown as ChatStore));
+
+        render(<MessageInput {...defaultProps} />);
+        const input = screen.getByPlaceholderText("Message...");
+
+        // Create mention
+        fireEvent.change(input, { target: { value: "@" } });
+        fireEvent.click(screen.getByText("Alice"));
+
+        // Damage mention (remove last char)
+        fireEvent.change(input, { target: { value: "@Alic " } });
+
+        // Verify mention is removed
+        const sendButton = screen.getByTestId("icon-arrow-up").parentElement!;
+        fireEvent.click(sendButton);
+
+        expect(defaultProps.onSendMessage).toHaveBeenCalledWith(
+            "@Alic ",
+            [] // No mentions
+        );
+    });
+
+    it("closes menus on outside click", () => {
+        render(
+            <div>
+                <div data-testid="outside">Outside</div>
+                <MessageInput {...defaultProps} />
+            </div>
+        );
+
+        const attachButton = screen.getByTestId("icon-paperclip").parentElement!;
+        fireEvent.click(attachButton);
+        expect(screen.getByText("Photo")).toBeInTheDocument();
+
+        fireEvent.mouseDown(screen.getByTestId("outside"));
+        expect(screen.queryByText("Photo")).not.toBeInTheDocument();
     });
 });

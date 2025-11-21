@@ -7,7 +7,7 @@ import Avatar from "./Avatar";
 import { Mention } from "@dittolive/ditto-chat-core/dist/types/Message";
 import { clsx } from "clsx";
 
-interface MessageInputProps {
+export interface MessageInputProps {
   onSendMessage: (content: string, mentions: Mention[]) => void;
   onSendImage?: (file: File, caption?: string) => void;
   onSendFile?: (file: File, caption?: string) => void;

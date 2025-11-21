@@ -162,40 +162,6 @@ function ChatView({ chat, onBack }: ChatViewProps) {
           <h2 className="text-xl font-semibold">{chatName}</h2>
         </div>
 
-        {/* {room && currentUser && chat.type === "group" && (
-          <button
-            onClick={() => {
-              if (subscribeToRoom)
-                subscribeToRoom(room._id).catch(console.error);
-            }}
-            className="ml-auto text-sm px-3 py-1.5 border rounded-md text-(--text-color-light) flex items-center hover:bg-(--secondary-bg) transition-colors"
-          >
-            {currentUser?.subscriptions &&
-            room._id in currentUser.subscriptions ? (
-              "Subscribed"
-            ) : (
-              <>
-                <span className="flex items-center justify-center w-5 h-5 mr-2 bg-(--disabled-bg) rounded">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={3}
-                    stroke="currentColor"
-                    className="w-3.5 h-3.5 text-(--text-color)"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 4.5v15m7.5-7.5h-15"
-                    />
-                  </svg>
-                </span>
-                 Subscribe
-              </>
-            )}
-          </button>
-        )} */}
         {room && currentUser && chat.type === "group" && (
           <button
             onClick={() => {

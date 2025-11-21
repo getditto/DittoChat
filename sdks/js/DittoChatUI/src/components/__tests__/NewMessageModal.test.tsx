@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import NewMessageModal from "../NewMessageModal";
+import type { ChatStore } from "@dittolive/ditto-chat-core";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 
 // Mock dependencies
@@ -17,7 +18,7 @@ vi.mock("../Icons", () => ({
 
 const mockUseDittoChatStore = vi.fn();
 vi.mock("@dittolive/ditto-chat-core", () => ({
-    useDittoChatStore: (selector: any) => mockUseDittoChatStore(selector),
+    useDittoChatStore: <T,>(selector: (state: ChatStore) => T) => mockUseDittoChatStore(selector),
 }));
 
 const mockUsers: ChatUser[] = [
@@ -39,7 +40,7 @@ describe("NewMessageModal", () => {
                 allUsers: mockUsers,
                 currentUser: mockUsers[0],
             };
-            return selector(state);
+            return selector(state as unknown as ChatStore);
         });
     });
 

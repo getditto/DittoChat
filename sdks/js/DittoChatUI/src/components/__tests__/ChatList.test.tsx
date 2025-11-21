@@ -5,10 +5,10 @@ import type { Chat } from "../../types";
 
 // Mock dependencies
 vi.mock("../ChatListItem", () => ({
-    default: ({ chat, onSelect, isSelected }: any) => (
+    default: ({ chat, onSelect, isSelected }: { chat: Chat; onSelect: (chat: Chat) => void; isSelected: boolean }) => (
         <div
             data-testid={`chat-item-${chat.id}`}
-            onClick={onSelect}
+            onClick={() => onSelect(chat)}
             data-selected={isSelected}
         >
             {chat.name}
@@ -29,15 +29,15 @@ vi.mock("@dittolive/ditto-chat-core", () => ({
 
 // Mock react-virtualized
 vi.mock("react-virtualized", () => ({
-    List: ({ rowRenderer, rowCount }: any) => (
+    List: ({ rowRenderer, rowCount }: { rowRenderer: (args: { index: number; key: string; style: React.CSSProperties }) => React.ReactNode; rowCount: number }) => (
         <div>
             {Array.from({ length: rowCount }).map((_, index) =>
-                rowRenderer({ index, key: index, style: {} })
+                rowRenderer({ index, key: String(index), style: {} })
             )}
         </div>
     ),
-    AutoSizer: ({ children }: any) => children({ height: 600, width: 400 }),
-    CellMeasurer: ({ children }: any) => children,
+    AutoSizer: ({ children }: { children: (size: { height: number; width: number }) => React.ReactNode }) => children({ height: 600, width: 400 }),
+    CellMeasurer: ({ children }: { children: React.ReactNode }) => children,
     CellMeasurerCache: class {
         rowHeight = 60;
     },
@@ -90,9 +90,50 @@ describe("ChatList", () => {
         expect(defaultProps.onSelectChat).toHaveBeenCalledWith(mockChats[0]);
     });
 
-    it("handles new message button click", () => {
+    it("toggles dropdown menu", () => {
         render(<ChatList {...defaultProps} />);
-        fireEvent.click(screen.getByText("New Message"));
-        expect(defaultProps.onNewMessage).toHaveBeenCalledWith("newMessage");
+        const dropdownButton = screen.getByTestId("icon-chevron-down").parentElement!;
+
+        fireEvent.click(dropdownButton);
+        expect(screen.getByText("New Room")).toBeInTheDocument();
+
+        fireEvent.click(dropdownButton);
+        expect(screen.queryByText("New Room")).not.toBeInTheDocument();
+    });
+
+    it("handles new room selection from dropdown", () => {
+        render(<ChatList {...defaultProps} />);
+        const dropdownButton = screen.getByTestId("icon-chevron-down").parentElement!;
+
+        fireEvent.click(dropdownButton);
+        fireEvent.click(screen.getByText("New Room"));
+
+        expect(defaultProps.onNewMessage).toHaveBeenCalledWith("newRoom");
+        expect(screen.queryByText("New Room")).not.toBeInTheDocument();
+    });
+
+    it("closes dropdown on outside click", () => {
+        render(
+            <div>
+                <div data-testid="outside">Outside</div>
+                <ChatList {...defaultProps} />
+            </div>
+        );
+        const dropdownButton = screen.getByTestId("icon-chevron-down").parentElement!;
+
+        fireEvent.click(dropdownButton);
+        expect(screen.getByText("New Room")).toBeInTheDocument();
+
+        fireEvent.mouseDown(screen.getByTestId("outside"));
+        expect(screen.queryByText("New Room")).not.toBeInTheDocument();
+    });
+
+    it("shows empty list when search yields no results", () => {
+        render(<ChatList {...defaultProps} />);
+        const searchInput = screen.getByPlaceholderText("Search");
+        fireEvent.change(searchInput, { target: { value: "NonExistent" } });
+
+        expect(screen.queryByTestId("chat-item-chat-1")).not.toBeInTheDocument();
+        expect(screen.queryByTestId("chat-item-chat-2")).not.toBeInTheDocument();
     });
 });

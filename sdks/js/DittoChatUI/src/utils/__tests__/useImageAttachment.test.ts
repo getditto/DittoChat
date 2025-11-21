@@ -1,6 +1,7 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useImageAttachment } from "../useImageAttachment";
+import { AttachmentToken } from "@dittolive/ditto";
 
 // Mock URL.createObjectURL and revokeObjectURL
 global.URL.createObjectURL = vi.fn(() => "blob:mock-url");
@@ -9,9 +10,9 @@ global.URL.revokeObjectURL = vi.fn();
 describe("useImageAttachment", () => {
     const mockToken = {
         id: "attachment-1",
-        url: "http://example.com/image.jpg",
+        len: 0,
         metadata: {},
-    } as any;
+    } as unknown as AttachmentToken;
 
     const mockFetchAttachment = vi.fn();
 
@@ -41,7 +42,7 @@ describe("useImageAttachment", () => {
         );
 
         await waitFor(() => {
-             expect(result.current.isLoading).toBe(true);
+            expect(result.current.isLoading).toBe(true);
         });
 
         await waitFor(() => {
@@ -88,18 +89,18 @@ describe("useImageAttachment", () => {
 
     it("handles missing fetch function", () => {
         const { result } = renderHook(() =>
-            useImageAttachment({ token: mockToken, fetchAttachment: undefined as any })
+            useImageAttachment({ token: mockToken, fetchAttachment: undefined })
         );
         expect(result.current.isLoading).toBe(false);
     });
 
     it("handles blob creation failure", async () => {
-        (global.URL.createObjectURL as any).mockImplementationOnce(() => {
+        vi.mocked(global.URL.createObjectURL).mockImplementationOnce(() => {
             throw new Error("Blob failed");
         });
 
         mockFetchAttachment.mockImplementation((token, onProgress, onComplete) => {
-             onComplete({ success: true, data: new Uint8Array([]) });
+            onComplete({ success: true, data: new Uint8Array([]) });
         });
 
         const { result } = renderHook(() =>
@@ -109,5 +110,37 @@ describe("useImageAttachment", () => {
         await waitFor(() => {
             expect(result.current.error).toBe("Failed to render image");
         });
+    });
+
+    it("handles missing token", () => {
+        const { result } = renderHook(() =>
+            useImageAttachment({ token: null, fetchAttachment: mockFetchAttachment })
+        );
+
+        act(() => {
+            result.current.fetchImage();
+        });
+
+        expect(result.current.error).toBe("No token provided");
+    });
+
+    it("prevents duplicate fetch when already loading", async () => {
+        mockFetchAttachment.mockImplementation((token, onProgress, onComplete) => {
+        });
+
+        const { result } = renderHook(() =>
+            useImageAttachment({ token: mockToken, fetchAttachment: mockFetchAttachment })
+        );
+
+        await waitFor(() => {
+            expect(result.current.isLoading).toBe(true);
+        });
+
+        act(() => {
+            result.current.fetchImage();
+        });
+
+        expect(result.current.isLoading).toBe(true);
+        expect(mockFetchAttachment).toHaveBeenCalledTimes(1);
     });
 });

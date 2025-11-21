@@ -1,7 +1,10 @@
 import { render } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ChatNotificationObserver } from "../ChatNotificationObserver";
+import type { ChatStore } from "@dittolive/ditto-chat-core";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
+import type MessageWithUser from "@dittolive/ditto-chat-core/dist/types/MessageWithUser";
+import type Room from "@dittolive/ditto-chat-core/dist/types/Room";
 
 // Mock dependencies
 const mockAddToast = vi.fn();
@@ -12,7 +15,7 @@ vi.mock("../ToastProvider", () => ({
 const mockRegisterNotificationHandler = vi.fn();
 const mockUseDittoChatStore = vi.fn();
 vi.mock("@dittolive/ditto-chat-core", () => ({
-    useDittoChatStore: (selector: any) => mockUseDittoChatStore(selector),
+    useDittoChatStore: <T,>(selector: (state: ChatStore) => T) => mockUseDittoChatStore(selector),
 }));
 
 const mockUsers: ChatUser[] = [
