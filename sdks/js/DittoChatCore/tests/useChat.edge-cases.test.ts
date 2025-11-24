@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { useDittoChat } from "../src/useChat";
 import { createMockDitto, MockDitto } from "./setup";
+import { DittoConfParams } from "../src/useChat";
+import { Ditto } from "@dittolive/ditto";
 
 // Mock the slices to return null/undefined for message subscriptions
 vi.mock("../src/slices/useRooms", () => ({
@@ -37,9 +39,10 @@ vi.mock("../src/slices/useMessages", () => ({
     })),
 }));
 
+
 describe("useDittoChat - Edge Cases with Null Subscriptions", () => {
     let mockDitto: MockDitto;
-    const mockParams: { ditto: MockDitto | null; userId: string; userCollectionKey: string } = {
+    const mockParams: DittoConfParams = {
         ditto: null,
         userId: "test-user",
         userCollectionKey: "users",
@@ -47,7 +50,7 @@ describe("useDittoChat - Edge Cases with Null Subscriptions", () => {
 
     beforeEach(() => {
         mockDitto = createMockDitto();
-        mockParams.ditto = mockDitto;
+        mockParams.ditto = mockDitto as unknown as Ditto;
     });
 
     it("chatLogout handles null messageSubscriptionsByRoom (triggers || {} branch)", () => {
