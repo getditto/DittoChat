@@ -21,18 +21,19 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "clsx": "^2.1.1",
     "emoji-picker-react": "^4.15.0",
+    "@dittolive/ditto-chat-core": "file:../DittoChatCore",
     "react": "^18 || ^19",
     "react-dom": "^18 || ^19",
     "react-virtualized": "^9.22.6"
   },
   "peerDependencies": {
     "@dittolive/ditto": "^4.12.3",
-    "@dittolive/ditto-chat-core": "file:../DittoChatCore",
     "react": "^18 || ^19",
     "react-dom": "^18 || ^19",
     "react-router-dom": "^7.9.5"

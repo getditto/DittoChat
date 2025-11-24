@@ -365,4 +365,296 @@ describe("ChatView", () => {
 
         expect(removeReactionFromMessageMock).toHaveBeenCalled();
     });
+
+    it("handles file message deletion", () => {
+        const saveDeletedMessageMock = vi.fn();
+        const fileMessage: MessageWithUser = {
+            id: "msg-file",
+            message: {
+                _id: "msg-file",
+                roomId: "room-1",
+                text: "File message",
+                createdOn: new Date().toISOString(),
+                userId: "user-1",
+                isDeleted: false,
+                isEdited: false,
+                isArchived: false,
+                fileAttachmentToken: { id: "file-token-123", len: 0, metadata: {} } as any,
+            },
+            user: {
+                _id: "user-1",
+                name: "Alice",
+                subscriptions: {},
+                mentions: {},
+            },
+        };
+
+        mockUseDittoChatStore.mockImplementation((selector) => {
+            const state = {
+                messagesByRoom: { "room-1": [fileMessage] },
+                currentUser: { _id: "user-1" },
+                allUsers: [],
+                saveDeletedMessage: saveDeletedMessageMock,
+                rooms: [{ _id: "room-1", name: "General" }],
+                markRoomAsRead: vi.fn().mockResolvedValue(undefined),
+            };
+            return selector(state as unknown as ChatStore);
+        });
+
+        render(<ChatView {...defaultProps} />);
+        fireEvent.click(screen.getByText("Delete"));
+
+        expect(saveDeletedMessageMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                fileAttachmentToken: expect.objectContaining({ id: "file-token-123" })
+            }),
+            expect.objectContaining({ _id: "room-1" }),
+            "file"
+        );
+    });
+
+    it("handles image message deletion", () => {
+        const saveDeletedMessageMock = vi.fn();
+        const imageMessage: MessageWithUser = {
+            id: "msg-image",
+            message: {
+                _id: "msg-image",
+                roomId: "room-1",
+                text: "Image message",
+                createdOn: new Date().toISOString(),
+                userId: "user-1",
+                isDeleted: false,
+                isEdited: false,
+                isArchived: false,
+                thumbnailImageToken: { id: "thumb-token", len: 0, metadata: {} } as any,
+                largeImageToken: { id: "large-token", len: 0, metadata: {} } as any,
+            },
+            user: {
+                _id: "user-1",
+                name: "Alice",
+                subscriptions: {},
+                mentions: {},
+            },
+        };
+
+        mockUseDittoChatStore.mockImplementation((selector) => {
+            const state = {
+                messagesByRoom: { "room-1": [imageMessage] },
+                currentUser: { _id: "user-1" },
+                allUsers: [],
+                saveDeletedMessage: saveDeletedMessageMock,
+                rooms: [{ _id: "room-1", name: "General" }],
+                markRoomAsRead: vi.fn().mockResolvedValue(undefined),
+            };
+            return selector(state as unknown as ChatStore);
+        });
+
+        render(<ChatView {...defaultProps} />);
+        fireEvent.click(screen.getByText("Delete"));
+
+        expect(saveDeletedMessageMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                thumbnailImageToken: expect.objectContaining({ id: "thumb-token" })
+            }),
+            expect.objectContaining({ _id: "room-1" }),
+            "image"
+        );
+    });
+
+    it("displays DM chat with other user's name", () => {
+        const dmChat: Chat = {
+            id: "dm-1",
+            name: "DM",
+            type: "dm",
+            participants: [
+                { _id: "user-1", name: "Alice", subscriptions: {}, mentions: {} },
+                { _id: "user-2", name: "Bob", subscriptions: {}, mentions: {} },
+            ],
+            messages: [],
+        };
+
+        mockUseDittoChatStore.mockImplementation((selector) => {
+            const state = {
+                messagesByRoom: { "dm-1": [] },
+                currentUser: { _id: "user-1", subscriptions: {} },
+                allUsers: [
+                    { _id: "user-1", name: "Alice", subscriptions: {}, mentions: {} },
+                    { _id: "user-2", name: "Bob", subscriptions: {}, mentions: {} },
+                ],
+                rooms: [{ _id: "dm-1", name: "DM" }],
+                markRoomAsRead: vi.fn().mockResolvedValue(undefined),
+            };
+            return selector(state as unknown as ChatStore);
+        });
+
+        render(<ChatView chat={dmChat} onBack={vi.fn()} />);
+
+        // Should display the other user's name (Bob), not the current user (Alice)
+        expect(screen.getByText("Bob")).toBeInTheDocument();
+    });
+
+    it("displays 'Unknown User' for DM when other user not found", () => {
+        const dmChat: Chat = {
+            id: "dm-1",
+            name: "DM",
+            type: "dm",
+            participants: [],
+            messages: [],
+        };
+
+        mockUseDittoChatStore.mockImplementation((selector) => {
+            const state = {
+                messagesByRoom: { "dm-1": [] },
+                currentUser: { _id: "user-1", subscriptions: {} },
+                allUsers: [],
+                rooms: [{ _id: "dm-1", name: "DM" }],
+                markRoomAsRead: vi.fn().mockResolvedValue(undefined),
+            };
+            return selector(state as unknown as ChatStore);
+        });
+
+        render(<ChatView chat={dmChat} onBack={vi.fn()} />);
+
+        expect(screen.getByText("Unknown User")).toBeInTheDocument();
+    });
+
+    it("handles cancel edit", () => {
+        render(<ChatView {...defaultProps} />);
+
+        // Start editing a message
+        fireEvent.click(screen.getByText("Edit"));
+
+        // Cancel the edit
+        fireEvent.click(screen.getByText("Cancel Edit"));
+
+        // The editing state should be cleared (we can't directly test state, 
+        // but the component should handle it without errors)
+        expect(screen.getByTestId("message-input")).toBeInTheDocument();
+    });
+
+    it("handles save edit when no room exists", async () => {
+        const saveEditedTextMessageMock = vi.fn();
+
+        mockUseDittoChatStore.mockImplementation((selector) => {
+            const state = {
+                messagesByRoom: { "chat-1": mockMessages },
+                currentUser: { _id: "user-1", subscriptions: {} },
+                allUsers: [
+                    { _id: "user-1", name: "Alice", subscriptions: {}, mentions: {} },
+                ],
+                rooms: [],  // No rooms
+                markRoomAsRead: vi.fn().mockResolvedValue(undefined),
+                saveEditedTextMessage: saveEditedTextMessageMock,
+            };
+            return selector(state as unknown as ChatStore);
+        });
+
+        render(<ChatView {...defaultProps} />);
+
+        // Component should render without crashing even when room doesn't exist
+        expect(screen.getByTestId("message-input")).toBeInTheDocument();
+    });
+
+    it("handles send message when no room exists", () => {
+        const createMessageMock = vi.fn();
+
+        mockUseDittoChatStore.mockImplementation((selector) => {
+            const state = {
+                messagesByRoom: { "chat-1": [] },
+                currentUser: { _id: "user-1", subscriptions: {} },
+                allUsers: [],
+                rooms: [],  // No rooms
+                markRoomAsRead: vi.fn().mockResolvedValue(undefined),
+                createMessage: createMessageMock,
+            };
+            return selector(state as unknown as ChatStore);
+        });
+
+        render(<ChatView {...defaultProps} />);
+
+        // Try to send a message
+        fireEvent.click(screen.getByText("Send"));
+
+        // Should not call createMessage when room doesn't exist
+        expect(createMessageMock).not.toHaveBeenCalled();
+    });
+
+    it("handles send image when no room exists", () => {
+        const createImageMessageMock = vi.fn();
+
+        mockUseDittoChatStore.mockImplementation((selector) => {
+            const state = {
+                messagesByRoom: { "chat-1": [] },
+                currentUser: { _id: "user-1", subscriptions: {} },
+                allUsers: [],
+                rooms: [],  // No rooms
+                markRoomAsRead: vi.fn().mockResolvedValue(undefined),
+                createImageMessage: createImageMessageMock,
+            };
+            return selector(state as unknown as ChatStore);
+        });
+
+        render(<ChatView {...defaultProps} />);
+
+        // Try to send an image
+        fireEvent.click(screen.getByText("Send Image"));
+
+        // Should not call createImageMessage when room doesn't exist
+        expect(createImageMessageMock).not.toHaveBeenCalled();
+    });
+
+    it("handles send file when no room exists", () => {
+        const createFileMessageMock = vi.fn();
+
+        mockUseDittoChatStore.mockImplementation((selector) => {
+            const state = {
+                messagesByRoom: { "chat-1": [] },
+                currentUser: { _id: "user-1", subscriptions: {} },
+                allUsers: [],
+                rooms: [],  // No rooms
+                markRoomAsRead: vi.fn().mockResolvedValue(undefined),
+                createFileMessage: createFileMessageMock,
+            };
+            return selector(state as unknown as ChatStore);
+        });
+
+        render(<ChatView {...defaultProps} />);
+
+        // Try to send a file
+        fireEvent.click(screen.getByText("Send File"));
+
+        // Should not call createFileMessage when room doesn't exist
+        expect(createFileMessageMock).not.toHaveBeenCalled();
+    });
+
+    it("handles subscribe button when subscribeToRoom is undefined", () => {
+        const groupChat: Chat = {
+            id: "group-1",
+            name: "Group Chat",
+            type: "group",
+            participants: [],
+            messages: [],
+        };
+
+        mockUseDittoChatStore.mockImplementation((selector) => {
+            const state = {
+                messagesByRoom: { "group-1": [] },
+                currentUser: { _id: "user-1", subscriptions: {} },
+                allUsers: [],
+                rooms: [{ _id: "group-1", name: "Group Chat" }],
+                markRoomAsRead: vi.fn().mockResolvedValue(undefined),
+                subscribeToRoom: undefined,  // No subscribeToRoom function
+            };
+            return selector(state as unknown as ChatStore);
+        });
+
+        render(<ChatView chat={groupChat} onBack={vi.fn()} />);
+
+        // Subscribe button should still render
+        const subscribeButton = screen.getByText("Subscribe");
+        fireEvent.click(subscribeButton);
+
+        // Should not crash even though subscribeToRoom is undefined
+        expect(screen.getByText("Subscribe")).toBeInTheDocument();
+    });
 });

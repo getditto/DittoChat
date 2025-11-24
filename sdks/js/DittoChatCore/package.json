@@ -19,7 +19,8 @@
     "clean": "rm -rf dist",
     "test": "vitest",
     "test:watch": "vitest watch",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
     "@dittolive/ditto": "^4.12.3",

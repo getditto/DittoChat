@@ -49,6 +49,8 @@ export default defineConfig({
         "**/*.test.tsx",
         "**/*.test.ts",
         "src/test/**",
+        "vite.config.ts",
+        "eslint.config.js",
       ],
     },
   },

@@ -204,4 +204,103 @@ describe("ChatListItem", () => {
         const avatar = screen.getByTestId("avatar");
         expect(avatar).toHaveAttribute("data-image-url", "mock-url");
     });
+    it("applies selected styling when isSelected is true", () => {
+        const { container } = render(<ChatListItem {...defaultProps} isSelected={true} />);
+        const button = container.querySelector("button");
+        expect(button?.className).toContain("bg-(--primary-color-light)");
+        expect(button?.className).toContain("rounded-xl");
+    });
+
+    it("displays 'Image' for messages with thumbnailImageToken", () => {
+        const imageMessageChat = {
+            ...mockChat,
+            messages: [
+                {
+                    ...mockChat.messages[0],
+                    text: "Check this out",
+                    thumbnailImageToken: { id: "thumb-123", len: 0, metadata: {} } as any,
+                },
+            ],
+        };
+
+        mockUseDittoChatStore.mockImplementation((selector) => {
+            const state = {
+                currentUser: mockUsers[0],
+                messagesByRoom: {
+                    "chat-1": [
+                        {
+                            id: "msg-1",
+                            message: imageMessageChat.messages[0],
+                            user: mockUsers[1],
+                        },
+                    ],
+                },
+            };
+            return selector(state);
+        });
+
+        render(<ChatListItem {...defaultProps} chat={imageMessageChat} />);
+        expect(screen.getByText("Image")).toBeInTheDocument();
+        expect(screen.queryByText("Check this out")).not.toBeInTheDocument();
+    });
+
+    it("displays '99+' for unread count over 99", () => {
+        const manyUnreadMessages = Array.from({ length: 105 }, (_, i) => ({
+            id: `msg-${i}`,
+            message: {
+                _id: `msg-${i}`,
+                roomId: "chat-1",
+                text: `Message ${i}`,
+                createdOn: new Date().toISOString(),
+                userId: "user-2",
+                isDeleted: false,
+                isEdited: false,
+                isArchived: false,
+            },
+            user: mockUsers[1],
+        }));
+
+        mockUseDittoChatStore.mockImplementation((selector) => {
+            const state = {
+                currentUser: {
+                    ...mockUsers[0],
+                    subscriptions: { "chat-1": new Date(Date.now() - 100000).toISOString() },
+                },
+                messagesByRoom: {
+                    "chat-1": manyUnreadMessages,
+                },
+            };
+            return selector(state);
+        });
+
+        render(<ChatListItem {...defaultProps} />);
+        expect(screen.getByText("99+")).toBeInTheDocument();
+    });
+
+    it("does not display unread count when chat is selected", () => {
+        mockUseDittoChatStore.mockImplementation((selector) => {
+            const state = {
+                currentUser: {
+                    ...mockUsers[0],
+                    subscriptions: { "chat-1": new Date(Date.now() - 10000).toISOString() },
+                },
+                messagesByRoom: {
+                    "chat-1": [
+                        {
+                            id: "msg-1",
+                            message: {
+                                ...mockChat.messages[0],
+                                createdOn: new Date().toISOString(),
+                            },
+                            user: mockUsers[1],
+                        },
+                    ],
+                },
+            };
+            return selector(state);
+        });
+
+        render(<ChatListItem {...defaultProps} isSelected={true} />);
+        expect(screen.queryByText("1")).not.toBeInTheDocument();
+    });
 });

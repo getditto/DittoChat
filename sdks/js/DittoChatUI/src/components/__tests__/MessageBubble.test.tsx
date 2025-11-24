@@ -604,4 +604,30 @@ describe("MessageBubble", () => {
 
         expect(onStartEditMock).toHaveBeenCalledWith(mockMessage);
     });
+
+    it("hides actions on mouse leave for own message", () => {
+        const { container } = render(
+            <MessageBubble
+                {...defaultProps}
+                message={mockMessage}
+                isOwnMessage={true}
+                currentUserId="user-1"
+            />
+        );
+
+        const messageContainer = container.firstChild as HTMLElement;
+
+        // Trigger mouse enter to show actions
+        fireEvent.mouseEnter(messageContainer);
+
+        // Actions should be visible
+        const editButton = screen.getByLabelText("Edit message");
+        expect(editButton.parentElement?.className).toContain("opacity-100");
+
+        // Trigger mouse leave to hide actions
+        fireEvent.mouseLeave(messageContainer);
+
+        // Actions should be hidden
+        expect(editButton.parentElement?.className).toContain("opacity-0");
+    });
 });
