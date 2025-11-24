@@ -1,4 +1,6 @@
 import React, { useEffect } from "react";
+import { useImageAttachment } from "../utils/useImageAttachment";
+import { AttachmentToken } from "@dittolive/ditto";
 import type { Chat } from "../types";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import { formatDate } from "../utils";
@@ -26,19 +28,33 @@ function ChatListItem({
   const lastMessage = chat.messages[chat.messages.length - 1];
   const [unreadCount, setUnreadCount] = React.useState(0);
 
+  const fetchAttachment = useDittoChatStore((state) => state.fetchAttachment);
+
   let chatName = chat.name;
   let otherUserIsActive = false;
+  let otherUserId: string | undefined;
 
   if (chat.type === "dm") {
-    // TODO: implement DM user avathar
     const otherUser = chat.participants.find(
       (user) => user._id !== currentUserId
     );
+    otherUserId = otherUser?._id;
 
     chatName = otherUser?.name || "Unknown User";
     //TODO: Implement user status
     otherUserIsActive = false;
   }
+
+  const otherChatUser = users.find((u) => u._id === otherUserId);
+  const profilePictureThumbnail = otherChatUser?.profilePictureThumbnail;
+
+  const { imageUrl: avatarUrl } = useImageAttachment({
+    token: profilePictureThumbnail
+      ? (profilePictureThumbnail as unknown as AttachmentToken)
+      : null,
+    fetchAttachment,
+    autoFetch: true,
+  });
 
   const lastMessageSender = users.find((u) => u._id === lastMessage?.userId);
   const senderName =
@@ -65,7 +81,7 @@ function ChatListItem({
         message.message.userId !== currentUserId &&
         (mentionedMsgIds.includes(message.id) ||
           new Date(message.message.createdOn).getTime() >
-            new Date(subscribedAt || new Date()).getTime())
+          new Date(subscribedAt || new Date()).getTime())
     );
 
     setUnreadCount(unreadMessages.length);
@@ -82,7 +98,7 @@ function ChatListItem({
       )}
     >
       <div className="relative -top-4">
-        <Avatar isUser={chat.type === "dm"} />
+        <Avatar isUser={chat.type === "dm"} imageUrl={avatarUrl || undefined} />
         {otherUserIsActive && (
           <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-(--active-status-bg) border-2 border-white"></span>
         )}
@@ -101,7 +117,7 @@ function ChatListItem({
               ? "Image"
               : lastMessage?.text}
           </p>
-            {unreadCount > 0 && !isSelected && (
+          {unreadCount > 0 && !isSelected && (
             <span className="flex-shrink-0 min-w-[1.25rem] h-5 px-1.5 text-xs flex items-center justify-center rounded-full bg-(--notification-badge-bg) text-white font-medium">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>

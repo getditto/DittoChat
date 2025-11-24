@@ -135,6 +135,9 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       message: messageWithUser.message as unknown as WritableDraft<
         typeof messageWithUser.message
       >,
+      user: messageWithUser.user as unknown as WritableDraft<
+        typeof messageWithUser.user
+      >,
     };
     // Check for notifications on new messages
     const existingIndex = stateMessages!.findIndex((m) => m.id === message._id);
@@ -403,7 +406,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         console.error("Error in messagesPublisher:", err);
       }
     },
-    
+
     async createMessage(room: Room, text: string, mentions: Mention[] = []) {
       if (!ditto || !userId) return;
 

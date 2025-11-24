@@ -3,11 +3,47 @@ import { Icons } from "./Icons";
 import { useDittoChatStore } from "@dittolive/ditto-chat-core";
 import ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import Avatar from "./Avatar";
+import { useImageAttachment } from "../utils/useImageAttachment";
+import { AttachmentToken } from "@dittolive/ditto";
 
 interface NewMessageModalProps {
   onNewDMCreate: (user: ChatUser) => void;
   onClose: () => void;
 }
+
+const UserListItem = ({
+  user,
+  onSelect,
+}: {
+  user: ChatUser;
+  onSelect: (user: ChatUser) => void;
+}) => {
+  const fetchAttachment = useDittoChatStore((state) => state.fetchAttachment);
+  const profilePictureThumbnail = user.profilePictureThumbnail;
+
+  const { imageUrl } = useImageAttachment({
+    token: profilePictureThumbnail
+      ? (profilePictureThumbnail as unknown as AttachmentToken)
+      : null,
+    fetchAttachment,
+    autoFetch: true,
+  });
+
+  return (
+    <li onClick={() => onSelect(user)}>
+      <button className="w-full text-left px-4 py-3 flex items-center space-x-4 hover:bg-(--surface-color-light) transition-colors">
+        <div className="relative">
+          <Avatar isUser={true} imageUrl={imageUrl || undefined} />
+          {/*// TODO: Add active status indicator*/}
+          {/*{user.isActive && (
+            <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-(--active-status-bg) border-2 border-white"></span>
+          )}*/}
+        </div>
+        <span className="font-semibold">{user.name}</span>
+      </button>
+    </li>
+  );
+};
 
 function NewMessageModal({ onClose, onNewDMCreate }: NewMessageModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -46,18 +82,11 @@ function NewMessageModal({ onClose, onNewDMCreate }: NewMessageModalProps) {
       <div className="flex-1 overflow-y-auto">
         <ul>
           {filteredUsers.map((user) => (
-            <li key={user._id} onClick={() => onNewDMCreate(user)}>
-              <button className="w-full text-left px-4 py-3 flex items-center space-x-4 hover:bg-(--surface-color-light) transition-colors">
-                <div className="relative">
-                  <Avatar isUser={true} />
-                  {/*// TODO: Add active status indicator*/}
-                  {/*{user.isActive && (
-                    <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-(--active-status-bg) border-2 border-white"></span>
-                  )}*/}
-                </div>
-                <span className="font-semibold">{user.name}</span>
-              </button>
-            </li>
+            <UserListItem
+              key={user._id}
+              user={user}
+              onSelect={onNewDMCreate}
+            />
           ))}
         </ul>
       </div>

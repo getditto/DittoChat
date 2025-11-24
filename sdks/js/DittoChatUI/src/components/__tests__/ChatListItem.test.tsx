@@ -5,10 +5,21 @@ import type { Chat } from "../../types";
 import type { ChatStore } from "@dittolive/ditto-chat-core";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import type MessageWithUser from "@dittolive/ditto-chat-core/dist/types/MessageWithUser";
+import type { Attachment } from "@dittolive/ditto";
 
 // Mock dependencies
 vi.mock("../Avatar", () => ({
-    default: () => <div data-testid="avatar" />,
+    default: ({ imageUrl }: { imageUrl?: string }) => <div data-testid="avatar" data-image-url={imageUrl} />,
+}));
+
+vi.mock("../../utils/useImageAttachment", () => ({
+    useImageAttachment: () => ({
+        imageUrl: "mock-url",
+        progress: 0,
+        isLoading: false,
+        error: null,
+        fetchImage: vi.fn(),
+    }),
 }));
 
 const mockUseDittoChatStore = vi.fn();
@@ -63,6 +74,7 @@ describe("ChatListItem", () => {
         vi.clearAllMocks();
         mockUseDittoChatStore.mockImplementation((selector) => {
             const state = {
+                fetchAttachment: vi.fn(),
                 currentUser: mockUsers[0],
                 messagesByRoom: {
                     "chat-1": [
@@ -98,6 +110,7 @@ describe("ChatListItem", () => {
 
         mockUseDittoChatStore.mockImplementation((selector) => {
             const state = {
+                fetchAttachment: vi.fn(),
                 currentUser: mockUsers[0],
                 messagesByRoom: {
                     "chat-1": [
@@ -128,6 +141,7 @@ describe("ChatListItem", () => {
 
         mockUseDittoChatStore.mockImplementation((selector) => {
             const state = {
+                fetchAttachment: vi.fn(),
                 currentUser: {
                     ...mockUsers[0],
                     subscriptions: { "chat-1": new Date(Date.now() - 10000).toISOString() }
@@ -165,5 +179,29 @@ describe("ChatListItem", () => {
 
         render(<ChatListItem {...defaultProps} chat={dmChat} />);
         expect(screen.getByText("Alice")).toBeInTheDocument();
+    });
+
+    it("passes profile picture to Avatar for DM", () => {
+        const dmChat = {
+            ...mockChat,
+            type: "dm" as const,
+            participants: [
+                { _id: "user-1", name: "Me" } as ChatUser,
+                { _id: "user-2", name: "Alice" } as ChatUser
+            ]
+        };
+
+        const mockUsersWithProfile = [
+            mockUsers[0],
+            {
+                ...mockUsers[1],
+                profilePictureThumbnail: { id: "token-123", len: 100, metadata: {}, idBytes: new Uint8Array(), token: "token-123" } as unknown as Attachment
+            }
+        ];
+
+        render(<ChatListItem {...defaultProps} chat={dmChat} users={mockUsersWithProfile} />);
+
+        const avatar = screen.getByTestId("avatar");
+        expect(avatar).toHaveAttribute("data-image-url", "mock-url");
     });
 });

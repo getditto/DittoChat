@@ -3,10 +3,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import NewMessageModal from "../NewMessageModal";
 import type { ChatStore } from "@dittolive/ditto-chat-core";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
+import type { Attachment } from "@dittolive/ditto";
 
 // Mock dependencies
 vi.mock("../Avatar", () => ({
-    default: () => <div data-testid="avatar" />,
+    default: ({ imageUrl }: { imageUrl?: string }) => <div data-testid="avatar" data-image-url={imageUrl} />,
 }));
 
 vi.mock("../Icons", () => ({
@@ -14,6 +15,16 @@ vi.mock("../Icons", () => ({
         x: () => <div data-testid="icon-x" />,
         search: () => <div data-testid="icon-search" />,
     },
+}));
+
+vi.mock("../../utils/useImageAttachment", () => ({
+    useImageAttachment: () => ({
+        imageUrl: "mock-url",
+        progress: 0,
+        isLoading: false,
+        error: null,
+        fetchImage: vi.fn(),
+    }),
 }));
 
 const mockUseDittoChatStore = vi.fn();
@@ -39,6 +50,7 @@ describe("NewMessageModal", () => {
             const state = {
                 allUsers: mockUsers,
                 currentUser: mockUsers[0],
+                fetchAttachment: vi.fn(),
             };
             return selector(state as unknown as ChatStore);
         });
@@ -80,5 +92,30 @@ describe("NewMessageModal", () => {
         fireEvent.click(screen.getByRole("button", { name: "" })); // The close button has the icon
 
         expect(defaultProps.onClose).toHaveBeenCalled();
+    });
+
+    it("passes profile picture to Avatar", () => {
+        const mockUsersWithProfile = [
+            mockUsers[0],
+            {
+                ...mockUsers[1],
+                profilePictureThumbnail: { id: "token-123", len: 100, metadata: {}, idBytes: new Uint8Array(), token: "token-123" } as unknown as Attachment
+            }
+        ];
+
+        mockUseDittoChatStore.mockImplementation((selector) => {
+            const state = {
+                allUsers: mockUsersWithProfile,
+                currentUser: mockUsersWithProfile[0],
+                fetchAttachment: vi.fn(),
+            };
+            return selector(state as unknown as ChatStore);
+        });
+
+        render(<NewMessageModal {...defaultProps} />);
+
+        const avatars = screen.getAllByTestId("avatar");
+        // Alice is the first one in the list (index 0) because Me is filtered out
+        expect(avatars[0]).toHaveAttribute("data-image-url", "mock-url");
     });
 });

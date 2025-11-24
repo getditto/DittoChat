@@ -14,6 +14,8 @@ import {
   Reaction,
   Mention,
 } from "@dittolive/ditto-chat-core/dist/types/Message";
+import { useImageAttachment } from "../utils/useImageAttachment";
+import { AttachmentToken } from "@dittolive/ditto";
 
 interface ChatViewProps {
   chat: Chat;
@@ -133,15 +135,28 @@ function ChatView({ chat, onBack }: ChatViewProps) {
 
   let chatName = chat.name;
   let otherUserIsActive = false;
+  let otherUserId: string | undefined;
 
   if (chat.type === "dm") {
     const otherUser = chat.participants.find(
       (user) => user._id !== currentUser?._id,
     );
+    otherUserId = otherUser?._id;
     chatName = otherUser?.name || "Unknown User";
     // TODO: Implement user status
     otherUserIsActive = false;
   }
+
+  const otherChatUser = allUsers.find((u) => u._id === otherUserId);
+  const profilePictureThumbnail = otherChatUser?.profilePictureThumbnail;
+
+  const { imageUrl: avatarUrl } = useImageAttachment({
+    token: profilePictureThumbnail
+      ? (profilePictureThumbnail as unknown as AttachmentToken)
+      : null,
+    fetchAttachment,
+    autoFetch: true,
+  });
 
   return (
     <div className="flex flex-col h-full">
@@ -154,7 +169,7 @@ function ChatView({ chat, onBack }: ChatViewProps) {
         </button>
         <div className="flex items-center space-x-3">
           <div className="relative">
-            <Avatar isUser={chat.type === "dm"} />
+            <Avatar isUser={chat.type === "dm"} imageUrl={avatarUrl || undefined} />
             {otherUserIsActive && (
               <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-(--active-status-bg) border-2 border-white"></span>
             )}
