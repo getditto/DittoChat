@@ -40,6 +40,7 @@ vi.mock("../Icons", () => ({
     Icons: {
         arrowLeft: () => <div data-testid="icon-arrow-left" />,
         plus: () => <div data-testid="icon-plus" />,
+        x: () => <div data-testid="icon-x" />,
     },
 }));
 
@@ -110,7 +111,7 @@ describe("ChatView", () => {
                 saveEditedTextMessage: vi.fn(),
                 saveDeletedMessage: vi.fn(),
                 markRoomAsRead: vi.fn().mockResolvedValue(undefined),
-                subscribeToRoom: vi.fn().mockResolvedValue(undefined),
+                toggleRoomSubscription: vi.fn().mockResolvedValue(undefined),
                 rooms: [{ _id: "room-1", name: "General" }],
             };
             return selector(state as unknown as ChatStore);
@@ -211,7 +212,7 @@ describe("ChatView", () => {
     });
 
     it("handles room subscription", async () => {
-        const subscribeToRoomMock = vi.fn().mockResolvedValue(undefined);
+        const toggleRoomSubscriptionMock = vi.fn().mockResolvedValue(undefined);
         mockUseDittoChatStore.mockImplementation((selector) => {
             const state = {
                 messagesByRoom: { "room-1": mockMessages },
@@ -219,7 +220,7 @@ describe("ChatView", () => {
                 allUsers: [],
                 rooms: [{ _id: "room-1", name: "General" }],
                 markRoomAsRead: vi.fn().mockResolvedValue(undefined),
-                subscribeToRoom: subscribeToRoomMock,
+                toggleRoomSubscription: toggleRoomSubscriptionMock,
             };
             return selector(state as unknown as ChatStore);
         });
@@ -229,14 +230,14 @@ describe("ChatView", () => {
         const subscribeButton = screen.getByText("Subscribe");
         fireEvent.click(subscribeButton);
 
-        expect(subscribeToRoomMock).toHaveBeenCalledWith("room-1");
+        expect(toggleRoomSubscriptionMock).toHaveBeenCalledWith("room-1");
     });
 
     it("shows subscribed state", () => {
         mockUseDittoChatStore.mockImplementation((selector) => {
             const state = {
                 messagesByRoom: { "room-1": mockMessages },
-                currentUser: { _id: "user-1", subscriptions: { "room-1": {} } },
+                currentUser: { _id: "user-1", subscriptions: { "room-1": "2023-01-01" } },
                 allUsers: [],
                 rooms: [{ _id: "room-1", name: "General" }],
                 markRoomAsRead: vi.fn().mockResolvedValue(undefined),
@@ -245,7 +246,7 @@ describe("ChatView", () => {
         });
 
         render(<ChatView {...defaultProps} />);
-        expect(screen.getByText("Subscribed")).toBeInTheDocument();
+        expect(screen.getByText("Unsubscribe")).toBeInTheDocument();
     });
 
     it("sends image message", () => {

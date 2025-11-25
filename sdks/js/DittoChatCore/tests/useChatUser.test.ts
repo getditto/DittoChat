@@ -109,80 +109,6 @@ describe("useChatUser Slice", () => {
     });
   });
 
-  describe("subscribeToRoom", () => {
-    it("updates the user subscription list", async () => {
-      const mockUser = { _id: "test-user-id", subscriptions: {} };
-
-      mockDitto.store.execute.mockResolvedValue({ items: [{ value: mockUser }] });
-
-      await store.getState().subscribeToRoom("room-123");
-
-      expect(mockDitto.store.execute).toHaveBeenCalledWith(
-        expect.stringContaining("INSERT INTO users"),
-        expect.objectContaining({
-          newUser: expect.objectContaining({
-            _id: "test-user-id",
-            subscriptions: expect.objectContaining({
-              "room-123": expect.any(String),
-            }),
-          }),
-        })
-      );
-    });
-
-    it("does not re-subscribe if already subscribed", async () => {
-      const mockUser = {
-        _id: "test-user-id",
-        subscriptions: { "room-123": "2023-01-01" }
-      };
-
-      mockDitto.store.execute.mockResolvedValue({ items: [{ value: mockUser }] });
-
-      await store.getState().subscribeToRoom("room-123");
-
-      // Should only call execute once (for findUserById), not for update
-      expect(mockDitto.store.execute).toHaveBeenCalledTimes(1);
-    });
-
-    it("returns early when user not found", async () => {
-      mockDitto.store.execute.mockResolvedValue({ items: [] });
-
-      await store.getState().subscribeToRoom("room-123");
-
-      // Should only call execute once (for findUserById)
-      expect(mockDitto.store.execute).toHaveBeenCalledTimes(1);
-    });
-
-    it("handles errors gracefully", async () => {
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => { });
-      mockDitto.store.execute.mockRejectedValueOnce(new Error("DB Error"));
-
-      await store.getState().subscribeToRoom("room-123");
-
-      // Error occurs in findUserById which is called internally
-      expect(consoleSpy).toHaveBeenCalledWith("Error in findUserById:", expect.any(Error));
-      consoleSpy.mockRestore();
-    });
-
-    it("handles user with no subscriptions object", async () => {
-      const mockUser = { _id: "test-user-id" };
-
-      mockDitto.store.execute.mockResolvedValue({ items: [{ value: mockUser }] });
-
-      await store.getState().subscribeToRoom("room-123");
-
-      expect(mockDitto.store.execute).toHaveBeenCalledWith(
-        expect.stringContaining("INSERT INTO users"),
-        expect.objectContaining({
-          newUser: expect.objectContaining({
-            subscriptions: expect.objectContaining({
-              "room-123": expect.any(String),
-            }),
-          }),
-        })
-      );
-    });
-  });
 
   describe("markRoomAsRead", () => {
     it("updates timestamps and clears mentions", async () => {
@@ -295,8 +221,32 @@ describe("useChatUser Slice", () => {
     });
   });
 
-  describe("unsubscribeFromRoom", () => {
-    it("removes room from subscriptions", async () => {
+  describe("toggleRoomSubscription", () => {
+    it("subscribes when not already subscribed", async () => {
+      const roomId = "room-123";
+      const mockUser = {
+        _id: "test-user-id",
+        subscriptions: { "other-room": "2023-01-01" },
+      };
+
+      mockDitto.store.execute.mockResolvedValue({ items: [{ value: mockUser }] });
+
+      await store.getState().toggleRoomSubscription(roomId);
+
+      expect(mockDitto.store.execute).toHaveBeenCalledWith(
+        expect.stringContaining("INSERT INTO users"),
+        expect.objectContaining({
+          newUser: expect.objectContaining({
+            subscriptions: expect.objectContaining({
+              [roomId]: expect.any(String),
+              "other-room": "2023-01-01",
+            }),
+          }),
+        })
+      );
+    });
+
+    it("unsubscribes when already subscribed", async () => {
       const roomId = "room-to-leave";
 
       const mockUser = {
@@ -305,13 +255,31 @@ describe("useChatUser Slice", () => {
       };
       mockDitto.store.execute.mockResolvedValue({ items: [{ value: mockUser }] });
 
-      await store.getState().unsubscribeFromRoom(roomId);
+      await store.getState().toggleRoomSubscription(roomId);
 
       expect(mockDitto.store.execute).toHaveBeenCalledWith(
         expect.stringContaining("INSERT INTO users"),
         expect.objectContaining({
           newUser: expect.objectContaining({
-            subscriptions: { "other-room": "2023-01-01" },
+            subscriptions: { "room-to-leave": null, "other-room": "2023-01-01" },
+          }),
+        })
+      );
+    });
+
+    it("subscribes when user has no subscriptions object", async () => {
+      const mockUser = { _id: "test-user-id" };
+      mockDitto.store.execute.mockResolvedValue({ items: [{ value: mockUser }] });
+
+      await store.getState().toggleRoomSubscription("room-123");
+
+      expect(mockDitto.store.execute).toHaveBeenCalledWith(
+        expect.stringContaining("INSERT INTO users"),
+        expect.objectContaining({
+          newUser: expect.objectContaining({
+            subscriptions: expect.objectContaining({
+              "room-123": expect.any(String),
+            }),
           }),
         })
       );
@@ -320,17 +288,7 @@ describe("useChatUser Slice", () => {
     it("returns early when user not found", async () => {
       mockDitto.store.execute.mockResolvedValue({ items: [] });
 
-      await store.getState().unsubscribeFromRoom("room-123");
-
-      // Should only call execute once (for findUserById)
-      expect(mockDitto.store.execute).toHaveBeenCalledTimes(1);
-    });
-
-    it("returns early when user has no subscriptions", async () => {
-      const mockUser = { _id: "test-user-id" };
-      mockDitto.store.execute.mockResolvedValue({ items: [{ value: mockUser }] });
-
-      await store.getState().unsubscribeFromRoom("room-123");
+      await store.getState().toggleRoomSubscription("room-123");
 
       // Should only call execute once (for findUserById)
       expect(mockDitto.store.execute).toHaveBeenCalledTimes(1);
@@ -340,7 +298,7 @@ describe("useChatUser Slice", () => {
       const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => { });
       mockDitto.store.execute.mockRejectedValueOnce(new Error("DB Error"));
 
-      await store.getState().unsubscribeFromRoom("room-123");
+      await store.getState().toggleRoomSubscription("room-123");
 
       // Error occurs in findUserById which is called internally
       expect(consoleSpy).toHaveBeenCalledWith("Error in findUserById:", expect.any(Error));
@@ -453,15 +411,6 @@ describe("useChatUser Slice", () => {
       expect(mockDitto.store.execute).not.toHaveBeenCalled();
     });
 
-    it("subscribeToRoom returns early when ditto is null", async () => {
-      const storeWithoutDitto = createTestStore(null);
-
-      await storeWithoutDitto.getState().subscribeToRoom("room-123");
-
-      // Should not throw and should not call execute
-      expect(mockDitto.store.execute).not.toHaveBeenCalled();
-    });
-
     it("markRoomAsRead returns early when ditto is null", async () => {
       const storeWithoutDitto = createTestStore(null);
 
@@ -471,10 +420,10 @@ describe("useChatUser Slice", () => {
       expect(mockDitto.store.execute).not.toHaveBeenCalled();
     });
 
-    it("unsubscribeFromRoom returns early when ditto is null", async () => {
+    it("toggleRoomSubscription returns early when ditto is null", async () => {
       const storeWithoutDitto = createTestStore(null);
 
-      await storeWithoutDitto.getState().unsubscribeFromRoom("room-123");
+      await storeWithoutDitto.getState().toggleRoomSubscription("room-123");
 
       // Should not throw and should not call execute
       expect(mockDitto.store.execute).not.toHaveBeenCalled();

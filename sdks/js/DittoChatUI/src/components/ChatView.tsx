@@ -53,9 +53,9 @@ function ChatView({ chat, onBack }: ChatViewProps) {
   const createFileMessage = useDittoChatStore(
     (state) => state.createFileMessage,
   );
-  const subscribeToRoom = useDittoChatStore(
+  const toggleRoomSubscription = useDittoChatStore(
     (state) =>
-      state.subscribeToRoom as ((roomId: string) => Promise<void>) | undefined,
+      state.toggleRoomSubscription as ((roomId: string) => Promise<void>) | undefined,
   );
   const markRoomAsRead = useDittoChatStore((state) => state.markRoomAsRead);
 
@@ -180,20 +180,29 @@ function ChatView({ chat, onBack }: ChatViewProps) {
         {room && currentUser && chat.type === "group" && (
           <button
             onClick={() => {
-              if (subscribeToRoom)
-                subscribeToRoom(room._id).catch(console.error);
+              if (toggleRoomSubscription) {
+                toggleRoomSubscription(room._id).catch(console.error);
+              }
             }}
             className="ml-auto flex items-center space-x-2 px-3 py-1.5 rounded-full bg-(--secondary-bg) hover:bg-(--secondary-bg-hover) text-(--text-color-lighter) font-medium"
           >
-            {currentUser?.subscriptions &&
-              room._id in currentUser.subscriptions ? (
-              "Subscribed"
-            ) : (
-              <>
-                <Icons.plus className="w-5 h-5" />
-                <span>Subscribe</span>
-              </>
-            )}
+            {(() => {
+              const hasKey = currentUser?.subscriptions && room._id in currentUser.subscriptions;
+              const subValue = currentUser?.subscriptions?.[room._id];
+              const isSubscribed = hasKey && subValue !== null;
+
+              return isSubscribed ? (
+                <>
+                  <Icons.x className="w-5 h-5" />
+                  <span>Unsubscribe</span>
+                </>
+              ) : (
+                <>
+                  <Icons.plus className="w-5 h-5" />
+                  <span>Subscribe</span>
+                </>
+              );
+            })()}
           </button>
         )}
       </header>
