@@ -6,6 +6,49 @@ import ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import Avatar from "./Avatar";
 import { Mention } from "@dittolive/ditto-chat-core/dist/types/Message";
 import { clsx } from "clsx";
+import { useImageAttachment } from "../utils/useImageAttachment";
+import { AttachmentToken } from "@dittolive/ditto";
+
+interface UserMentionItemProps {
+  user: ChatUser;
+  isHighlighted: boolean;
+  onSelect: () => void;
+  fetchAttachment?: (
+    token: AttachmentToken,
+    onProgress: (progress: number) => void,
+    onComplete: (result: { success: boolean; data?: Uint8Array; metadata?: Record<string, string>; error?: Error }) => void
+  ) => void;
+}
+
+function UserMentionItem({
+  user,
+  isHighlighted,
+  onSelect,
+  fetchAttachment,
+}: UserMentionItemProps) {
+  const profilePictureThumbnail = user.profilePictureThumbnail;
+
+  const { imageUrl: avatarUrl } = useImageAttachment({
+    token: profilePictureThumbnail
+      ? (profilePictureThumbnail as unknown as AttachmentToken)
+      : null,
+    fetchAttachment,
+    autoFetch: true,
+  });
+
+  return (
+    <button
+      onClick={onSelect}
+      className={clsx(
+        "w-full text-left px-3 py-2 flex items-center space-x-3 hover:bg-(--secondary-bg)",
+        isHighlighted ? "bg-(--secondary-bg)" : "",
+      )}
+    >
+      <Avatar isUser={true} imageUrl={avatarUrl || undefined} />
+      <span className="font-semibold">{user.name}</span>
+    </button>
+  );
+}
 
 export interface MessageInputProps {
   onSendMessage: (content: string, mentions: Mention[]) => void;
@@ -25,6 +68,7 @@ function MessageInput({
   onSaveEdit,
 }: MessageInputProps) {
   const users: ChatUser[] = useDittoChatStore((state) => state.allUsers);
+  const fetchAttachment = useDittoChatStore((state) => state.fetchAttachment);
   const [text, setText] = useState("");
   const [mentions, setMentions] = useState<Mention[]>([]);
   const [isAttachMenuOpen, setIsAttachMenuOpen] = useState(false);
@@ -406,18 +450,12 @@ function MessageInput({
             <ul className="max-h-60 overflow-y-auto">
               {filteredMentionUsers.map((user, index) => (
                 <li key={user._id}>
-                  <button
-                    onClick={() => handleMentionSelect(user)}
-                    className={clsx(
-                      "w-full text-left px-3 py-2 flex items-center space-x-3 hover:bg-(--secondary-bg)",
-                      index === highlightedMentionIndex
-                        ? "bg-(--secondary-bg)"
-                        : "",
-                    )}
-                  >
-                    <Avatar isUser={true} />
-                    <span className="font-semibold">{user.name}</span>
-                  </button>
+                  <UserMentionItem
+                    user={user}
+                    isHighlighted={index === highlightedMentionIndex}
+                    onSelect={() => handleMentionSelect(user)}
+                    fetchAttachment={fetchAttachment}
+                  />
                 </li>
               ))}
             </ul>
