@@ -187,8 +187,8 @@ describe("DittoChatUI", () => {
             matches: query === "(prefers-color-scheme: dark)",
             media: query,
             onchange: null,
-            addListener: vi.fn(), 
-            removeListener: vi.fn(), 
+            addListener: vi.fn(),
+            removeListener: vi.fn(),
             addEventListener: vi.fn(),
             removeEventListener: vi.fn(),
             dispatchEvent: vi.fn(),
@@ -228,5 +228,113 @@ describe("DittoChatUI", () => {
 
         render(<DittoChatUI {...defaultProps} />);
         expect(screen.getByText("Select a conversation")).toBeInTheDocument();
+    });
+
+    it("selects existing DM instead of creating duplicate", async () => {
+        const createDMRoomMock = vi.fn();
+        mockState = {
+            ...mockState,
+            createDMRoom: createDMRoomMock,
+            currentUser: { _id: "user-1", name: "Me", subscriptions: {}, mentions: {} },
+            rooms: [
+                {
+                    _id: "room-1",
+                    name: "",
+                    participants: ["user-1", "user-2"],
+                    messagesId: "",
+                    createdBy: "",
+                    createdOn: "",
+                    isGenerated: false
+                }
+            ] as Room[],
+            allUsers: [
+                { _id: "user-1", name: "Me", subscriptions: {}, mentions: {} },
+                { _id: "user-2", name: "User 2", subscriptions: {}, mentions: {} },
+            ],
+            messagesByRoom: {
+                "room-1": [{
+                    message: {
+                        _id: "msg-1",
+                        roomId: "room-1",
+                        createdOn: new Date().toISOString(),
+                        text: "Hello",
+                        userId: "user-1",
+                        isArchived: false
+                    },
+                    id: "msg-1"
+                }] as MessageWithUser[],
+            },
+        };
+
+        render(<DittoChatUI {...defaultProps} />);
+
+        // Try to create a DM with user-2 (already exists)
+        fireEvent.click(screen.getByText("New Message"));
+        fireEvent.click(screen.getByText("Create DM"));
+
+        // Should not call createDMRoom since DM already exists
+        expect(createDMRoomMock).not.toHaveBeenCalled();
+
+        // Should select the existing chat instead
+        expect(screen.getByTestId("chat-view")).toBeInTheDocument();
+    });
+
+    it("auto-selects newly created room after creation", async () => {
+        const { waitFor } = await import("@testing-library/react");
+        const createRoomMock = vi.fn().mockResolvedValue({ _id: "room-new" });
+
+        // Initial state without the new room
+        mockState = {
+            ...mockState,
+            createRoom: createRoomMock,
+            rooms: [],
+            allUsers: [{ _id: "user-1", name: "Me", subscriptions: {}, mentions: {} }],
+            messagesByRoom: {},
+        };
+
+        const { rerender } = render(<DittoChatUI {...defaultProps} />);
+
+        // Create new room
+        fireEvent.click(screen.getByText("New Room"));
+        fireEvent.click(screen.getByText("Create Room"));
+
+        expect(createRoomMock).toHaveBeenCalledWith("New Room");
+
+        // Update state to include the newly created room with a message
+        mockState = {
+            ...mockState,
+            rooms: [
+                {
+                    _id: "room-new",
+                    name: "New Room",
+                    participants: ["user-1"],
+                    messagesId: "",
+                    createdBy: "user-1",
+                    createdOn: new Date().toISOString(),
+                    isGenerated: false
+                }
+            ] as Room[],
+            messagesByRoom: {
+                "room-new": [{
+                    message: {
+                        _id: "msg-1",
+                        roomId: "room-new",
+                        createdOn: new Date().toISOString(),
+                        text: "Room created",
+                        userId: "user-1",
+                        isArchived: false
+                    },
+                    id: "msg-1"
+                }] as MessageWithUser[],
+            },
+        };
+
+        // Trigger re-render to simulate state update
+        rerender(<DittoChatUI {...defaultProps} />);
+
+        // Wait for the chat view to appear
+        await waitFor(() => {
+            expect(screen.getByTestId("chat-view")).toBeInTheDocument();
+        });
     });
 });

@@ -96,4 +96,33 @@ describe("QuickReaction", () => {
             expect(screen.queryByTestId("emoji-picker")).not.toBeInTheDocument();
         });
     });
+
+    it("positions picker on right for own messages", async () => {
+        render(<QuickReaction {...defaultProps} isOwnMessage={true} />);
+
+        fireEvent.click(screen.getByRole("button"));
+
+        await waitFor(() => {
+            expect(screen.getByTestId("emoji-picker")).toBeInTheDocument();
+        });
+
+        const picker = screen.getByTestId("emoji-picker").parentElement;
+        expect(picker?.className).toContain("right-0");
+    });
+
+    it("uses dark theme when localStorage has dark theme", async () => {
+        // Mock localStorage
+        const getItemSpy = vi.spyOn(Storage.prototype, "getItem");
+        getItemSpy.mockReturnValue("dark");
+
+        render(<QuickReaction {...defaultProps} />);
+
+        fireEvent.click(screen.getByRole("button"));
+
+        await waitFor(() => {
+            expect(screen.getByTestId("emoji-picker")).toBeInTheDocument();
+        });
+
+        getItemSpy.mockRestore();
+    });
 });

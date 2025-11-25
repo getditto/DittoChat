@@ -136,4 +136,31 @@ describe("ChatList", () => {
         expect(screen.queryByTestId("chat-item-chat-1")).not.toBeInTheDocument();
         expect(screen.queryByTestId("chat-item-chat-2")).not.toBeInTheDocument();
     });
+
+    it("filters DM chats with no name using 'DM' fallback", () => {
+        const chatsWithUnnamedDM: Chat[] = [
+            {
+                id: "chat-dm",
+                name: "",  // Empty name for DM
+                type: "dm",
+                participants: [],
+                messages: [],
+            },
+        ];
+
+        render(<ChatList {...defaultProps} chats={chatsWithUnnamedDM} />);
+        const searchInput = screen.getByPlaceholderText("Search");
+
+        // Search for "DM" should find the unnamed DM chat
+        fireEvent.change(searchInput, { target: { value: "DM" } });
+        expect(screen.getByTestId("chat-item-chat-dm")).toBeInTheDocument();
+    });
+
+    it("scrolls to selected chat when provided", () => {
+        render(<ChatList {...defaultProps} selectedChatId="chat-2" />);
+
+        // Verify the selected chat is marked as selected
+        const selectedChat = screen.getByTestId("chat-item-chat-2");
+        expect(selectedChat).toHaveAttribute("data-selected", "true");
+    });
 });

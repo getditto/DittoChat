@@ -93,4 +93,59 @@ describe("ChatNotificationObserver", () => {
             "info"
         );
     });
+
+    it("shows 'Sent an attachment' for messages without text", () => {
+        render(<ChatNotificationObserver activeRoomId={null} />);
+
+        const handler = mockRegisterNotificationHandler.mock.calls[0][0];
+        const messageWithUser = {
+            id: "msg-1",
+            message: { userId: "user-1", text: "" },  // No text
+        };
+        const room = { _id: "room-2", name: "General", collectionId: "rooms" };
+
+        handler(messageWithUser, room);
+
+        expect(mockAddToast).toHaveBeenCalledWith(
+            "msg-1",
+            "#General: Alice: Sent an attachment",
+            "info"
+        );
+    });
+
+    it("truncates long messages with ellipsis", () => {
+        render(<ChatNotificationObserver activeRoomId={null} />);
+
+        const handler = mockRegisterNotificationHandler.mock.calls[0][0];
+        const longText = "This is a very long message that exceeds thirty characters";
+        const messageWithUser = {
+            id: "msg-1",
+            message: { userId: "user-1", text: longText },
+        };
+        const room = { _id: "room-2", name: "General", collectionId: "rooms" };
+
+        handler(messageWithUser, room);
+
+        expect(mockAddToast).toHaveBeenCalledWith(
+            "msg-1",
+            "#General: Alice: This is a very long message th...",
+            "info"
+        );
+    });
+
+    it("handles unknown user gracefully", () => {
+        render(<ChatNotificationObserver activeRoomId={null} />);
+
+        const handler = mockRegisterNotificationHandler.mock.calls[0][0];
+        const messageWithUser = {
+            id: "msg-1",
+            message: { userId: "user-999", text: "Hello" },  // Unknown user
+        };
+        const room = { _id: "room-2", name: "General", collectionId: "rooms" };
+
+        handler(messageWithUser, room);
+
+        // Should not show toast for unknown user
+        expect(mockAddToast).not.toHaveBeenCalled();
+    });
 });
