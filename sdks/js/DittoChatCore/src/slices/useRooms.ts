@@ -105,6 +105,12 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
     dmRoomsSubscription: null,
 
     createRoom(name: string, retentionDays?: number) {
+      // Check create room permission
+      if (!_get().canPerformAction("canCreateRoom")) {
+        console.warn("Permission denied: canCreateRoom is false");
+        return Promise.resolve(undefined);
+      }
+
       const currentUser = _get().currentUser;
       return createRoomBase({
         ditto,

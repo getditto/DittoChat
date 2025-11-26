@@ -7,6 +7,7 @@ import { useImageAttachment } from "../utils/useImageAttachment";
 import { AttachmentToken } from "@dittolive/ditto";
 import { EmojiClickData } from "emoji-picker-react";
 import QuickReaction from "./QuickReaction";
+import { usePermissions } from "../utils/usePermissions";
 
 type MessageReaction = {
   id: number;
@@ -102,6 +103,12 @@ function MessageBubble({
   onAddReaction,
   onRemoveReaction,
 }: MessageBubbleProps) {
+  const {
+    canEditOwnMessage,
+    canDeleteOwnMessage,
+    canAddReaction,
+    canRemoveOwnReaction,
+  } = usePermissions();
   const {
     imageUrl: thumbnailUrl,
     progress: thumbnailProgress,
@@ -363,47 +370,53 @@ function MessageBubble({
             className={`relative flex items-center transition-opacity duration-200 ${isActionsVisible ? "opacity-100" : "opacity-0"
               }`}
           >
-            <button
-              onClick={() => {
-                onStartEdit(message);
-                setIsActionsVisible(false);
-              }}
-              disabled={message.isDeleted}
-              className="p-1 rounded-full hover:bg-(--secondary-bg-hover) text-(--text-color-lightest) disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="Edit message"
-            >
-              <Icons.edit3 className="w-5 h-5" />
-            </button>
-            <div className="relative">
+            {canEditOwnMessage && (
               <button
-                onClick={() => setIsMenuOpen((p) => !p)}
-                className="p-1 rounded-full hover:bg-[rgb(var(--secondary-bg-hover))] text-[rgb(var(--text-color-lightest))]"
-                aria-label="More options"
+                onClick={() => {
+                  onStartEdit(message);
+                  setIsActionsVisible(false);
+                }}
+                disabled={message.isDeleted}
+                className="p-1 rounded-full hover:bg-(--secondary-bg-hover) text-(--text-color-lightest) disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Edit message"
               >
-                <Icons.moreHorizontal className="w-5 h-5" />
+                <Icons.edit3 className="w-5 h-5" />
               </button>
-              {isMenuOpen && (
-                <div className="absolute top-full mt-2 right-0 bg-(--surface-color) rounded-lg shadow-lg border border-(--border-color) w-40 z-10 py-1">
-                  {!message.isDeleted && (
-                    <button
-                      onClick={() => {
-                        onStartEdit(message);
-                        setIsMenuOpen(false);
-                      }}
-                      className="w-full text-left px-4 py-2 text-sm hover:bg-(--secondary-bg)"
-                    >
-                      Edit message
-                    </button>
-                  )}
-                  <button
-                    onClick={handleDelete}
-                    className="w-full text-left px-4 py-2 text-sm text-(--danger-text) hover:bg-(--secondary-bg)"
-                  >
-                    Delete message
-                  </button>
-                </div>
-              )}
-            </div>
+            )}
+            {(canEditOwnMessage || canDeleteOwnMessage) && (
+              <div className="relative">
+                <button
+                  onClick={() => setIsMenuOpen((p) => !p)}
+                  className="p-1 rounded-full hover:bg-[rgb(var(--secondary-bg-hover))] text-[rgb(var(--text-color-lightest))]"
+                  aria-label="More options"
+                >
+                  <Icons.moreHorizontal className="w-5 h-5" />
+                </button>
+                {isMenuOpen && (
+                  <div className="absolute top-full mt-2 right-0 bg-(--surface-color) rounded-lg shadow-lg border border-(--border-color) w-40 z-10 py-1">
+                    {!message.isDeleted && canEditOwnMessage && (
+                      <button
+                        onClick={() => {
+                          onStartEdit(message);
+                          setIsMenuOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-(--secondary-bg)"
+                      >
+                        Edit message
+                      </button>
+                    )}
+                    {canDeleteOwnMessage && (
+                      <button
+                        onClick={handleDelete}
+                        className="w-full text-left px-4 py-2 text-sm text-(--danger-text) hover:bg-(--secondary-bg)"
+                      >
+                        Delete message
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -418,12 +431,15 @@ function MessageBubble({
             <button
               key={reaction.emoji}
               onClick={() =>
-                onRemoveReaction(message, currentUserId, reaction.emoji)
+                canRemoveOwnReaction && userHasReacted
+                  ? onRemoveReaction(message, currentUserId, reaction.emoji)
+                  : undefined
               }
-              className={`text-xs px-2 py-0.5 rounded-full flex items-center space-x-1 cursor-pointer transition-colors ${userHasReacted
-                ? "bg-(--primary-color-lighter) border border-(--primary-color-light-border)"
+              disabled={!canRemoveOwnReaction || !userHasReacted}
+              className={`text-xs px-2 py-0.5 rounded-full flex items-center space-x-1 transition-colors ${userHasReacted
+                ? "bg-(--primary-color-lighter) border border-(--primary-color-light-border) cursor-pointer"
                 : "bg-(--secondary-bg-hover) hover:bg-(--disabled-bg)"
-                }`}
+                } ${!canRemoveOwnReaction && userHasReacted ? "cursor-not-allowed" : ""}`}
             >
               <span>{reaction.emoji}</span>
               <span
@@ -437,11 +453,13 @@ function MessageBubble({
             </button>
           );
         })}
-        <QuickReaction
-          onSelect={handleAddReactionClick}
-          disabled={message.isDeleted}
-          isOwnMessage={isOwnMessage}
-        />
+        {canAddReaction && (
+          <QuickReaction
+            onSelect={handleAddReactionClick}
+            disabled={message.isDeleted}
+            isOwnMessage={isOwnMessage}
+          />
+        )}
       </div>
 
       {showLargeImage && (largeImageUrl || thumbnailUrl) && (

@@ -36,6 +36,21 @@ vi.mock("../../utils/useImageAttachment", () => ({
     useImageAttachment: (...args: Parameters<typeof useImageAttachment>) => mockUseImageAttachment.apply(null, args),
 }));
 
+// Mock usePermissions
+import { usePermissions } from "../../utils/usePermissions";
+vi.mock("../../utils/usePermissions", () => ({
+    usePermissions: vi.fn(() => ({
+        canCreateRoom: true,
+        canPerformAction: vi.fn(),
+        canEditOwnMessage: true,
+        canDeleteOwnMessage: true,
+        canAddReaction: true,
+        canRemoveOwnReaction: true,
+        canMentionUsers: true,
+        canSubscribeToRoom: true,
+    })),
+}));
+
 const mockMessage: Message = {
     _id: "msg-1",
     roomId: "room-1",
@@ -629,5 +644,136 @@ describe("MessageBubble", () => {
 
         // Actions should be hidden
         expect(editButton.parentElement?.className).toContain("opacity-0");
+    });
+
+    it("hides edit option when canEditOwnMessage permission is false", () => {
+        vi.mocked(usePermissions).mockReturnValue({
+            canCreateRoom: true,
+            canPerformAction: vi.fn(),
+            canEditOwnMessage: false,
+            canDeleteOwnMessage: true,
+            canAddReaction: true,
+            canRemoveOwnReaction: true,
+            canMentionUsers: true,
+            canSubscribeToRoom: true,
+        });
+
+        render(
+            <MessageBubble
+                {...defaultProps}
+                message={mockMessage}
+                isOwnMessage={true}
+            />
+        );
+
+        // Edit button (pencil) should be missing
+        expect(screen.queryByLabelText("Edit message")).not.toBeInTheDocument();
+
+        // Open menu
+        fireEvent.click(screen.getByLabelText("More options"));
+
+        // Edit menu item should be missing
+        expect(screen.queryByText("Edit message")).not.toBeInTheDocument();
+    });
+
+    it("hides delete option when canDeleteOwnMessage permission is false", () => {
+        vi.mocked(usePermissions).mockReturnValue({
+            canCreateRoom: true,
+            canPerformAction: vi.fn(),
+            canEditOwnMessage: true,
+            canDeleteOwnMessage: false,
+            canAddReaction: true,
+            canRemoveOwnReaction: true,
+            canMentionUsers: true,
+            canSubscribeToRoom: true,
+        });
+
+        render(
+            <MessageBubble
+                {...defaultProps}
+                message={mockMessage}
+                isOwnMessage={true}
+            />
+        );
+
+        // Open menu
+        fireEvent.click(screen.getByLabelText("More options"));
+
+        expect(screen.queryByText("Delete message")).not.toBeInTheDocument();
+    });
+
+    it("hides more options button when both edit and delete permissions are false", () => {
+        vi.mocked(usePermissions).mockReturnValue({
+            canCreateRoom: true,
+            canPerformAction: vi.fn(),
+            canEditOwnMessage: false,
+            canDeleteOwnMessage: false,
+            canAddReaction: true,
+            canRemoveOwnReaction: true,
+            canMentionUsers: true,
+            canSubscribeToRoom: true,
+        });
+
+        render(
+            <MessageBubble
+                {...defaultProps}
+                message={mockMessage}
+                isOwnMessage={true}
+            />
+        );
+
+        expect(screen.queryByLabelText("More options")).not.toBeInTheDocument();
+    });
+
+    it("hides reaction button when canAddReaction permission is false", () => {
+        vi.mocked(usePermissions).mockReturnValue({
+            canCreateRoom: true,
+            canPerformAction: vi.fn(),
+            canEditOwnMessage: true,
+            canDeleteOwnMessage: true,
+            canAddReaction: false,
+            canRemoveOwnReaction: true,
+            canMentionUsers: true,
+            canSubscribeToRoom: true,
+        });
+
+        render(<MessageBubble {...defaultProps} />);
+
+        expect(screen.queryByTestId("quick-reaction")).not.toBeInTheDocument();
+    });
+
+    it("disables reaction removal when canRemoveOwnReaction permission is false", () => {
+        vi.mocked(usePermissions).mockReturnValue({
+            canCreateRoom: true,
+            canPerformAction: vi.fn(),
+            canEditOwnMessage: true,
+            canDeleteOwnMessage: true,
+            canAddReaction: true,
+            canRemoveOwnReaction: false,
+            canMentionUsers: true,
+            canSubscribeToRoom: true,
+        });
+
+        const reactionMessage: Message = {
+            ...mockMessage,
+            reactions: [
+                {
+                    emoji: "👍",
+                    userId: "user-2" // Current user reaction
+                } as Reaction
+            ]
+        };
+
+        render(<MessageBubble {...defaultProps} message={reactionMessage} />);
+
+        // Find button containing the emoji
+        const reactionButton = screen.getByRole("button", { name: /👍/ });
+
+        // It should be disabled or click shouldn't trigger removal
+        // Note: The implementation might just disable the click handler or the button itself
+        // Let's check if the click handler is called
+        fireEvent.click(reactionButton);
+
+        expect(defaultProps.onRemoveReaction).not.toHaveBeenCalled();
     });
 });

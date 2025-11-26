@@ -101,6 +101,13 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
 
     async toggleRoomSubscription(roomId: string) {
       if (!ditto || !userId) return;
+
+      // Check subscribe permission
+      if (!_get().canPerformAction("canSubscribeToRoom")) {
+        console.warn("Permission denied: canSubscribeToRoom is false");
+        return;
+      }
+
       try {
         const user = await _get().findUserById(userId);
         if (!user) return;

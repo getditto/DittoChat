@@ -6,12 +6,15 @@ import { createRoomSlice, RoomSlice } from "./slices/useRooms";
 import { useMemo } from "react";
 import { ChatUserSlice, createChatUserSlice } from "./slices/useChatUser";
 import { MessageSlice, createMessageSlice } from "./slices/useMessages";
+import { RBACSlice, createRBACSlice } from "./slices/useRBAC";
+import { RBACConfig } from "./types/RBAC";
 
 export type DittoConfParams = {
   ditto: Ditto | null;
   userId: string;
   userCollectionKey: string;
   retentionDays?: number;
+  rbacConfig?: RBACConfig;
 };
 
 export type CreateSlice<T> = (
@@ -22,7 +25,8 @@ export type CreateSlice<T> = (
 
 export type ChatStore = RoomSlice &
   ChatUserSlice &
-  MessageSlice & { chatLogout: () => void };
+  MessageSlice &
+  RBACSlice & { chatLogout: () => void };
 
 export let chatStore: StoreApi<ChatStore> | null = null;
 export let chatStoreSub: Function;
@@ -42,6 +46,7 @@ export function useDittoChat(params: DittoConfParams) {
         ...createRoomSlice(set, get, params),
         ...createChatUserSlice(set, get, params),
         ...createMessageSlice(set, get, params),
+        ...createRBACSlice(set, get, params),
         chatLogout: () => {
           const state = get();
           cancelSubscriptionOrObserver(state.roomsSubscription);

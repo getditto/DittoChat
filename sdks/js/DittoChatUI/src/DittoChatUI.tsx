@@ -34,11 +34,13 @@ export default function DittoChatUI({
   userCollectionKey,
   userId,
   theme = "light",
+  rbacConfig,
 }: DittoConfParams & { theme: "light" | "dark" | "auto" }) {
   useDittoChat({
     ditto,
     userCollectionKey,
     userId,
+    rbacConfig,
   });
 
   const [chats, setChats] = useState<Chat[]>([]);

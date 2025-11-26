@@ -410,6 +410,13 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     async createMessage(room: Room, text: string, mentions: Mention[] = []) {
       if (!ditto || !userId) return;
 
+      // Check mention permission if mentions are provided
+      if (mentions.length > 0 && !_get().canPerformAction("canMentionUsers")) {
+        console.warn("Permission denied: canMentionUsers is false");
+        // Create message without mentions
+        mentions = [];
+      }
+
       try {
         const newDoc = await createMessageDocument(room, {
           text,
@@ -421,6 +428,12 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     },
 
     async saveEditedTextMessage(message: Message, room: Room) {
+      // Check edit permission
+      if (!_get().canPerformAction("canEditOwnMessage")) {
+        console.warn("Permission denied: canEditOwnMessage is false");
+        return;
+      }
+
       await archiveAndCreateMessage(message, room, {
         text: message.text,
         largeImageToken: message.largeImageToken || null,
@@ -438,6 +451,12 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       room: Room,
       type: "text" | "image" | "file" = "text",
     ) {
+      // Check delete permission
+      if (!_get().canPerformAction("canDeleteOwnMessage")) {
+        console.warn("Permission denied: canDeleteOwnMessage is false");
+        return;
+      }
+
       const deletedText = {
         text: "[deleted message]",
         image: "[deleted image]",
@@ -579,6 +598,12 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     ) {
       if (!ditto || !userId) return;
 
+      // Check add reaction permission
+      if (!_get().canPerformAction("canAddReaction")) {
+        console.warn("Permission denied: canAddReaction is false");
+        return;
+      }
+
       const roomMessages = _get().messagesByRoom[room._id];
       const messageIndex = roomMessages.findIndex((m) => m.id === message._id);
       if (messageIndex === -1) throw new Error("Message not found");
@@ -594,6 +619,12 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       reaction: Reaction,
     ) {
       if (!ditto || !userId) return;
+
+      // Check remove reaction permission
+      if (!_get().canPerformAction("canRemoveOwnReaction")) {
+        console.warn("Permission denied: canRemoveOwnReaction is false");
+        return;
+      }
 
       const roomMessages = _get().messagesByRoom[room._id];
       const messageIndex = roomMessages.findIndex((m) => m.id === message._id);

@@ -55,6 +55,21 @@ vi.mock("@dittolive/ditto-chat-core", () => ({
     useDittoChatStore: <T,>(selector: (state: ChatStore) => T) => mockUseDittoChatStore(selector),
 }));
 
+// Mock usePermissions
+import { usePermissions } from "../../utils/usePermissions";
+vi.mock("../../utils/usePermissions", () => ({
+    usePermissions: vi.fn(() => ({
+        canCreateRoom: true,
+        canPerformAction: vi.fn(),
+        canEditOwnMessage: true,
+        canDeleteOwnMessage: true,
+        canAddReaction: true,
+        canRemoveOwnReaction: true,
+        canMentionUsers: true,
+        canSubscribeToRoom: true,
+    })),
+}));
+
 // Mock scrollIntoView
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
@@ -657,5 +672,22 @@ describe("ChatView", () => {
 
         // Should not crash even though subscribeToRoom is undefined
         expect(screen.getByText("Subscribe")).toBeInTheDocument();
+    });
+
+    it("hides subscribe button when canSubscribeToRoom permission is false", () => {
+        vi.mocked(usePermissions).mockReturnValue({
+            canCreateRoom: true,
+            canPerformAction: vi.fn(),
+            canEditOwnMessage: true,
+            canDeleteOwnMessage: true,
+            canAddReaction: true,
+            canRemoveOwnReaction: true,
+            canMentionUsers: true,
+            canSubscribeToRoom: false,
+        });
+
+        render(<ChatView {...defaultProps} />);
+
+        expect(screen.queryByText("Subscribe")).not.toBeInTheDocument();
     });
 });

@@ -16,6 +16,7 @@ import {
 } from "@dittolive/ditto-chat-core/dist/types/Message";
 import { useImageAttachment } from "../utils/useImageAttachment";
 import { AttachmentToken } from "@dittolive/ditto";
+import { usePermissions } from "../utils/usePermissions";
 
 interface ChatViewProps {
   chat: Chat;
@@ -25,6 +26,7 @@ interface ChatViewProps {
 function ChatView({ chat, onBack }: ChatViewProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
+  const { canSubscribeToRoom } = usePermissions();
 
   const messages: MessageWithUser[] = useDittoChatStore(
     (state) => state.messagesByRoom[chat.id] || EMPTY_MESSAGES,
@@ -177,7 +179,7 @@ function ChatView({ chat, onBack }: ChatViewProps) {
           <h2 className="text-xl font-semibold">{chatName}</h2>
         </div>
 
-        {room && currentUser && chat.type === "group" && (
+        {room && currentUser && chat.type === "group" && canSubscribeToRoom && (
           <button
             onClick={() => {
               if (toggleRoomSubscription) {

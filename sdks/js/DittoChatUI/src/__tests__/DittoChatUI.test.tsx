@@ -117,11 +117,13 @@ describe("DittoChatUI", () => {
     });
 
     it("initializes ditto chat hook", () => {
-        render(<DittoChatUI {...defaultProps} />);
+        const rbacConfig = { canCreateRoom: false };
+        render(<DittoChatUI {...defaultProps} rbacConfig={rbacConfig} />);
         expect(mockUseDittoChat).toHaveBeenCalledWith({
             ditto: defaultProps.ditto,
             userCollectionKey: defaultProps.userCollectionKey,
             userId: defaultProps.userId,
+            rbacConfig: rbacConfig,
         });
     });
 

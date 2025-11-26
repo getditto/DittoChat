@@ -141,6 +141,30 @@ describe("useRooms Slice", () => {
       expect(result).toBeUndefined();
       expect(mockDitto.store.execute).not.toHaveBeenCalled();
     });
+
+    it("should not create room when canCreateRoom permission is false", async () => {
+      const state = store.getState();
+
+      state.updateRBACConfig({ canCreateRoom: false });
+      expect(state.canPerformAction("canCreateRoom")).toBe(false);
+
+      vi.clearAllMocks();
+
+      const result = await state.createRoom("Test Room");
+
+      expect(result).toBeUndefined();
+      expect(mockDitto.store.execute).not.toHaveBeenCalled();
+    });
+
+    it("should create room when canCreateRoom permission is true (default)", async () => {
+      const state = store.getState();
+
+      expect(state.canPerformAction("canCreateRoom")).toBe(true);
+
+      await state.createRoom("Test Room");
+
+      expect(mockDitto.store.execute).toHaveBeenCalled();
+    });
   });
 
   describe("createDMRoom", () => {

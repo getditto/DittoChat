@@ -27,6 +27,21 @@ vi.mock("@dittolive/ditto-chat-core", () => ({
     useDittoChatStore: vi.fn((selector) => selector({ allUsers: [], currentUser: { _id: "user-1" } })),
 }));
 
+// Mock usePermissions
+import { usePermissions } from "../../utils/usePermissions";
+vi.mock("../../utils/usePermissions", () => ({
+    usePermissions: vi.fn(() => ({
+        canCreateRoom: true,
+        canPerformAction: vi.fn(),
+        canEditOwnMessage: true,
+        canDeleteOwnMessage: true,
+        canAddReaction: true,
+        canRemoveOwnReaction: true,
+        canMentionUsers: true,
+        canSubscribeToRoom: true,
+    })),
+}));
+
 // Mock react-virtualized
 vi.mock("react-virtualized", () => ({
     List: ({ rowRenderer, rowCount }: { rowRenderer: (args: { index: number; key: string; style: React.CSSProperties }) => React.ReactNode; rowCount: number }) => (
@@ -162,5 +177,27 @@ describe("ChatList", () => {
         // Verify the selected chat is marked as selected
         const selectedChat = screen.getByTestId("chat-item-chat-2");
         expect(selectedChat).toHaveAttribute("data-selected", "true");
+    });
+
+    it("hides New Room option when canCreateRoom permission is false", () => {
+        // Mock usePermissions to return false for canCreateRoom
+        vi.mocked(usePermissions).mockReturnValue({
+            canCreateRoom: false,
+            canPerformAction: vi.fn(),
+            canEditOwnMessage: true,
+            canDeleteOwnMessage: true,
+            canAddReaction: true,
+            canRemoveOwnReaction: true,
+            canMentionUsers: true,
+            canSubscribeToRoom: true,
+        });
+
+        render(<ChatList {...defaultProps} />);
+
+        // The dropdown button (chevron down) should not be present
+        expect(screen.queryByTestId("icon-chevron-down")).not.toBeInTheDocument();
+
+        // Consequently, "New Room" option cannot be accessed/seen
+        expect(screen.queryByText("New Room")).not.toBeInTheDocument();
     });
 });

@@ -304,6 +304,47 @@ describe("useChatUser Slice", () => {
       expect(consoleSpy).toHaveBeenCalledWith("Error in findUserById:", expect.any(Error));
       consoleSpy.mockRestore();
     });
+
+    it("should not toggle subscription when canSubscribeToRoom permission is false", async () => {
+      const state = store.getState();
+
+      state.updateRBACConfig({ canSubscribeToRoom: false });
+      expect(state.canPerformAction("canSubscribeToRoom")).toBe(false);
+
+      const roomId = "room-123";
+      const mockUser = {
+        _id: "test-user-id",
+        subscriptions: { "other-room": "2023-01-01" },
+      };
+
+      mockDitto.store.execute.mockResolvedValue({ items: [{ value: mockUser }] });
+
+      vi.clearAllMocks();
+
+      await state.toggleRoomSubscription(roomId);
+
+      expect(mockDitto.store.execute).not.toHaveBeenCalled();
+    });
+
+    it("should toggle subscription when canSubscribeToRoom permission is true (default)", async () => {
+      const state = store.getState();
+
+      expect(state.canPerformAction("canSubscribeToRoom")).toBe(true);
+
+      const roomId = "room-123";
+      const mockUser = {
+        _id: "test-user-id",
+        subscriptions: { "other-room": "2023-01-01" },
+      };
+
+      mockDitto.store.execute.mockResolvedValue({ items: [{ value: mockUser }] });
+
+      vi.clearAllMocks();
+
+      await state.toggleRoomSubscription(roomId);
+
+      expect(mockDitto.store.execute).toHaveBeenCalled();
+    });
   });
 
   describe("Observer callbacks", () => {

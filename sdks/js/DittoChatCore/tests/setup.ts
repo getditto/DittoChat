@@ -4,6 +4,7 @@ import { createStore } from "zustand";
 import { createRoomSlice } from "../src/slices/useRooms";
 import { createChatUserSlice } from "../src/slices/useChatUser";
 import { createMessageSlice } from "../src/slices/useMessages";
+import { createRBACSlice } from "../src/slices/useRBAC";
 import { ChatStore } from "../src/useChat";
 
 // Type for the mock Ditto instance used in tests
@@ -82,6 +83,7 @@ export const createTestStore = (mockDitto: MockDitto | null) => {
     ...createRoomSlice(set, get, params),
     ...createChatUserSlice(set, get, params),
     ...createMessageSlice(set, get, params),
+    ...createRBACSlice(set, get, params),
     chatLogout: vi.fn(), // Mock implementation for tests
   }));
 };

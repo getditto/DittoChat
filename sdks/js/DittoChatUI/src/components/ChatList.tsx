@@ -11,6 +11,7 @@ import { Icons } from "./Icons";
 import { useDittoChatStore } from "@dittolive/ditto-chat-core";
 import { GridCoreProps } from "react-virtualized/dist/es/Grid";
 import { MeasuredCellParent } from "react-virtualized/dist/es/CellMeasurer";
+import { usePermissions } from "../utils/usePermissions";
 
 interface ChatListProps {
   chats: Chat[];
@@ -32,6 +33,7 @@ function ChatList({
   const currentUserId = useDittoChatStore<string>(
     (state) => state.currentUser?._id || "",
   );
+  const { canCreateRoom } = usePermissions();
 
   // search state moved outside for brevity - keep your useState if needed
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -110,19 +112,21 @@ function ChatList({
           <div className="flex w-full rounded-lg shadow-sm">
             <button
               onClick={() => onNewMessage("newMessage")}
-              className="w-full bg-(--primary-color) text-(--text-on-primary) font-semibold py-3 rounded-l-xl hover:bg-(--primary-color-hover) transition-colors"
+              className={`w-full bg-(--primary-color) text-(--text-on-primary) font-semibold py-3 ${canCreateRoom ? 'rounded-l-xl' : 'rounded-xl'} hover:bg-(--primary-color-hover) transition-colors`}
             >
               New Message
             </button>
-            <button
-              onClick={() => setIsDropdownOpen((prev) => !prev)}
-              aria-haspopup="true"
-              aria-expanded={isDropdownOpen}
-              className="relative inline-flex items-center px-3 py-3 bg-(--primary-color) rounded-r-xl text-(--text-on-primary) hover:bg-(--primary-color-hover) focus:z-10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-(--primary-color-focus) border-l border-white/20 transition-colors"
-            >
-              <span className="sr-only">Open options</span>
-              <Icons.chevronDown className="h-5 w-5" aria-hidden="true" />
-            </button>
+            {canCreateRoom && (
+              <button
+                onClick={() => setIsDropdownOpen((prev) => !prev)}
+                aria-haspopup="true"
+                aria-expanded={isDropdownOpen}
+                className="relative inline-flex items-center px-3 py-3 bg-(--primary-color) rounded-r-xl text-(--text-on-primary) hover:bg-(--primary-color-hover) focus:z-10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-(--primary-color-focus) border-l border-white/20 transition-colors"
+              >
+                <span className="sr-only">Open options</span>
+                <Icons.chevronDown className="h-5 w-5" aria-hidden="true" />
+              </button>
+            )}
           </div>
           {isDropdownOpen && (
             <div className="origin-top absolute mt-2 w-full rounded-md shadow-lg bg-(--surface-color) ring-1 ring-black ring-opacity-5 focus:outline-none z-10">

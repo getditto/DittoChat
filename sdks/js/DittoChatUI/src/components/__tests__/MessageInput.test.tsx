@@ -25,6 +25,21 @@ vi.mock("@dittolive/ditto-chat-core", () => ({
     useDittoChatStore: <T,>(selector: (state: ChatStore) => T) => mockUseDittoChatStore(selector),
 }));
 
+// Mock usePermissions
+import { usePermissions } from "../../utils/usePermissions";
+vi.mock("../../utils/usePermissions", () => ({
+    usePermissions: vi.fn(() => ({
+        canCreateRoom: true,
+        canPerformAction: vi.fn(),
+        canEditOwnMessage: true,
+        canDeleteOwnMessage: true,
+        canAddReaction: true,
+        canRemoveOwnReaction: true,
+        canMentionUsers: true,
+        canSubscribeToRoom: true,
+    })),
+}));
+
 // Mock scrollIntoView
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
@@ -298,5 +313,28 @@ describe("MessageInput", () => {
 
         fireEvent.mouseDown(screen.getByTestId("outside"));
         expect(screen.queryByText("Photo")).not.toBeInTheDocument();
+    });
+
+    it("disables mentions when canMentionUsers permission is false", () => {
+        vi.mocked(usePermissions).mockReturnValue({
+            canCreateRoom: true,
+            canPerformAction: vi.fn(),
+            canEditOwnMessage: true,
+            canDeleteOwnMessage: true,
+            canAddReaction: true,
+            canRemoveOwnReaction: true,
+            canMentionUsers: false,
+            canSubscribeToRoom: true,
+        });
+
+        const mockUsers = [{ _id: "user-2", name: "Bob" }];
+        mockUseDittoChatStore.mockImplementation((selector) => selector({ allUsers: mockUsers } as unknown as ChatStore));
+
+        render(<MessageInput {...defaultProps} />);
+        const input = screen.getByPlaceholderText("Message...");
+        fireEvent.change(input, { target: { value: "@" } });
+
+        // Should not show user list
+        expect(screen.queryByText("Bob")).not.toBeInTheDocument();
     });
 });

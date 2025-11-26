@@ -18,6 +18,7 @@ const DittoChatUIWrapper = () => {
         // userId="690342270008f55100255f92" // update actual user id
         userId="6903511900bd187500bb5c12" // update actual user id
         userCollectionKey="users"
+        rbacConfig={{ canMentionUsers: true, canSubscribeToRoom: true, canCreateRoom: true }}
       />
     </div>
   );
@@ -47,7 +48,7 @@ function App() {
         ditto.startSync();
         return ditto;
       }}
-      /* initOptions={initOptions} */
+    /* initOptions={initOptions} */
     >
       {({ loading, error }) => {
         if (loading) return <p>Loading</p>;

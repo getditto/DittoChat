@@ -101,6 +101,48 @@ describe("useMessages Slice", () => {
 
       expect(mockDitto.store.execute).not.toHaveBeenCalled();
     });
+
+    it("should strip mentions when canMentionUsers permission is false", async () => {
+      const state = store.getState();
+
+      state.updateRBACConfig({ canMentionUsers: false });
+      expect(state.canPerformAction("canMentionUsers")).toBe(false);
+
+      const mentions = [
+        { userId: "user-2", displayName: "User 2", startIndex: 6, endIndex: 12 },
+      ];
+
+      vi.clearAllMocks();
+
+      await state.createMessage(mockRoom, "Hello @User2", mentions);
+
+      // Verify execute was called but mentions were stripped
+      expect(mockDitto.store.execute).toHaveBeenCalled();
+      const callArgs = mockDitto.store.execute.mock.calls[1]; // Second call is the INSERT
+      expect(callArgs[1].newDoc.mentions).toEqual([]);
+    });
+
+    it("should allow mentions when canMentionUsers permission is true (default)", async () => {
+      const state = store.getState();
+
+      expect(state.canPerformAction("canMentionUsers")).toBe(true);
+
+      const mentions = [
+        { userId: "user-2", displayName: "User 2", startIndex: 6, endIndex: 12 },
+      ];
+
+      store.setState({
+        allUsers: [
+          { _id: "user-2", name: "User 2", subscriptions: {}, mentions: {} },
+        ],
+      });
+
+      vi.clearAllMocks();
+
+      await state.createMessage(mockRoom, "Hello @User2", mentions);
+
+      expect(mockDitto.store.execute).toHaveBeenCalled();
+    });
   });
 
   describe("saveDeletedMessage", () => {
@@ -178,6 +220,49 @@ describe("useMessages Slice", () => {
         })
       );
     });
+
+    it("should not delete message when canDeleteOwnMessage permission is false", async () => {
+      const state = store.getState();
+
+      state.updateRBACConfig({ canDeleteOwnMessage: false });
+      expect(state.canPerformAction("canDeleteOwnMessage")).toBe(false);
+
+      const message = {
+        _id: "msg-1",
+        text: "Message to delete",
+        createdOn: "2023-01-01",
+        roomId: mockRoom._id,
+        userId: "test-user-id",
+        isArchived: false,
+      };
+
+      vi.clearAllMocks();
+
+      await state.saveDeletedMessage(message as Message, mockRoom);
+
+      expect(mockDitto.store.execute).not.toHaveBeenCalled();
+    });
+
+    it("should delete message when canDeleteOwnMessage permission is true (default)", async () => {
+      const state = store.getState();
+
+      expect(state.canPerformAction("canDeleteOwnMessage")).toBe(true);
+
+      const message = {
+        _id: "msg-1",
+        text: "Message to delete",
+        createdOn: "2023-01-01",
+        roomId: mockRoom._id,
+        userId: "test-user-id",
+        isArchived: false,
+      };
+
+      vi.clearAllMocks();
+
+      await state.saveDeletedMessage(message as Message, mockRoom);
+
+      expect(mockDitto.store.execute).toHaveBeenCalled();
+    });
   });
 
   describe("saveEditedTextMessage", () => {
@@ -208,6 +293,49 @@ describe("useMessages Slice", () => {
           }),
         })
       );
+    });
+
+    it("should not edit message when canEditOwnMessage permission is false", async () => {
+      const state = store.getState();
+
+      state.updateRBACConfig({ canEditOwnMessage: false });
+      expect(state.canPerformAction("canEditOwnMessage")).toBe(false);
+
+      const originalMsg = {
+        _id: "msg-edit-1",
+        text: "Original Text",
+        createdOn: "2023-01-01",
+        roomId: "room-1",
+        userId: "test-user-id",
+        isArchived: false,
+      };
+
+      vi.clearAllMocks();
+
+      await state.saveEditedTextMessage(originalMsg as Message, mockRoom);
+
+      expect(mockDitto.store.execute).not.toHaveBeenCalled();
+    });
+
+    it("should edit message when canEditOwnMessage permission is true (default)", async () => {
+      const state = store.getState();
+
+      expect(state.canPerformAction("canEditOwnMessage")).toBe(true);
+
+      const originalMsg = {
+        _id: "msg-edit-1",
+        text: "Original Text",
+        createdOn: "2023-01-01",
+        roomId: "room-1",
+        userId: "test-user-id",
+        isArchived: false,
+      };
+
+      vi.clearAllMocks();
+
+      await state.saveEditedTextMessage(originalMsg as Message, mockRoom);
+
+      expect(mockDitto.store.execute).toHaveBeenCalled();
     });
   });
 
@@ -342,6 +470,44 @@ describe("useMessages Slice", () => {
 
         expect(mockDitto.store.execute).not.toHaveBeenCalled();
       });
+
+      it("should not add reaction when canAddReaction permission is false", async () => {
+        const state = store.getState();
+
+        state.updateRBACConfig({ canAddReaction: false });
+        expect(state.canPerformAction("canAddReaction")).toBe(false);
+
+        const messageId = "msg-react-1";
+        const initialMessage = {
+          _id: messageId,
+          text: "React to me",
+          userId: "user-1",
+          roomId: mockRoom._id,
+          createdOn: new Date().toISOString(),
+          isArchived: false,
+          reactions: [],
+        };
+
+        store.setState((state) => ({
+          messagesByRoom: {
+            [mockRoom._id]: [
+              {
+                message: initialMessage as Message,
+                id: messageId,
+                user: null,
+              },
+            ],
+          },
+        }));
+
+        const reaction = { userId: "test-user-id", emoji: "👍" };
+
+        vi.clearAllMocks();
+
+        await state.addReactionToMessage(initialMessage as Message, mockRoom, reaction);
+
+        expect(mockDitto.store.execute).not.toHaveBeenCalled();
+      });
     });
 
     describe("removeReactionFromMessage", () => {
@@ -404,6 +570,45 @@ describe("useMessages Slice", () => {
         const reaction = { userId: "user-1", emoji: "👍" };
 
         await storeWithoutDitto.getState().removeReactionFromMessage(message as Message, mockRoom, reaction);
+
+        expect(mockDitto.store.execute).not.toHaveBeenCalled();
+      });
+
+      it("should not remove reaction when canRemoveOwnReaction permission is false", async () => {
+        const state = store.getState();
+
+        state.updateRBACConfig({ canRemoveOwnReaction: false });
+        expect(state.canPerformAction("canRemoveOwnReaction")).toBe(false);
+
+        const messageId = "msg-react-rem";
+        const reactionToRemove = { userId: "test-user-id", emoji: "👍" };
+        const reactionToKeep = { userId: "other-user", emoji: "❤️" };
+
+        const initialMessage = {
+          _id: messageId,
+          text: "Reacted Msg",
+          userId: "user-1",
+          roomId: mockRoom._id,
+          createdOn: new Date().toISOString(),
+          isArchived: false,
+          reactions: [reactionToRemove, reactionToKeep],
+        };
+
+        store.setState((state) => ({
+          messagesByRoom: {
+            [mockRoom._id]: [
+              { message: initialMessage as Message, id: messageId, user: null },
+            ],
+          },
+        }));
+
+        vi.clearAllMocks();
+
+        await state.removeReactionFromMessage(
+          initialMessage as Message,
+          mockRoom,
+          reactionToRemove
+        );
 
         expect(mockDitto.store.execute).not.toHaveBeenCalled();
       });
