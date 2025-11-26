@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useDittoChatStore } from "@dittolive/ditto-chat-core";
 import { useToast } from "./ToastProvider";
+import { useBrowserNotifications } from "../hooks/useBrowserNotifications";
 
 interface ChatNotificationObserverProps {
   activeRoomId?: string | number | null;
@@ -14,6 +15,12 @@ export const ChatNotificationObserver: React.FC<
   );
   const users = useDittoChatStore((state) => state.allUsers);
   const { addToast } = useToast();
+  const {
+    permission,
+    isSupported,
+    requestPermission,
+    showNotification,
+  } = useBrowserNotifications();
 
   useEffect(() => {
     registerNotificationHandler((messageWithUser, room) => {
@@ -33,12 +40,51 @@ export const ChatNotificationObserver: React.FC<
 
       const preview = messageWithUser.message.text
         ? messageWithUser.message.text.substring(0, 30) +
-          (messageWithUser.message.text.length > 30 ? "..." : "")
+        (messageWithUser.message.text.length > 30 ? "..." : "")
         : "Sent an attachment";
 
-      addToast(messageWithUser.id, `${title}: ${preview}`, "info");
+      // Try browser notifications first
+      if (isSupported) {
+        if (permission === "default") {
+          requestPermission().then((newPermission) => {
+            if (newPermission === "granted") {
+              showNotification({
+                title,
+                body: preview,
+                tag: room._id,
+                data: { roomId: room._id },
+              });
+            } else {
+              // Fall back to toast
+              addToast(messageWithUser.id, `${title}: ${preview}`, "info");
+            }
+          });
+        } else if (permission === "granted") {
+          showNotification({
+            title,
+            body: preview,
+            tag: room._id,
+            data: { roomId: room._id },
+          });
+        } else {
+          // Permission denied, fall back to toast
+          addToast(messageWithUser.id, `${title}: ${preview}`, "info");
+        }
+      } else {
+        // Browser notifications not supported, use toast
+        addToast(messageWithUser.id, `${title}: ${preview}`, "info");
+      }
     });
-  }, [registerNotificationHandler, addToast, activeRoomId, users]);
+  }, [
+    registerNotificationHandler,
+    addToast,
+    activeRoomId,
+    users,
+    permission,
+    isSupported,
+    requestPermission,
+    showNotification,
+  ]);
 
   return null;
 };

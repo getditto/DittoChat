@@ -45,6 +45,7 @@ const DittoChatUIWrapper = () => {
       >
         {users.map((user) => (
           <button
+            key={user.value._id}
             style={{
               background: "#ff4d00",
               color: "#fff",
@@ -52,6 +53,8 @@ const DittoChatUIWrapper = () => {
               height: "50px",
               padding: "10px",
               borderRadius: "20px",
+              border: "none",
+              cursor: "pointer",
             }}
             onClick={() => setUserId(user.value._id)}
           >
@@ -87,7 +90,6 @@ function App() {
         ditto.startSync();
         return ditto;
       }}
-      /* initOptions={initOptions} */
     >
       {({ loading, error }) => {
         if (loading) return <p>Loading</p>;
