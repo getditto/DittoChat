@@ -134,7 +134,7 @@ function MessageBubble({
   const [isActionsVisible, setIsActionsVisible] = useState(false);
   const [reactions, setReactions] = useState<MessageReaction[]>([]);
 
-  const hasImage = message.thumbnailImageToken || message.largeImageToken;
+  const hasImage = !!(message.thumbnailImageToken || message.largeImageToken);
   const hasFile = !!message.fileAttachmentToken;
   const hasText =
     !!message.text &&
@@ -345,7 +345,7 @@ function MessageBubble({
 
           {hasText && (
             <div className={`px-4 py-2 rounded-xl ${bubbleClasses}`}>
-              <p className="break-words">
+              <p className="break-words whitespace-pre-wrap">
                 {message.isDeleted ? (
                   <span className="italic text-(--text-color-faint)">
                     [deleted message]
@@ -368,7 +368,7 @@ function MessageBubble({
                 onStartEdit(message);
                 setIsActionsVisible(false);
               }}
-              disabled={message.isDeleted}
+              disabled={message.isDeleted || hasImage || hasFile}
               className="p-1 rounded-full hover:bg-(--secondary-bg-hover) text-(--text-color-lightest) disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Edit message"
             >
@@ -377,14 +377,15 @@ function MessageBubble({
             <div className="relative">
               <button
                 onClick={() => setIsMenuOpen((p) => !p)}
-                className="p-1 rounded-full hover:bg-[rgb(var(--secondary-bg-hover))] text-[rgb(var(--text-color-lightest))]"
+                disabled={message.isDeleted}
+                className="p-1 rounded-full hover:bg-[rgb(var(--secondary-bg-hover))] text-[rgb(var(--text-color-lightest))] disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="More options"
               >
                 <Icons.moreHorizontal className="w-5 h-5" />
               </button>
               {isMenuOpen && (
                 <div className="absolute top-full mt-2 right-0 bg-(--surface-color) rounded-lg shadow-lg border border-(--border-color) w-40 z-10 py-1">
-                  {!message.isDeleted && (
+                  {!message.isDeleted && !hasImage && !hasFile && (
                     <button
                       onClick={() => {
                         onStartEdit(message);

@@ -500,10 +500,11 @@ describe("MessageBubble", () => {
         );
 
         const moreButton = screen.getByLabelText("More options");
-        fireEvent.click(moreButton);
+        expect(moreButton).toBeDisabled();
 
-        expect(screen.queryByText("Edit message")).not.toBeInTheDocument();
-        expect(screen.getByText("Delete message")).toBeInTheDocument();
+        // Menu should not be accessible since button is disabled
+        fireEvent.click(moreButton);
+        expect(screen.queryByText("Delete message")).not.toBeInTheDocument();
     });
 
     it("shows thumbnail progress", () => {

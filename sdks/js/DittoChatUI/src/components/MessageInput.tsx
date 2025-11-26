@@ -498,7 +498,7 @@ function MessageInput({
               onClick={() => fileInputRef.current?.click()}
               className="w-full text-left px-4 py-2 text-sm hover:bg-[rgb(var(--secondary-bg))] flex items-center space-x-3"
             >
-              <Icons.image className="w-5 h-5 text-[rgb(var(--text-color-lightest))]" />
+              <Icons.image className="w-5 h-5 text-(--text-color-lightest)" />
               <span>Photo</span>
             </button>
             <button
