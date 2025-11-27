@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ChatNotificationObserver } from "../ChatNotificationObserver";
+import ChatNotificationObserver from "../ChatNotificationObserver";
 import type { ChatStore } from "@dittolive/ditto-chat-core";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import type MessageWithUser from "@dittolive/ditto-chat-core/dist/types/MessageWithUser";

@@ -16,7 +16,7 @@ import ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import Room from "@dittolive/ditto-chat-core/dist/types/Room";
 import Message from "@dittolive/ditto-chat-core/dist/types/Message";
 import NewRoomModal from "./components/NewRoomModal";
-import { ChatNotificationObserver } from "./components/ChatNotificationObserver";
+import ChatNotificationObserver from "./components/ChatNotificationObserver";
 import ChatListSkeleton from "./components/ChatListSkeleton";
 
 const getSystemTheme = () => {

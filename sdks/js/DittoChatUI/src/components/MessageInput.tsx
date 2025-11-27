@@ -6,7 +6,7 @@ import ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import Avatar from "./Avatar";
 import { Mention } from "@dittolive/ditto-chat-core/dist/types/Message";
 import { clsx } from "clsx";
-import { useImageAttachment } from "../utils/useImageAttachment";
+import { useImageAttachment } from "../hooks/useImageAttachment";
 import { AttachmentToken } from "@dittolive/ditto";
 
 interface UserMentionItemProps {

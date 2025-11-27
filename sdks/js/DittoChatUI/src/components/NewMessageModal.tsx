@@ -3,7 +3,7 @@ import { Icons } from "./Icons";
 import { useDittoChatStore } from "@dittolive/ditto-chat-core";
 import ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import Avatar from "./Avatar";
-import { useImageAttachment } from "../utils/useImageAttachment";
+import { useImageAttachment } from "../hooks/useImageAttachment";
 import { AttachmentToken } from "@dittolive/ditto";
 
 interface NewMessageModalProps {

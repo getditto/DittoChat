@@ -3,7 +3,7 @@ import { Icons } from "./Icons";
 import type Message from "@dittolive/ditto-chat-core/dist/types/Message";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import { formatDate } from "../utils";
-import { useImageAttachment } from "../utils/useImageAttachment";
+import { useImageAttachment } from "../hooks/useImageAttachment";
 import { AttachmentToken } from "@dittolive/ditto";
 import { EmojiClickData } from "emoji-picker-react";
 import QuickReaction from "./QuickReaction";
@@ -41,10 +41,13 @@ export interface MessageBubbleProps {
   ) => void;
 }
 
-const FormattedMessage: React.FC<{ message: Message; isOwn: boolean }> = ({
+function FormattedMessage({
   message,
   isOwn,
-}) => {
+}: {
+  message: Message;
+  isOwn: boolean;
+}) {
   const { text, mentions } = message;
 
   if (!mentions || mentions.length === 0) {

@@ -9,6 +9,7 @@ import { EmojiClickData } from "emoji-picker-react";
 import type { ChatStore } from "@dittolive/ditto-chat-core";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import type Room from "@dittolive/ditto-chat-core/dist/types/Room";
+import type { AttachmentToken, Attachment } from "@dittolive/ditto";
 
 // Mock dependencies
 vi.mock("../MessageBubble", () => ({
@@ -380,7 +381,7 @@ describe("ChatView", () => {
                 isDeleted: false,
                 isEdited: false,
                 isArchived: false,
-                fileAttachmentToken: { id: "file-token-123", len: 0, metadata: {} } as any,
+                fileAttachmentToken: { id: "file-token-123", len: 0, metadata: {}, idBytes: new Uint8Array(), token: "file-token-123" } as unknown as Attachment,
             },
             user: {
                 _id: "user-1",
@@ -427,8 +428,8 @@ describe("ChatView", () => {
                 isDeleted: false,
                 isEdited: false,
                 isArchived: false,
-                thumbnailImageToken: { id: "thumb-token", len: 0, metadata: {} } as any,
-                largeImageToken: { id: "large-token", len: 0, metadata: {} } as any,
+                thumbnailImageToken: { id: "thumb-token", len: 0, metadata: {}, idBytes: new Uint8Array(), token: "thumb-token" } as unknown as Attachment,
+                largeImageToken: { id: "large-token", len: 0, metadata: {}, idBytes: new Uint8Array(), token: "large-token" } as unknown as Attachment,
             },
             user: {
                 _id: "user-1",

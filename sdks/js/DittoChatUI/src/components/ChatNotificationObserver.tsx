@@ -7,9 +7,7 @@ interface ChatNotificationObserverProps {
   activeRoomId?: string | number | null;
 }
 
-export const ChatNotificationObserver: React.FC<
-  ChatNotificationObserverProps
-> = ({ activeRoomId }) => {
+function ChatNotificationObserver({ activeRoomId }: ChatNotificationObserverProps) {
   const registerNotificationHandler = useDittoChatStore(
     (state) => state.registerNotificationHandler,
   );
@@ -88,3 +86,5 @@ export const ChatNotificationObserver: React.FC<
 
   return null;
 };
+
+export default ChatNotificationObserver;
