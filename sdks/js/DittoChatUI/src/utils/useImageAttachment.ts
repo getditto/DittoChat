@@ -104,6 +104,15 @@ export function useImageAttachment({
 
   // Auto-fetch on mount if enabled
   useEffect(() => {
+    // If no token, clear the current state immediately
+    if (!token) {
+      setImageUrl(null);
+      setError(null);
+      setProgress(0);
+      setIsLoading(false);
+      return;
+    }
+
     if (autoFetch && token) {
       // Reset state when token changes
       setImageUrl(null);
