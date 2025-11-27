@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Icons } from "./Icons";
 import type Message from "@dittolive/ditto-chat-core/dist/types/Message";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
@@ -102,15 +102,30 @@ function MessageBubble({
   onAddReaction,
   onRemoveReaction,
 }: MessageBubbleProps) {
+
+  const thumbnailToken = useMemo(
+    () =>
+      message.thumbnailImageToken
+        ? (message.thumbnailImageToken as unknown as AttachmentToken)
+        : null,
+    [message.thumbnailImageToken?.id]
+  );
+
+  const largeToken = useMemo(
+    () =>
+      message.largeImageToken
+        ? (message.largeImageToken as unknown as AttachmentToken)
+        : null,
+    [message.largeImageToken?.id]
+  );
+
   const {
     imageUrl: thumbnailUrl,
     progress: thumbnailProgress,
     isLoading: isLoadingThumbnail,
     error: thumbnailError,
   } = useImageAttachment({
-    token: message.thumbnailImageToken
-      ? (message.thumbnailImageToken as unknown as AttachmentToken)
-      : null,
+    token: thumbnailToken,
     fetchAttachment,
     autoFetch: true,
   });
@@ -122,9 +137,7 @@ function MessageBubble({
     error: largeImageError,
     fetchImage: fetchLargeImage,
   } = useImageAttachment({
-    token: message.largeImageToken
-      ? (message.largeImageToken as unknown as AttachmentToken)
-      : null,
+    token: largeToken,
     fetchAttachment,
     autoFetch: false,
   });
