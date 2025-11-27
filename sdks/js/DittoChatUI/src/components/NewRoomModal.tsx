@@ -17,7 +17,7 @@ function NewRoomModal({ onClose, onCreateRoom }: NewRoomModalProps) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-(--surface-color)">
       <header className="flex items-center justify-between p-4 border-b border-(--border-color) flex-shrink-0">
         <h1 className="text-xl font-bold">Create New Room</h1>
         <button

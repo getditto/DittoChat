@@ -16,9 +16,9 @@ const toastConfig = {
   },
   info: {
     icon: Icons.info,
-    bgClass: "bg-(--edit-bg)",
-    textClass: "text-(--edit-text)",
-    iconClass: "text-(--info-icon-color)",
+    bgClass: "bg-(--primary-color-lighter)",
+    textClass: "text-(--primary-color-dark-text)",
+    iconClass: "text-(--primary-color)",
   },
   error: {
     icon: Icons.x,

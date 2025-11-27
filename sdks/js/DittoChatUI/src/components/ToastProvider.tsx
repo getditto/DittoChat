@@ -2,13 +2,17 @@ import React, { createContext, useContext, useState, useCallback } from "react";
 import Toast from "./Toast";
 
 type ToastMessage = {
-  id: number;
+  id: string;
   message: string;
   type: "success" | "info" | "error";
 };
 
 type ToastContextType = {
-  addToast: (message: string, type?: ToastMessage["type"]) => void;
+  addToast: (
+    id: string | undefined,
+    message: string,
+    type?: ToastMessage["type"]
+  ) => void;
 };
 
 const ToastContext = createContext<ToastContextType | null>(null);
@@ -25,14 +29,25 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const addToast = useCallback(
-    (message: string, type: ToastMessage["type"] = "info") => {
-      const id = Date.now();
-      setToasts((prevToasts) => [...prevToasts, { id, message, type }]);
+    (
+      id: string | undefined = Date.now().toString(),
+      message: string,
+      type: ToastMessage["type"] = "info"
+    ) => {
+      setToasts((prevToasts) => {
+        const isToastAlreadyDisplayed = prevToasts.some(
+          (toast) => toast.id === id
+        );
+        if (!isToastAlreadyDisplayed) {
+          return [...prevToasts, { id, message, type }];
+        }
+        return prevToasts;
+      });
     },
-    [],
+    []
   );
 
-  const removeToast = useCallback((id: number) => {
+  const removeToast = useCallback((id: string) => {
     setToasts((prevToasts) => prevToasts.filter((toast) => toast.id !== id));
   }, []);
 
@@ -40,9 +55,9 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
     <ToastContext.Provider value={{ addToast }}>
       {children}
       <div className="fixed top-4 right-4 z-50 space-y-2 w-full max-w-sm">
-        {toasts.map((toast) => (
+        {toasts.map((toast, index) => (
           <Toast
-            key={toast.id}
+            key={`${toast.id} - ${index}`}
             message={toast.message}
             type={toast.type}
             onClose={() => removeToast(toast.id)}

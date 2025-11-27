@@ -3,6 +3,7 @@ import ChatUser from "../types/ChatUser";
 import { CreateSlice, DittoConfParams } from "../useChat";
 
 export interface ChatUserSlice {
+  usersLoading: boolean;
   currentUser: ChatUser | null;
   userObserver: StoreObserver | null;
   userSubscription: SyncSubscription | null;
@@ -12,12 +13,8 @@ export interface ChatUserSlice {
   addUser: (user: Omit<ChatUser, "_id"> & { _id?: string }) => Promise<void>;
   updateUser: (user: Partial<ChatUser> & { _id: string }) => Promise<void>;
   findUserById: (userId: string) => Promise<ChatUser | null>;
-
-  // TODO: Subcription Rooms
-
-  // subscribeToRoom: (roomId: string) => Promise<void>;
-  // markRoomAsRead: (roomId: string) => Promise<void>;
-  // unsubscribeFromRoom: (roomId: string) => Promise<void>;
+  markRoomAsRead: (roomId: string) => Promise<void>;
+  toggleRoomSubscription: (roomId: string) => Promise<void>;
 }
 
 export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
@@ -26,6 +23,7 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
   { ditto, userId, userCollectionKey }: DittoConfParams,
 ) => {
   const store: ChatUserSlice = {
+    usersLoading: true,
     currentUser: null,
     userObserver: null,
     userSubscription: null,
@@ -47,7 +45,6 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
       if (!ditto) return;
       if (!_id) return;
       try {
-        // Fetch the current user
         const current = await _get().findUserById(_id);
         if (!current) return;
         const updated = { ...current, ...patch };
@@ -73,56 +70,59 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
       }
     },
 
-    // TODO: Subcription Rooms
+    async markRoomAsRead(roomId: string) {
+      if (!ditto || !userId) return;
+      try {
+        let hasChanges = false;
+        const user = await _get().findUserById(userId);
+        if (!user) return;
+        const subscriptions: Record<string, string | null> =
+          user.subscriptions || {};
+        const mentions: Record<string, string[]> = user.mentions || {};
 
-    //   async subscribeToRoom(roomId: string) {
-    //     if (!ditto || !userId) return;
-    //     try {
-    //       const user = await _get().findUserById(userId);
-    //       if (!user) return;
+        // Only mark as read if already subscribed
+        if (subscriptions[roomId]) {
+          const now = new Date().toISOString();
+          subscriptions[roomId] = now;
+          hasChanges = true;
+        }
+        // Clear mentions if room is marked as read
+        if (mentions[roomId]) {
+          mentions[roomId] = [];
+          hasChanges = true;
+        }
+        if (hasChanges) {
+          await _get().updateUser({ _id: userId, subscriptions, mentions });
+        }
+      } catch (err) {
+        console.error("Error in markRoomAsRead:", err);
+      }
+    },
 
-    //       // Only subscribe if not already subscribed
-    //       if (!user.subscriptions || !user.subscriptions[roomId]) {
-    //         const now = new Date().toISOString();
-    //         const subscriptions = { ...user.subscriptions, [roomId]: now };
-    //         await _get().updateUser({ _id: userId, subscriptions });
-    //       }
-    //     } catch (err) {
-    //       console.error("Error in subscribeToRoom:", err);
-    //     }
-    //   },
+    async toggleRoomSubscription(roomId: string) {
+      if (!ditto || !userId) return;
+      try {
+        const user = await _get().findUserById(userId);
+        if (!user) return;
 
-    //   async markRoomAsRead(roomId: string) {
-    //     if (!ditto || !userId) return;
-    //     try {
-    //       const user = await _get().findUserById(userId);
-    //       if (!user) return;
+        const subscriptions = { ...user.subscriptions };
+        // Toggle: if subscribed (key exists AND value is not null), unsubscribe; otherwise subscribe
+        if (roomId in subscriptions && subscriptions[roomId] !== null) {
+          subscriptions[roomId] = null;
+        } else {
+          const now = new Date().toISOString();
+          subscriptions[roomId] = now;
+        }
 
-    //       // Only mark as read if already subscribed
-    //       if (user.subscriptions && user.subscriptions[roomId]) {
-    //         const now = new Date().toISOString();
-    //         const subscriptions = { ...user.subscriptions, [roomId]: now };
-    //         await _get().updateUser({ _id: userId, subscriptions });
-    //       }
-    //     } catch (err) {
-    //       console.error("Error in markRoomAsRead:", err);
-    //     }
-    //   },
+        await _get().updateUser({
+          _id: userId,
+          subscriptions,
+        });
+      } catch (err) {
+        console.error("Error in toggleRoomSubscription:", err);
+      }
 
-    //   // Add an unsubscribe function as well
-    //   async unsubscribeFromRoom(roomId: string) {
-    //     if (!ditto || !userId) return;
-    //     try {
-    //       const user = await _get().findUserById(userId);
-    //       if (!user || !user.subscriptions) return;
-
-    //       const subscriptions = { ...user.subscriptions };
-    //       delete subscriptions[roomId];
-    //       await _get().updateUser({ _id: userId, subscriptions });
-    //     } catch (err) {
-    //       console.error("Error in unsubscribeFromRoom:", err);
-    //     }
-    //   },
+    },
   };
 
   if (ditto) {
@@ -149,7 +149,10 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
     store.allUsersObserver = ditto.store.registerObserver<ChatUser>(
       allUsersQuery,
       (result) => {
-        _set({ allUsers: result.items.map((doc) => doc.value) });
+        _set({
+          allUsers: result.items.map((doc) => doc.value),
+          usersLoading: false,
+        });
       },
     );
   }

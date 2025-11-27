@@ -1,9 +1,14 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useImageAttachment } from "../hooks/useImageAttachment";
+import { AttachmentToken } from "@dittolive/ditto";
 import type { Chat } from "../types";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import { formatDate } from "../utils";
 import clsx from "clsx";
 import Avatar from "./Avatar";
+import { useDittoChatStore } from "@dittolive/ditto-chat-core";
+import type MessageWithUser from "@dittolive/ditto-chat-core/dist/types/MessageWithUser";
+import { EMPTY_MESSAGES } from "../constants";
 
 interface ChatListItemProps {
   chat: Chat;
@@ -21,55 +26,70 @@ function ChatListItem({
   onSelect,
 }: ChatListItemProps) {
   const lastMessage = chat.messages[chat.messages.length - 1];
+  const [unreadCount, setUnreadCount] = React.useState(0);
+
+  const fetchAttachment = useDittoChatStore((state) => state.fetchAttachment);
 
   let chatName = chat.name;
   let otherUserIsActive = false;
+  let otherUserId: string | undefined;
 
   if (chat.type === "dm") {
-    // TODO: implement DM user avathar
     const otherUser = chat.participants.find(
-      (user) => user._id !== currentUserId,
+      (user) => user._id !== currentUserId
     );
+    otherUserId = otherUser?._id;
 
     chatName = otherUser?.name || "Unknown User";
     //TODO: Implement user status
     otherUserIsActive = false;
   }
 
+  // Only lookup user and profile picture for DM chats
+  const otherChatUser =
+    chat.type === "dm" && otherUserId
+      ? users.find((u) => u._id === otherUserId)
+      : undefined;
+  const profilePictureThumbnail = otherChatUser?.profilePictureThumbnail;
+
+  const { imageUrl: avatarUrl } = useImageAttachment({
+    token: profilePictureThumbnail
+      ? (profilePictureThumbnail as unknown as AttachmentToken)
+      : null,
+    fetchAttachment,
+    autoFetch: true,
+  });
+
   const lastMessageSender = users.find((u) => u._id === lastMessage?.userId);
   const senderName =
     lastMessage?.userId === currentUserId
       ? "You"
       : lastMessageSender?.name.split(" ")[0];
-  // const currentUser = useDittoChatStore((state) => state.currentUser);
-  // const messagesForRoom = useDittoChatStore(
-  //   (state: any) => state.messagesByRoom?.[String(chat.id)] || [],
-  // );
 
-  // Only show unread badges for rooms the user explicitly subscribed to
-  // const isSubscribed = !!(currentUser?.subscriptions && String(chat.id) in currentUser.subscriptions);
+  const currentUser: ChatUser | null = useDittoChatStore(
+    (state) => state.currentUser
+  );
+  const messages: MessageWithUser[] = useDittoChatStore(
+    (state) => state.messagesByRoom[chat.id] || EMPTY_MESSAGES
+  );
 
-  // const subscribedAt = currentUser?.subscriptions?.[String(chat.id)];
-  // const lastCreated = lastMessage ? new Date(lastMessage.createdOn) : null;
+  const mentionedMsgIds = useDittoChatStore<string[]>(
+    (state) => state.currentUser?.mentions?.[chat.id] || []
+  );
 
-  // const unread = Boolean(
-  //   isSubscribed &&
-  //   lastMessage &&
-  //   lastMessage.userId !== currentUserId &&
-  //   (!subscribedAt || (lastCreated && new Date(String(subscribedAt)) < lastCreated))
-  // );
+  const subscribedAt = currentUser?.subscriptions?.[chat.id];
 
-  // const unreadCount = (() => {
-  //   if (!isSubscribed || !messagesForRoom || messagesForRoom.length === 0) return 0;
-  //   if (!subscribedAt) return messagesForRoom.length;
-  //   const since = new Date(String(subscribedAt));
-  //   return messagesForRoom.reduce((acc: number, m: any) => {
-  //     const msg = m?.message || m;
-  //     if (msg.userId === currentUserId) return acc;
-  //     const msgDate = new Date(msg.createdOn);
-  //     return msgDate > since ? acc + 1 : acc;
-  //   }, 0);
-  // })();
+  useEffect(() => {
+    const unreadMessages = messages.filter(
+      (message) =>
+        message.message.userId !== currentUserId &&
+        (mentionedMsgIds.includes(message.id) ||
+          new Date(message.message.createdOn).getTime() >
+          new Date(subscribedAt || new Date()).getTime())
+    );
+
+    setUnreadCount(unreadMessages.length);
+  }, [subscribedAt, mentionedMsgIds, currentUserId, messages]);
 
   return (
     <button
@@ -78,17 +98,14 @@ function ChatListItem({
         "w-full text-left px-3 py-3 flex items-center space-x-3 transition-colors border-b",
         isSelected
           ? "bg-(--primary-color-light) rounded-xl border-b-(--surface-color)"
-          : "hover:bg-(--surface-color-light) border-b-(--border-color)",
+          : "hover:bg-(--surface-color-light) border-b-(--border-color)"
       )}
     >
       <div className="relative -top-4">
-        <Avatar isUser={chat.type === "dm"} />
-        {/* TODO: Unread Badge */}
-        {/* {unread && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1.5 text-xs flex items-center justify-center rounded-full bg-(--notification-badge-bg) border-2 border-white">
-            {unreadCount > 0 ? unreadCount : null}
-          </span>
-        )} */}
+        <Avatar
+          isUser={chat.type === "dm"}
+          imageUrl={chat.type === "dm" ? avatarUrl || undefined : undefined}
+        />
         {otherUserIsActive && (
           <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-(--active-status-bg) border-2 border-white"></span>
         )}
@@ -100,12 +117,19 @@ function ChatListItem({
             {lastMessage && formatDate(lastMessage.createdOn)}
           </p>
         </div>
-        <p className="text-(--text-color-lighter) font-normal line-clamp-2">
-          {senderName && <span className="font-medium">{senderName}: </span>}
-          {lastMessage && lastMessage?.thumbnailImageToken
-            ? "Image"
-            : lastMessage?.text}
-        </p>
+        <div className="flex justify-between items-start mt-0.5">
+          <p className="text-(--text-color-lighter) font-normal line-clamp-2 pr-2">
+            {senderName && <span className="font-medium">{senderName}: </span>}
+            {lastMessage && lastMessage?.thumbnailImageToken
+              ? "Image"
+              : lastMessage?.text}
+          </p>
+          {unreadCount > 0 && !isSelected && (
+            <span className="flex-shrink-0 min-w-[1.25rem] h-5 px-1.5 text-xs flex items-center justify-center rounded-full bg-(--notification-badge-bg) text-white font-medium">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
+        </div>
       </div>
     </button>
   );

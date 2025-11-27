@@ -3,25 +3,61 @@ import { Icons } from "./Icons";
 import { useDittoChatStore } from "@dittolive/ditto-chat-core";
 import ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import Avatar from "./Avatar";
+import { useImageAttachment } from "../hooks/useImageAttachment";
+import { AttachmentToken } from "@dittolive/ditto";
 
 interface NewMessageModalProps {
   onNewDMCreate: (user: ChatUser) => void;
   onClose: () => void;
 }
 
+const UserListItem = ({
+  user,
+  onSelect,
+}: {
+  user: ChatUser;
+  onSelect: (user: ChatUser) => void;
+}) => {
+  const fetchAttachment = useDittoChatStore((state) => state.fetchAttachment);
+  const profilePictureThumbnail = user.profilePictureThumbnail;
+
+  const { imageUrl } = useImageAttachment({
+    token: profilePictureThumbnail
+      ? (profilePictureThumbnail as unknown as AttachmentToken)
+      : null,
+    fetchAttachment,
+    autoFetch: true,
+  });
+
+  return (
+    <li onClick={() => onSelect(user)}>
+      <button className="w-full text-left px-4 py-3 flex items-center space-x-4 hover:bg-(--surface-color-light) transition-colors">
+        <div className="relative">
+          <Avatar isUser={true} imageUrl={imageUrl || undefined} />
+          {/*// TODO: Add active status indicator*/}
+          {/*{user.isActive && (
+            <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-(--active-status-bg) border-2 border-white"></span>
+          )}*/}
+        </div>
+        <span className="font-semibold">{user.name}</span>
+      </button>
+    </li>
+  );
+};
+
 function NewMessageModal({ onClose, onNewDMCreate }: NewMessageModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
   const users: ChatUser[] = useDittoChatStore((state) =>
-    state.allUsers.filter((user) => user._id !== state.currentUser?._id),
+    state.allUsers.filter((user) => user._id !== state.currentUser?._id)
   );
 
   const filteredUsers = users.filter((user) =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()),
+    user.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-(--surface-color)">
       <header className="flex items-center justify-between p-4 border-b border-(--border-color) flex-shrink-0">
         <h1 className="text-xl font-bold">New Message</h1>
         <button
@@ -46,18 +82,11 @@ function NewMessageModal({ onClose, onNewDMCreate }: NewMessageModalProps) {
       <div className="flex-1 overflow-y-auto">
         <ul>
           {filteredUsers.map((user) => (
-            <li key={user._id} onClick={() => onNewDMCreate(user)}>
-              <button className="w-full text-left px-4 py-3 flex items-center space-x-4 hover:bg-(--surface-color-light) transition-colors">
-                <div className="relative">
-                  <Avatar isUser={true} />
-                  {/*// TODO: Add active status indicator*/}
-                  {/*{user.isActive && (
-                    <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-(--active-status-bg) border-2 border-white"></span>
-                  )}*/}
-                </div>
-                <span className="font-semibold">{user.name}</span>
-              </button>
-            </li>
+            <UserListItem
+              key={user._id}
+              user={user}
+              onSelect={onNewDMCreate}
+            />
           ))}
         </ul>
       </div>
