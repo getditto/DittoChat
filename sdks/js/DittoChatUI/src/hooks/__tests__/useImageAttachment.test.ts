@@ -1,6 +1,6 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { useImageAttachment } from "../useImageAttachment";
+import { useImageAttachment } from "../../hooks/useImageAttachment";
 import { AttachmentToken } from "@dittolive/ditto";
 
 // Mock URL.createObjectURL and revokeObjectURL

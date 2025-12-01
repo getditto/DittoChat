@@ -1,16 +1,18 @@
 import React from "react";
 
-const SkeletonListItem: React.FC = () => (
-  <div className="px-4 py-3 flex items-center space-x-4">
-    <div className="w-10 h-10 rounded-full bg-(--secondary-bg-hover)"></div>
-    <div className="flex-1 space-y-2">
-      <div className="h-4 w-3/4 rounded bg-(--secondary-bg-hover)"></div>
-      <div className="h-3 w-1/2 rounded bg-(--secondary-bg-hover)"></div>
+function SkeletonListItem() {
+  return (
+    <div className="px-4 py-3 flex items-center space-x-4">
+      <div className="w-10 h-10 rounded-full bg-(--secondary-bg-hover)"></div>
+      <div className="flex-1 space-y-2">
+        <div className="h-4 w-3/4 rounded bg-(--secondary-bg-hover)"></div>
+        <div className="h-3 w-1/2 rounded bg-(--secondary-bg-hover)"></div>
+      </div>
     </div>
-  </div>
-);
+  );
+}
 
-const ChatListSkeleton: React.FC = () => {
+function ChatListSkeleton() {
   return (
     <div className="flex flex-col h-full bg-(--surface-color) animate-pulse">
       <header className="p-4 border-b border-(--border-color) flex justify-between items-center">
@@ -31,6 +33,6 @@ const ChatListSkeleton: React.FC = () => {
       </div>
     </div>
   );
-};
+}
 
 export default ChatListSkeleton;

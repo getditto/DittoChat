@@ -54,7 +54,7 @@ vi.mock("../components/ToastProvider", () => ({
 }));
 
 vi.mock("../components/ChatNotificationObserver", () => ({
-    ChatNotificationObserver: () => null,
+    default: () => null,
 }));
 
 vi.mock("../components/ChatListSkeleton", () => ({

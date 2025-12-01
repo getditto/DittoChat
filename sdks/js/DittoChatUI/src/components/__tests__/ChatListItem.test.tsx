@@ -5,14 +5,14 @@ import type { Chat } from "../../types";
 import type { ChatStore } from "@dittolive/ditto-chat-core";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import type MessageWithUser from "@dittolive/ditto-chat-core/dist/types/MessageWithUser";
-import type { Attachment } from "@dittolive/ditto";
+import type { Attachment, AttachmentToken } from "@dittolive/ditto";
 
 // Mock dependencies
 vi.mock("../Avatar", () => ({
     default: ({ imageUrl }: { imageUrl?: string }) => <div data-testid="avatar" data-image-url={imageUrl} />,
 }));
 
-vi.mock("../../utils/useImageAttachment", () => ({
+vi.mock("../../hooks/useImageAttachment", () => ({
     useImageAttachment: () => ({
         imageUrl: "mock-url",
         progress: 0,
@@ -218,7 +218,7 @@ describe("ChatListItem", () => {
                 {
                     ...mockChat.messages[0],
                     text: "Check this out",
-                    thumbnailImageToken: { id: "thumb-123", len: 0, metadata: {} } as any,
+                    thumbnailImageToken: { id: "thumb-123", len: 0, metadata: {}, idBytes: new Uint8Array(), token: "thumb-123" } as unknown as Attachment,
                 },
             ],
         };

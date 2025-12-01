@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Icons } from "./Icons";
 import type Message from "@dittolive/ditto-chat-core/dist/types/Message";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import { formatDate } from "../utils";
-import { useImageAttachment } from "../utils/useImageAttachment";
+import { useImageAttachment } from "../hooks/useImageAttachment";
 import { AttachmentToken } from "@dittolive/ditto";
 import { EmojiClickData } from "emoji-picker-react";
 import QuickReaction from "./QuickReaction";
@@ -42,10 +42,13 @@ export interface MessageBubbleProps {
   ) => void;
 }
 
-const FormattedMessage: React.FC<{ message: Message; isOwn: boolean }> = ({
+function FormattedMessage({
   message,
   isOwn,
-}) => {
+}: {
+  message: Message;
+  isOwn: boolean;
+}) {
   const { text, mentions } = message;
 
   if (!mentions || mentions.length === 0) {
@@ -109,15 +112,30 @@ function MessageBubble({
     canAddReaction,
     canRemoveOwnReaction,
   } = usePermissions();
+
+  const thumbnailToken = useMemo(
+    () =>
+      message.thumbnailImageToken
+        ? (message.thumbnailImageToken as unknown as AttachmentToken)
+        : null,
+    [message.thumbnailImageToken?.id]
+  );
+
+  const largeToken = useMemo(
+    () =>
+      message.largeImageToken
+        ? (message.largeImageToken as unknown as AttachmentToken)
+        : null,
+    [message.largeImageToken?.id]
+  );
+
   const {
     imageUrl: thumbnailUrl,
     progress: thumbnailProgress,
     isLoading: isLoadingThumbnail,
     error: thumbnailError,
   } = useImageAttachment({
-    token: message.thumbnailImageToken
-      ? (message.thumbnailImageToken as unknown as AttachmentToken)
-      : null,
+    token: thumbnailToken,
     fetchAttachment,
     autoFetch: true,
   });
@@ -129,9 +147,7 @@ function MessageBubble({
     error: largeImageError,
     fetchImage: fetchLargeImage,
   } = useImageAttachment({
-    token: message.largeImageToken
-      ? (message.largeImageToken as unknown as AttachmentToken)
-      : null,
+    token: largeToken,
     fetchAttachment,
     autoFetch: false,
   });
@@ -141,7 +157,7 @@ function MessageBubble({
   const [isActionsVisible, setIsActionsVisible] = useState(false);
   const [reactions, setReactions] = useState<MessageReaction[]>([]);
 
-  const hasImage = message.thumbnailImageToken || message.largeImageToken;
+  const hasImage = !!(message.thumbnailImageToken || message.largeImageToken);
   const hasFile = !!message.fileAttachmentToken;
   const hasText =
     !!message.text &&
@@ -352,7 +368,7 @@ function MessageBubble({
 
           {hasText && (
             <div className={`px-4 py-2 rounded-xl ${bubbleClasses}`}>
-              <p className="break-words">
+              <p className="break-words whitespace-pre-wrap">
                 {message.isDeleted ? (
                   <span className="italic text-(--text-color-faint)">
                     [deleted message]
@@ -376,7 +392,7 @@ function MessageBubble({
                   onStartEdit(message);
                   setIsActionsVisible(false);
                 }}
-                disabled={message.isDeleted}
+                disabled={message.isDeleted || hasImage || hasFile}
                 className="p-1 rounded-full hover:bg-(--secondary-bg-hover) text-(--text-color-lightest) disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Edit message"
               >
@@ -387,14 +403,15 @@ function MessageBubble({
               <div className="relative">
                 <button
                   onClick={() => setIsMenuOpen((p) => !p)}
-                  className="p-1 rounded-full hover:bg-[rgb(var(--secondary-bg-hover))] text-[rgb(var(--text-color-lightest))]"
+                  disabled={message.isDeleted}
+                className="p-1 rounded-full hover:bg-[rgb(var(--secondary-bg-hover))] text-[rgb(var(--text-color-lightest))] disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="More options"
                 >
                   <Icons.moreHorizontal className="w-5 h-5" />
                 </button>
                 {isMenuOpen && (
                   <div className="absolute top-full mt-2 right-0 bg-(--surface-color) rounded-lg shadow-lg border border-(--border-color) w-40 z-10 py-1">
-                    {!message.isDeleted && canEditOwnMessage && (
+                    {!message.isDeleted && canEditOwnMessage && !hasImage && !hasFile && (
                       <button
                         onClick={() => {
                           onStartEdit(message);

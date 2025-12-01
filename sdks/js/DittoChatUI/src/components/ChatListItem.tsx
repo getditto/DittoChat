@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useImageAttachment } from "../utils/useImageAttachment";
+import { useImageAttachment } from "../hooks/useImageAttachment";
 import { AttachmentToken } from "@dittolive/ditto";
 import type { Chat } from "../types";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
@@ -45,7 +45,11 @@ function ChatListItem({
     otherUserIsActive = false;
   }
 
-  const otherChatUser = users.find((u) => u._id === otherUserId);
+  // Only lookup user and profile picture for DM chats
+  const otherChatUser =
+    chat.type === "dm" && otherUserId
+      ? users.find((u) => u._id === otherUserId)
+      : undefined;
   const profilePictureThumbnail = otherChatUser?.profilePictureThumbnail;
 
   const { imageUrl: avatarUrl } = useImageAttachment({
@@ -98,7 +102,10 @@ function ChatListItem({
       )}
     >
       <div className="relative -top-4">
-        <Avatar isUser={chat.type === "dm"} imageUrl={avatarUrl || undefined} />
+        <Avatar
+          isUser={chat.type === "dm"}
+          imageUrl={chat.type === "dm" ? avatarUrl || undefined : undefined}
+        />
         {otherUserIsActive && (
           <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-(--active-status-bg) border-2 border-white"></span>
         )}

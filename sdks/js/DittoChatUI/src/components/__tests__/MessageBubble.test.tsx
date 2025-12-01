@@ -6,7 +6,7 @@ import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import type { Reaction } from "@dittolive/ditto-chat-core/dist/types/Message";
 import QuickReaction from "../QuickReaction";
 import type { Attachment } from "@dittolive/ditto";
-import type { useImageAttachment } from "../../utils/useImageAttachment";
+import type { useImageAttachment } from "../../hooks/useImageAttachment";
 
 type UseImageAttachmentReturn = ReturnType<typeof useImageAttachment>;
 
@@ -32,7 +32,7 @@ vi.mock("../QuickReaction", () => ({
     default: () => <div data-testid="quick-reaction" />,
 }));
 
-vi.mock("../../utils/useImageAttachment", () => ({
+vi.mock("../../hooks/useImageAttachment", () => ({
     useImageAttachment: (...args: Parameters<typeof useImageAttachment>) => mockUseImageAttachment.apply(null, args),
 }));
 
@@ -515,10 +515,11 @@ describe("MessageBubble", () => {
         );
 
         const moreButton = screen.getByLabelText("More options");
-        fireEvent.click(moreButton);
+        expect(moreButton).toBeDisabled();
 
-        expect(screen.queryByText("Edit message")).not.toBeInTheDocument();
-        expect(screen.getByText("Delete message")).toBeInTheDocument();
+        // Menu should not be accessible since button is disabled
+        fireEvent.click(moreButton);
+        expect(screen.queryByText("Delete message")).not.toBeInTheDocument();
     });
 
     it("shows thumbnail progress", () => {

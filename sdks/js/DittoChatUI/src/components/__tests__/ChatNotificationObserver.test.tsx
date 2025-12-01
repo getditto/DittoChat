@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ChatNotificationObserver } from "../ChatNotificationObserver";
+import ChatNotificationObserver from "../ChatNotificationObserver";
 import type { ChatStore } from "@dittolive/ditto-chat-core";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import type MessageWithUser from "@dittolive/ditto-chat-core/dist/types/MessageWithUser";
@@ -10,6 +10,17 @@ import type Room from "@dittolive/ditto-chat-core/dist/types/Room";
 const mockAddToast = vi.fn();
 vi.mock("../ToastProvider", () => ({
     useToast: () => ({ addToast: mockAddToast }),
+}));
+
+const mockRequestPermission = vi.fn();
+const mockShowNotification = vi.fn();
+vi.mock("../../hooks/useBrowserNotifications", () => ({
+    useBrowserNotifications: () => ({
+        permission: "granted",
+        isSupported: true,
+        requestPermission: mockRequestPermission,
+        showNotification: mockShowNotification,
+    }),
 }));
 
 const mockRegisterNotificationHandler = vi.fn();
@@ -40,7 +51,7 @@ describe("ChatNotificationObserver", () => {
         expect(mockRegisterNotificationHandler).toHaveBeenCalled();
     });
 
-    it("shows toast when receiving a message from another room", () => {
+    it("shows browser notification when receiving a message from another room", () => {
         render(<ChatNotificationObserver activeRoomId="room-1" />);
 
         // Simulate receiving a notification
@@ -53,14 +64,17 @@ describe("ChatNotificationObserver", () => {
 
         handler(messageWithUser, room);
 
-        expect(mockAddToast).toHaveBeenCalledWith(
-            "msg-1",
-            "#General: Alice: Hello",
-            "info"
+        expect(mockShowNotification).toHaveBeenCalledWith(
+            expect.objectContaining({
+                title: "#General: Alice",
+                body: "Hello",
+                tag: "room-2",
+                data: { roomId: "room-2" },
+            })
         );
     });
 
-    it("does not show toast if active room matches message room", () => {
+    it("does not show notification if active room matches message room", () => {
         render(<ChatNotificationObserver activeRoomId="room-1" />);
 
         const handler = mockRegisterNotificationHandler.mock.calls[0][0];
@@ -72,6 +86,7 @@ describe("ChatNotificationObserver", () => {
 
         handler(messageWithUser, room);
 
+        expect(mockShowNotification).not.toHaveBeenCalled();
         expect(mockAddToast).not.toHaveBeenCalled();
     });
 
@@ -87,10 +102,11 @@ describe("ChatNotificationObserver", () => {
 
         handler(messageWithUser, room);
 
-        expect(mockAddToast).toHaveBeenCalledWith(
-            "msg-1",
-            "New message from Alice: Hey there",
-            "info"
+        expect(mockShowNotification).toHaveBeenCalledWith(
+            expect.objectContaining({
+                title: "New message from Alice",
+                body: "Hey there",
+            })
         );
     });
 
@@ -106,10 +122,10 @@ describe("ChatNotificationObserver", () => {
 
         handler(messageWithUser, room);
 
-        expect(mockAddToast).toHaveBeenCalledWith(
-            "msg-1",
-            "#General: Alice: Sent an attachment",
-            "info"
+        expect(mockShowNotification).toHaveBeenCalledWith(
+            expect.objectContaining({
+                body: "Sent an attachment",
+            })
         );
     });
 
@@ -126,10 +142,10 @@ describe("ChatNotificationObserver", () => {
 
         handler(messageWithUser, room);
 
-        expect(mockAddToast).toHaveBeenCalledWith(
-            "msg-1",
-            "#General: Alice: This is a very long message th...",
-            "info"
+        expect(mockShowNotification).toHaveBeenCalledWith(
+            expect.objectContaining({
+                body: "This is a very long message th...",
+            })
         );
     });
 
@@ -145,7 +161,7 @@ describe("ChatNotificationObserver", () => {
 
         handler(messageWithUser, room);
 
-        // Should not show toast for unknown user
-        expect(mockAddToast).not.toHaveBeenCalled();
+        // Should not show notification for unknown user
+        expect(mockShowNotification).not.toHaveBeenCalled();
     });
 });

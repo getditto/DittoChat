@@ -14,7 +14,7 @@ import {
   Reaction,
   Mention,
 } from "@dittolive/ditto-chat-core/dist/types/Message";
-import { useImageAttachment } from "../utils/useImageAttachment";
+import { useImageAttachment } from "../hooks/useImageAttachment";
 import { AttachmentToken } from "@dittolive/ditto";
 import { usePermissions } from "../utils/usePermissions";
 

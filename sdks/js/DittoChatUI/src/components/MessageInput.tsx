@@ -6,7 +6,7 @@ import ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import Avatar from "./Avatar";
 import { Mention } from "@dittolive/ditto-chat-core/dist/types/Message";
 import { clsx } from "clsx";
-import { useImageAttachment } from "../utils/useImageAttachment";
+import { useImageAttachment } from "../hooks/useImageAttachment";
 import { AttachmentToken } from "@dittolive/ditto";
 import { usePermissions } from "../utils/usePermissions";
 
@@ -506,7 +506,7 @@ function MessageInput({
               onClick={() => fileInputRef.current?.click()}
               className="w-full text-left px-4 py-2 text-sm hover:bg-[rgb(var(--secondary-bg))] flex items-center space-x-3"
             >
-              <Icons.image className="w-5 h-5 text-[rgb(var(--text-color-lightest))]" />
+              <Icons.image className="w-5 h-5 text-(--text-color-lightest)" />
               <span>Photo</span>
             </button>
             <button

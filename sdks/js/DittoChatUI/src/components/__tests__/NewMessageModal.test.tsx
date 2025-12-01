@@ -17,7 +17,7 @@ vi.mock("../Icons", () => ({
     },
 }));
 
-vi.mock("../../utils/useImageAttachment", () => ({
+vi.mock("../../hooks/useImageAttachment", () => ({
     useImageAttachment: () => ({
         imageUrl: "mock-url",
         progress: 0,
