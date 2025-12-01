@@ -14,7 +14,7 @@ data class Message(
     val roomId: String,
 
     @SerializedName("text")
-    var text: String = "",
+    var text: String? = "",
 
     @SerializedName("userId")
     var userId: String = "",

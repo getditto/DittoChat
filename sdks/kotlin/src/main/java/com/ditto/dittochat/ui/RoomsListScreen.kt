@@ -29,7 +29,7 @@ import kotlinx.coroutines.launch
 @Composable
 internal fun RoomsListScreen(
     onNavigateToChat: (String) -> Unit,
-    viewModel: RoomsListScreenViewModel = hiltViewModel()
+    viewModel: RoomsListScreenViewModel
 ) {
     val publicRooms by viewModel.publicRooms.collectAsState()
     val defaultPublicRoom by viewModel.defaultPublicRoom.collectAsState()

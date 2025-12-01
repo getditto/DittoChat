@@ -7,24 +7,23 @@ import androidx.navigation.compose.rememberNavController
 import com.ditto.dittochat.ChatConfig
 import com.ditto.dittochat.DittoChat
 import com.ditto.dittochat.DittoChatImpl
+import com.ditto.dittochat.DittoData
 import com.ditto.dittochat.UserConfig
 
-class DittoChatUI constructor(
+class DittoChatUI(
     val dittoChat: DittoChat
 ) {
 
-    constructor(context: Context, chatConfig: ChatConfig) : this(
-        dittoChat = DittoChatImpl(context, chatConfig)
-    )
-
     @Composable
     fun RoomsListView(
-        navController: NavHostController = rememberNavController()
+        navController: NavHostController = rememberNavController(),
+        roomsListScreenViewModel: RoomsListScreenViewModel
     ) {
         RoomsListScreen(
             onNavigateToChat = { roomId ->
                 navController.navigate("chat/$roomId")
-            }
+            },
+            roomsListScreenViewModel
         )
     }
 
@@ -32,12 +31,14 @@ class DittoChatUI constructor(
     fun ChatRoomView(
         roomId: String,
         retentionDays: Int? = null,
-        onNavigateBack: () -> Unit
+        onNavigateBack: () -> Unit,
+        chatScreenViewModel: ChatScreenViewModel
     ) {
         ChatScreen(
             roomId = roomId,
             retentionDays = retentionDays,
-            onNavigateBack = onNavigateBack
+            onNavigateBack = onNavigateBack,
+            chatScreenViewModel
         )
     }
 
