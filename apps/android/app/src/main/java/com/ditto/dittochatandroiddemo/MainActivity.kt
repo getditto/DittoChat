@@ -20,9 +20,6 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
     lateinit var dittoChatUI: DittoChatUI
 
-    @Inject
-    lateinit var ditto: Ditto
-
     private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { this.ditto.refreshPermissions() }
 
     override fun onCreate(savedInstanceState: Bundle?) {

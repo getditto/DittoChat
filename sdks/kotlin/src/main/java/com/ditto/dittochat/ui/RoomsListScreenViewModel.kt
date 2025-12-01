@@ -13,7 +13,6 @@ import com.ditto.dittochat.Constants
 import com.ditto.dittochat.DittoData
 import com.ditto.dittochat.Room
 
-@HiltViewModel
 class RoomsListScreenViewModel(
     private val dittoData: DittoData
 ) : ViewModel() {

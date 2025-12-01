@@ -18,7 +18,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 // ChatScreenViewModel.kt
-@HiltViewModel
 class ChatScreenViewModel(
     private val dittoData: DittoData,
     private val dittoChat: DittoChat
