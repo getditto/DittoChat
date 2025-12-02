@@ -20,15 +20,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.ditto.dittochat.DittoChat
+import com.ditto.dittochat.DittoData
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun ChatScreen(
+fun ChatScreen(
     roomId: String,
     retentionDays: Int? = null,
     onNavigateBack: () -> Unit,
-    viewModel: ChatScreenViewModel = hiltViewModel()
+    viewModel: ChatScreenViewModel
 ) {
     val messagesWithUsers by viewModel.messagesWithUsers.collectAsState()
     val inputText by viewModel.inputText.collectAsState()

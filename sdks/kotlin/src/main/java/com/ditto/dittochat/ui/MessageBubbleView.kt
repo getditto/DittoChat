@@ -62,9 +62,9 @@ fun MessageBubble(
                     )
                 }
 
-                if (message.text.isNotEmpty()) {
+                if (message.text?.isNotEmpty() == true) {
                     Text(
-                        text = message.text,
+                        text = message.text!!,
                         color = if (isCurrentUser) Color.White else Color.Unspecified
                     )
                 }

@@ -10,8 +10,7 @@ import javax.inject.Inject
 import com.ditto.dittochat.DittoChat
 import com.ditto.dittochat.RoomConfig
 
-@HiltViewModel
-class RoomEditViewModel @Inject constructor(
+class RoomEditViewModel(
     private val dittoChat: DittoChat
 ) : ViewModel() {
 

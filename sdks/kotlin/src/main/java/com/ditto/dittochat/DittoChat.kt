@@ -22,15 +22,15 @@ interface DittoChat {
 }
 
 @Singleton
-class DittoChatImpl @Inject constructor(
+class DittoChatImpl(
     private val localStore: LocalData,
     private val p2pStore: DittoData
 ) : DittoChat {
 
     constructor(context: Context, config: ChatConfig) : this(
-        localStore = LocalService(context, Gson()),
+        localStore = LocalDataImpl(context, Gson()),
         p2pStore = DittoDataImpl(
-            privateStore = LocalService(context, Gson()),
+            privateStore = LocalDataImpl(context, Gson()),
             ditto = config.ditto,
             gson = Gson(),
             usersCollection = config.usersCollection,

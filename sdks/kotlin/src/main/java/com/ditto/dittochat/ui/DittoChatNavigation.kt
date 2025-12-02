@@ -7,7 +7,9 @@ import androidx.navigation.compose.rememberNavController
 
 @Composable
 fun DittoChatNavigation(
-    dittoChatUI: DittoChatUI
+    dittoChatUI: DittoChatUI,
+    chatScreenViewModel: ChatScreenViewModel,
+    roomsListScreenViewModel: RoomsListScreenViewModel
 ) {
     val navController = rememberNavController()
 
@@ -16,14 +18,15 @@ fun DittoChatNavigation(
         startDestination = "rooms"
     ) {
         composable("rooms") {
-            dittoChatUI.RoomsListView(navController)
+            dittoChatUI.RoomsListView(navController, roomsListScreenViewModel)
         }
 
         composable("chat/{roomId}") { backStackEntry ->
             val roomId = backStackEntry.arguments?.getString("roomId") ?: return@composable
             dittoChatUI.ChatRoomView(
                 roomId = roomId,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                chatScreenViewModel = chatScreenViewModel
             )
         }
     }

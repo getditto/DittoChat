@@ -18,8 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 // ChatScreenViewModel.kt
-@HiltViewModel
-class ChatScreenViewModel @Inject constructor(
+class ChatScreenViewModel(
     private val dittoData: DittoData,
     private val dittoChat: DittoChat
 ) : ViewModel() {
@@ -126,7 +125,7 @@ class ChatScreenViewModel @Inject constructor(
     fun startEditMessage(message: Message) {
         _editMessageId.value = message.id
         _isEditing.value = true
-        _inputText.value = message.text
+        _inputText.value = message.text ?: ""
     }
 
     fun cancelEdit() {
