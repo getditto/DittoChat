@@ -31,7 +31,7 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
     allUsersObserver: null,
     allUsersSubscription: null,
     async addUser(user) {
-      if (!ditto) return;
+      if (!ditto) {return;}
       try {
         await ditto.store.execute(
           `INSERT INTO ${userCollectionKey} DOCUMENTS (:newUser) ON ID CONFLICT DO UPDATE`,
@@ -42,11 +42,11 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
       }
     },
     async updateUser({ _id, ...patch }) {
-      if (!ditto) return;
-      if (!_id) return;
+      if (!ditto) {return;}
+      if (!_id) {return;}
       try {
         const current = await _get().findUserById(_id);
-        if (!current) return;
+        if (!current) {return;}
         const updated = { ...current, ...patch };
         await ditto.store.execute(
           `INSERT INTO ${userCollectionKey} DOCUMENTS (:newUser) ON ID CONFLICT DO UPDATE`,
@@ -57,7 +57,7 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
       }
     },
     async findUserById(userId) {
-      if (!ditto) return null;
+      if (!ditto) {return null;}
       try {
         const result = await ditto.store.execute<ChatUser>(
           `SELECT * FROM ${userCollectionKey} WHERE _id = :id`,
@@ -71,11 +71,11 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
     },
 
     async markRoomAsRead(roomId: string) {
-      if (!ditto || !userId) return;
+      if (!ditto || !userId) {return;}
       try {
         let hasChanges = false;
         const user = await _get().findUserById(userId);
-        if (!user) return;
+        if (!user) {return;}
         const subscriptions: Record<string, string | null> =
           user.subscriptions || {};
         const mentions: Record<string, string[]> = user.mentions || {};
@@ -100,7 +100,7 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
     },
 
     async toggleRoomSubscription(roomId: string) {
-      if (!ditto || !userId) return;
+      if (!ditto || !userId) {return;}
 
       // Check subscribe permission
       if (!_get().canPerformAction("canSubscribeToRoom")) {
@@ -110,7 +110,7 @@ export const createChatUserSlice: CreateSlice<ChatUserSlice> = (
 
       try {
         const user = await _get().findUserById(userId);
-        if (!user) return;
+        if (!user) {return;}
 
         const subscriptions = { ...user.subscriptions };
         // Toggle: if subscribed (key exists AND value is not null), unsubscribe; otherwise subscribe

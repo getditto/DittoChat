@@ -28,7 +28,7 @@ function handleRoomsObserverResult(
   _get: StoreApi<ChatStore>["getState"],
   observerResult: QueryResult<Room>,
 ) {
-  if (observerResult.items.length === 0) return;
+  if (observerResult.items.length === 0) {return;}
   const rooms = observerResult.items.map((doc) => {
     const messagePublisher = _get().messagesPublisher;
     messagePublisher(doc.value);
@@ -63,7 +63,7 @@ async function createRoomBase({
   participants?: string[];
   retentionDays?: number;
 }) {
-  if (!ditto) return;
+  if (!ditto) {return;}
 
   try {
     const id = uuidv4();
@@ -124,7 +124,7 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
 
     createDMRoom(dmUser: ChatUser) {
       const currentUser = _get().currentUser;
-      if (!currentUser?._id || !dmUser?._id) throw Error("Invalid users");
+      if (!currentUser?._id || !dmUser?._id) {throw Error("Invalid users");}
       return createRoomBase({
         ditto,
         currentUserId: currentUser?._id || userId,

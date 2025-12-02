@@ -4,12 +4,12 @@ import {
   StoreObserver,
   SyncSubscription,
 } from "@dittolive/ditto";
-import { produce, WritableDraft } from "immer";
+import { produce, WritableDraft, castDraft } from "immer";
 import { v4 as uuidv4 } from "uuid";
 import Message, { Reaction, Mention } from "../types/Message";
 import Room from "../types/Room";
 import ChatUser from "../types/ChatUser";
-import { ChatStore, CreateSlice, DittoConfParams } from "../useChat";
+import { ChatStore, CreateSlice } from "../useChat";
 import MessageWithUser from "../types/MessageWithUser";
 
 export interface MessageSlice {
@@ -79,21 +79,22 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 ) => {
   // Helper: Get room details
   const getRoomDetails = async (room: Room) => {
-    if (!ditto) throw new Error("Ditto not initialized");
+    if (!ditto) { throw new Error("Ditto not initialized"); }
 
     const result = await ditto.store.execute<Room>(
       `SELECT * FROM ${room.collectionId || "rooms"} WHERE _id = :id`,
       { id: room._id },
     );
 
-    if (result.items.length === 0) throw new Error("Room not found");
+    if (result.items.length === 0) { throw new Error("Room not found"); }
     return result.items[0].value;
   };
 
   // Helper: Get current user details
   const getCurrentUser = async () => {
-    if (!ditto || !userId)
+    if (!ditto || !userId) {
       throw new Error("Ditto not initialized or user not found");
+    }
 
     const result = await ditto.store.execute<ChatUser>(
       `SELECT * FROM ${userCollectionKey} WHERE _id = :id`,
@@ -130,17 +131,13 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       id: message._id,
     };
 
-    const mutableMessage = {
+    const mutableMessage = castDraft({
       ...messageWithUser,
-      message: messageWithUser.message as unknown as WritableDraft<
-        typeof messageWithUser.message
-      >,
-      user: messageWithUser.user as unknown as WritableDraft<
-        typeof messageWithUser.user
-      >,
-    };
+      message: messageWithUser.message,
+      user: messageWithUser.user,
+    });
     // Check for notifications on new messages
-    const existingIndex = stateMessages!.findIndex((m) => m.id === message._id);
+    const existingIndex = stateMessages.findIndex((m) => m.id === message._id);
 
     if (
       existingIndex === -1 &&
@@ -152,23 +149,23 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
     // Handle edited messages
     if (message.archivedMessage) {
-      const originalIndex = stateMessages!.findIndex(
+      const originalIndex = stateMessages.findIndex(
         (m) => m.id === message.archivedMessage,
       );
 
       if (originalIndex !== -1) {
         stateMessages[originalIndex] = mutableMessage;
       } else if (existingIndex === -1) {
-        stateMessages!.push(mutableMessage);
+        stateMessages.push(mutableMessage);
       } else {
-        stateMessages![existingIndex] = mutableMessage;
+        stateMessages[existingIndex] = mutableMessage;
       }
     } else {
       // Handle new/updated messages
       if (existingIndex === -1) {
-        stateMessages!.push(mutableMessage);
+        stateMessages.push(mutableMessage);
       } else {
-        stateMessages![existingIndex] = mutableMessage;
+        stateMessages[existingIndex] = mutableMessage;
       }
     }
   };
@@ -188,7 +185,6 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     );
     const isDM = room.collectionId === "dm_rooms";
 
-    // return true;
     return !isOwnMessage && isRecent && (isSubscribed || isDM || isMentioned);
   };
 
@@ -198,8 +194,9 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     messageData: Partial<Message> & { text: string },
     collectionSpec: string = "",
   ) => {
-    if (!ditto || !userId)
+    if (!ditto || !userId) {
       throw new Error("Ditto not initialized or user not found");
+    }
 
     const actualRoom = await getRoomDetails(room);
     const id = messageData._id || uuidv4();
@@ -215,9 +212,10 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       fileAttachmentToken: null,
       isEdited: false,
       isDeleted: false,
-      mentions: [],
       ...messageData,
-    } as unknown as DQLQueryArgumentValue;
+      mentions: messageData.mentions?.map((m) => ({ ...m })) || [],
+      reactions: messageData.reactions?.map((r) => ({ ...r })) || [],
+    };
 
     const collectionClause = collectionSpec
       ? `COLLECTION ${actualRoom.messagesId} ${collectionSpec}`
@@ -232,7 +230,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       await Promise.all(
         messageData.mentions.map((mention) => {
           const user = users.find((u: ChatUser) => u._id === mention.userId);
-          if (!user) return;
+          if (!user) { return; }
 
           const userMentions = {
             ...(user.mentions || {}),
@@ -256,7 +254,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     room: Room,
     newMessageData: Partial<Message>,
   ) => {
-    if (!ditto) throw new Error("Ditto not initialized");
+    if (!ditto) { throw new Error("Ditto not initialized"); }
 
     await ditto.store.execute(
       `UPDATE ${room.messagesId} SET isArchived = :isArchived WHERE _id = :id`,
@@ -278,11 +276,12 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     text: string | undefined,
     attachmentType: "image" | "file",
   ) => {
-    if (!ditto || !userId)
+    if (!ditto || !userId) {
       throw new Error("Ditto not initialized or user not found");
+    }
 
     const user = await getCurrentUser();
-    let attachments: Record<string, any> = {
+    const attachments: Record<string, any> = {
       thumbnailImageToken: null,
       largeImageToken: null,
       fileAttachmentToken: null,
@@ -338,10 +337,10 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     },
 
     async messagesPublisher(room: Room, retentionDays?: number) {
-      if (!ditto) return;
+      if (!ditto) { return; }
 
       const roomId = room._id;
-      if (_get().messageSubscriptionsByRoom[roomId]) return;
+      if (_get().messageSubscriptionsByRoom[roomId]) { return; }
 
       const effectiveRetentionDays =
         retentionDays ??
@@ -359,7 +358,6 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       const args = {
         roomId: room._id,
         date: retentionDate.toISOString(),
-        dateMs: retentionDate.getTime(),
       };
 
       try {
@@ -375,7 +373,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
                 if (!draft.messagesByRoom[room._id]) {
                   draft.messagesByRoom[room._id] = [];
                 }
-                if (result.items.length === 0) return draft;
+                if (result.items.length === 0) { return draft; }
 
                 for (const item of result.items) {
                   const message = item.value;
@@ -408,19 +406,22 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     },
 
     async createMessage(room: Room, text: string, mentions: Mention[] = []) {
-      if (!ditto || !userId) return;
+      if (!ditto || !userId) { return; }
 
       // Check mention permission if mentions are provided
-      if (mentions.length > 0 && !_get().canPerformAction("canMentionUsers")) {
+      const hasMentionPermission = _get().canPerformAction("canMentionUsers");
+      const filteredMentions = mentions.length > 0 && !hasMentionPermission
+        ? []
+        : mentions;
+
+      if (mentions.length > 0 && !hasMentionPermission) {
         console.warn("Permission denied: canMentionUsers is false");
-        // Create message without mentions
-        mentions = [];
       }
 
       try {
-        const newDoc = await createMessageDocument(room, {
+        await createMessageDocument(room, {
           text,
-          mentions: mentions,
+          mentions: filteredMentions,
         });
       } catch (err) {
         console.error("Error in createMessage:", err);
@@ -434,16 +435,20 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         return;
       }
 
-      await archiveAndCreateMessage(message, room, {
-        text: message.text,
-        largeImageToken: message.largeImageToken || null,
-        thumbnailImageToken: message.thumbnailImageToken || null,
-        fileAttachmentToken: message.fileAttachmentToken || null,
-        isEdited: true,
-        isDeleted: false,
-        mentions: message.mentions,
-        reactions: message.reactions,
-      });
+      try {
+        await archiveAndCreateMessage(message, room, {
+          text: message.text,
+          largeImageToken: message.largeImageToken || null,
+          thumbnailImageToken: message.thumbnailImageToken || null,
+          fileAttachmentToken: message.fileAttachmentToken || null,
+          isEdited: true,
+          isDeleted: false,
+          mentions: message.mentions,
+          reactions: message.reactions,
+        });
+      } catch (err) {
+        console.error("Error in saveEditedTextMessage:", err);
+      }
     },
 
     async saveDeletedMessage(
@@ -463,24 +468,36 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         file: "[deleted file]",
       }[type];
 
-      await archiveAndCreateMessage(message, room, {
-        text: deletedText,
-        createdOn: new Date().toISOString(),
-        largeImageToken: null,
-        thumbnailImageToken: null,
-        fileAttachmentToken: null,
-        isEdited: false,
-        isDeleted: true,
-        mentions: [],
-      });
+      try {
+        await archiveAndCreateMessage(message, room, {
+          text: deletedText,
+          createdOn: new Date().toISOString(),
+          largeImageToken: null,
+          thumbnailImageToken: null,
+          fileAttachmentToken: null,
+          isEdited: false,
+          isDeleted: true,
+          mentions: [],
+        });
+      } catch (err) {
+        console.error("Error in saveDeletedMessage:", err);
+      }
     },
 
     async createImageMessage(room: Room, imageFile: File, text?: string) {
-      await createAttachmentMessage(room, imageFile, text, "image");
+      try {
+        await createAttachmentMessage(room, imageFile, text, "image");
+      } catch (err) {
+        console.error("Error in createImageMessage:", err);
+      }
     },
 
     async createFileMessage(room: Room, file: File, text?: string) {
-      await createAttachmentMessage(room, file, text, "file");
+      try {
+        await createAttachmentMessage(room, file, text, "file");
+      } catch (err) {
+        console.error("Error in createFileMessage:", err);
+      }
     },
 
     fetchAttachment(token, onProgress, onComplete) {
@@ -554,13 +571,13 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       room: Room,
       reactions: Reaction[],
     ) {
-      if (!ditto || !userId) return;
+      if (!ditto || !userId) { return; }
 
       const roomId = room._id;
       const roomMessages = _get().messagesByRoom[roomId] || [];
       const index = roomMessages.findIndex((m) => m.id === message._id);
 
-      if (index === -1) throw new Error("Message not found");
+      if (index === -1) { throw new Error("Message not found"); }
 
       const originalMessage = roomMessages[index].message;
       const previousReactions = originalMessage.reactions || [];
@@ -596,7 +613,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       room: Room,
       reaction: Reaction,
     ) {
-      if (!ditto || !userId) return;
+      if (!ditto || !userId) { return; }
 
       // Check add reaction permission
       if (!_get().canPerformAction("canAddReaction")) {
@@ -606,7 +623,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
       const roomMessages = _get().messagesByRoom[room._id];
       const messageIndex = roomMessages.findIndex((m) => m.id === message._id);
-      if (messageIndex === -1) throw new Error("Message not found");
+      if (messageIndex === -1) { throw new Error("Message not found"); }
 
       const originalMessage = roomMessages[messageIndex].message;
       const reactions = [...(originalMessage.reactions || []), reaction];
@@ -618,7 +635,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       room: Room,
       reaction: Reaction,
     ) {
-      if (!ditto || !userId) return;
+      if (!ditto || !userId) { return; }
 
       // Check remove reaction permission
       if (!_get().canPerformAction("canRemoveOwnReaction")) {
@@ -628,7 +645,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
       const roomMessages = _get().messagesByRoom[room._id];
       const messageIndex = roomMessages.findIndex((m) => m.id === message._id);
-      if (messageIndex === -1) throw new Error("Message not found");
+      if (messageIndex === -1) { throw new Error("Message not found"); }
 
       const originalMessage = roomMessages[messageIndex].message;
       const reactions = (originalMessage.reactions || []).filter(
@@ -646,7 +663,7 @@ async function createThumbnail(file: File): Promise<HTMLCanvasElement> {
   const image = await fileToImage(file);
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Failed to get 2D context");
+  if (!ctx) { throw new Error("Failed to get 2D context"); }
 
   let { width, height } = image;
   if (width > height) {

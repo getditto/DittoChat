@@ -80,6 +80,6 @@ export function useDittoChatStore<T = Partial<ChatStore>>(
       "chatStore must be initialized before useDittoChatStore. use useDittoChat for initialization",
     );
   }
-  if (selector) return useStore(chatStore, useShallow(selector));
+  if (selector) {return useStore(chatStore, useShallow(selector));}
   return useStore(chatStore) as T;
 }
