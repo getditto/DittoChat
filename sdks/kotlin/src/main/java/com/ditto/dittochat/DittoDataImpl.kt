@@ -133,8 +133,7 @@ class DittoDataImpl(
         val message = Message(
             roomId = actualRoom.id,
             text = text,
-            userId = userId,
-            hasBeenConverted = true
+            userId = userId
         )
 
         val query = "INSERT INTO `${actualRoom.messagesId}` DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE"
