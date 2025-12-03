@@ -49,7 +49,7 @@ jobs:
 
       - name: Run tests with coverage
         working-directory: ${{ matrix.project }}
-        run: npx vitest run --coverage
+        run: npx vitest run --coverage --reporter=github-actions
         continue-on-error: false
 
       - name: Generate coverage report
@@ -64,7 +64,6 @@ jobs:
 
       - name: Upload coverage reports
         if: always()
-        # if: ${{ !env.ACT }} # Check to run in local action runner
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report-${{ hashFiles(format('{0}/package.json', matrix.project)) }}
@@ -96,7 +95,6 @@ jobs:
 
       - name: Comment PR with coverage results
         if: always()
-        # if: ${{ !env.ACT }} # Check to run in local action runner
         uses: actions/github-script@v7
         with:
           script: |
