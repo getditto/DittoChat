@@ -109,6 +109,8 @@ jobs:
       - name: Comment PR with Detailed Results
         if: always()
         uses: actions/github-script@v7
+        env:
+          VULN_DATA: ${{ steps.summary.outputs.VULNERABILITIES }}
         with:
           script: |
             const project = '${{ matrix.project }}';
@@ -117,7 +119,7 @@ jobs:
             const medium = '${{ steps.summary.outputs.medium }}';
             const low = '${{ steps.summary.outputs.low }}';
             const total = '${{ steps.summary.outputs.total }}';
-            const vulnerabilities = String.raw`${{ steps.summary.outputs.VULNERABILITIES }}`;
+            const vulnerabilities = process.env.VULN_DATA;
 
             // Determine status emoji and message
             let statusEmoji = '✅';
