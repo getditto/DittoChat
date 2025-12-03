@@ -80,11 +80,11 @@ jobs:
           REPORT_FILE="reports/dependency-check-report.json"
 
           if [ -f "$REPORT_FILE" ]; then
-            # Extract vulnerability counts
-            CRITICAL=$(jq '[.dependencies[].vulnerabilities[]? | select(.severity == "CRITICAL")] | length' "$REPORT_FILE")
-            HIGH=$(jq '[.dependencies[].vulnerabilities[]? | select(.severity == "HIGH")] | length' "$REPORT_FILE")
-            MEDIUM=$(jq '[.dependencies[].vulnerabilities[]? | select(.severity == "MEDIUM")] | length' "$REPORT_FILE")
-            LOW=$(jq '[.dependencies[].vulnerabilities[]? | select(.severity == "LOW")] | length' "$REPORT_FILE")
+            # Extract vulnerability counts (handle both uppercase and lowercase severity values)
+            CRITICAL=$(jq '[.dependencies[].vulnerabilities[]? | select(.severity == "CRITICAL" or .severity == "critical")] | length' "$REPORT_FILE")
+            HIGH=$(jq '[.dependencies[].vulnerabilities[]? | select(.severity == "HIGH" or .severity == "high")] | length' "$REPORT_FILE")
+            MEDIUM=$(jq '[.dependencies[].vulnerabilities[]? | select(.severity == "MEDIUM" or .severity == "moderate")] | length' "$REPORT_FILE")
+            LOW=$(jq '[.dependencies[].vulnerabilities[]? | select(.severity == "LOW" or .severity == "low")] | length' "$REPORT_FILE")
             TOTAL=$(jq '[.dependencies[].vulnerabilities[]?] | length' "$REPORT_FILE")
 
             echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
