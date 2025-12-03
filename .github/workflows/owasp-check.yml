@@ -41,31 +41,9 @@ jobs:
         run: |
           cat > suppression.xml << 'EOF'
           <?xml version="1.0" encoding="UTF-8"?>
-          <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
-            <!-- Suppress DLL files as they are not JS dependencies -->
+           <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
             <suppress>
-              <notes>Ignore all DLL files - not JavaScript dependencies</notes>
-              <filePath regex="true">.*\.dll$</filePath>
-              <cpe regex="true">.*</cpe>
-            </suppress>
-            <suppress>
-              <notes>Ignore all EXE files - not JavaScript dependencies</notes>
-              <filePath regex="true">.*\.exe$</filePath>
-              <cpe regex="true">.*</cpe>
-            </suppress>
-            <suppress>
-              <notes>Ignore all MSI files - not JavaScript dependencies</notes>
-              <filePath regex="true">.*\.msi$</filePath>
-              <cpe regex="true">.*</cpe>
-            </suppress>
-            <suppress>
-              <notes>Ignore all SO files - not JavaScript dependencies</notes>
-              <filePath regex="true">.*\.so$</filePath>
-              <cpe regex="true">.*</cpe>
-            </suppress>
-            <suppress>
-              <notes>Ignore all DYLIB files - not JavaScript dependencies</notes>
-              <filePath regex="true">.*\.dylib$</filePath>
+              <filePath regex="true">.*node_modules.*\.(dll|exe|so|dylib)$</filePath>
               <cpe regex="true">.*</cpe>
             </suppress>
           </suppressions>
@@ -78,55 +56,16 @@ jobs:
           project: "${{ matrix.project }}"
           path: "${{ matrix.project }}"
           format: "ALL"
-          # Only scan JS/Node related files
-          scan: |
-            ${{ matrix.project }}/package.json
-            ${{ matrix.project }}/package-lock.json
-            ${{ matrix.project }}/node_modules
           args: >
-            --enableRetired
+            -s "${{ matrix.project }}/package.json"
+            -s "${{ matrix.project }}/package-lock.json"
             --enableExperimental
-            --disableYarnAudit
-            --disableNodeAudit
-            --nodeAuditSkipDevDependencies
-            --nodePackageSkipDevDependencies
-            --disableAssembly
-            --disableAutoconf
-            --disableBundleAudit
-            --disableCentral
-            --disableCmake
-            --disableCocoapodsAnalyzer
-            --disableComposer
-            --disableCpan
-            --disableDart
-            --disableGolangDep
-            --disableGolangMod
-            --disableJar
-            --disableMSBuild
-            --disableNugetconf
-            --disableNuspec
-            --disableOpenSSL
-            --disablePip
-            --disablePipfile
-            --disablePnpmAudit
-            --disablePoetry
-            --disablePyDist
-            --disablePyPkg
-            --disableRubygems
-            --disableSwiftPackageManagerAnalyzer
-            --disableSwiftPackageResolvedAnalyzer
             --suppression suppression.xml
-            --exclude "**/*.dll"
-            --exclude "**/*.exe"
-            --exclude "**/*.msi"
-            --exclude "**/*.so"
-            --exclude "**/*.dylib"
             --failOnCVSS 7
 
       - name: Upload Dependency-Check Report
         uses: actions/upload-artifact@v4
         if: always()
-        # if: ${{ !env.ACT }} /// Check to run in local action runner
         with:
           name: dependency-check-report-${{ hashFiles(format('{0}/package.json', matrix.project)) }}
           path: reports/
@@ -168,7 +107,6 @@ jobs:
 
       - name: Comment PR with Detailed Results
         if: always()
-        # if: ${{ !env.ACT }} /// Check to run in local action runner
         uses: actions/github-script@v7
         with:
           script: |
