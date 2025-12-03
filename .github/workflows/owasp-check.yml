@@ -95,7 +95,7 @@ jobs:
 
             # Extract detailed vulnerabilities
             echo "VULNERABILITIES<<EOF" >> $GITHUB_OUTPUT
-            jq -r '.dependencies[] | select(.vulnerabilities) | .fileName as $file | .vulnerabilities[] | "- **\(.name)** (\(.severity)) in `\($file)`\n  - Description: \(.description // "N/A" | gsub("[`\\n\\r]"; " "))\n  - CVSS: \(.cvssv3.baseScore // .cvssv2.score // "N/A")\n"' "$REPORT_FILE" | head -n 50 >> $GITHUB_OUTPUT
+            jq -r '.dependencies[] | select(.vulnerabilities) | .fileName as $file | .vulnerabilities[] | "- **\(.name)** (\(.severity)) in `\($file)`\n  - Description: \(.description // "N/A" | gsub("[`\\n\\r\"$]"; " "))\n  - CVSS: \(.cvssv3.baseScore // .cvssv2.score // "N/A")\n"' "$REPORT_FILE" | head -n 50 >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT
           else
             echo "critical=0" >> $GITHUB_OUTPUT
@@ -117,7 +117,7 @@ jobs:
             const medium = '${{ steps.summary.outputs.medium }}';
             const low = '${{ steps.summary.outputs.low }}';
             const total = '${{ steps.summary.outputs.total }}';
-            const vulnerabilities = `${{ steps.summary.outputs.VULNERABILITIES }}`;
+            const vulnerabilities = String.raw`${{ steps.summary.outputs.VULNERABILITIES }}`;
 
             // Determine status emoji and message
             let statusEmoji = '✅';
