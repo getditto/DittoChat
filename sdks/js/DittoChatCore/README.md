@@ -87,6 +87,63 @@ export default ChatApp;
 
 **Note:** The `dittoInstance`, `currentUserId`, and `userCollectionKey` should be provided from your application's context or configuration. You will need to replace `null` with a properly initialized Ditto instance.
 
+## Role-Based Access Control (RBAC)
+
+DittoChatCore includes a built-in RBAC system that allows you to control user permissions for various chat actions. By default, all permissions are enabled.
+
+### Available Permissions
+
+| Permission | Description | Default |
+|------------|-------------|---------|
+| `canCreateRoom` | Create new chat rooms | `true` |
+| `canEditOwnMessage` | Edit own messages | `true` |
+| `canDeleteOwnMessage` | Delete own messages | `true` |
+| `canAddReaction` | Add reactions to messages | `true` |
+| `canRemoveOwnReaction` | Remove own reactions | `true` |
+| `canMentionUsers` | Mention users in messages | `true` |
+| `canSubscribeToRoom` | Subscribe to chat rooms | `true` |
+
+### Configuring Permissions
+
+You can configure permissions when initializing the chat or update them dynamically:
+
+```typescript
+import { useDittoChat, useDittoChatStore } from '@dittolive/ditto-chat-core';
+
+// Configure permissions during initialization
+const chat = useDittoChat({
+  ditto: dittoInstance,
+  userId: currentUserId,
+  userCollectionKey: userCollectionKey,
+  rbacConfig: {
+    canCreateRoom: false,        // Disable room creation
+    canMentionUsers: false,       // Disable user mentions
+    canDeleteOwnMessage: true,    // Allow deleting own messages
+  }
+});
+
+// Or update permissions dynamically
+const updateRBACConfig = useDittoChatStore(state => state.updateRBACConfig);
+
+updateRBACConfig({
+  canEditOwnMessage: false,  // Disable message editing
+});
+```
+
+### Checking Permissions
+
+You can check if a user has permission to perform an action:
+
+```typescript
+const canPerformAction = useDittoChatStore(state => state.canPerformAction);
+
+if (canPerformAction('canCreateRoom')) {
+  // Show create room button
+}
+```
+
+**Note:** When a permission is denied, the action will fail silently with a warning logged to the console. The UI layer should check permissions before displaying action buttons to provide better UX.
+
 ## Available Scripts
 
 In the project directory, you can run:
