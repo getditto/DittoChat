@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import ChatView from "../ChatView";
 import type { Chat } from "../../types";
@@ -7,9 +7,7 @@ import type { MessageBubbleProps } from "../MessageBubble";
 import type { MessageInputProps } from "../MessageInput";
 import { EmojiClickData } from "emoji-picker-react";
 import type { ChatStore } from "@dittolive/ditto-chat-core";
-import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
-import type Room from "@dittolive/ditto-chat-core/dist/types/Room";
-import type { AttachmentToken, Attachment } from "@dittolive/ditto";
+import type { Attachment } from "@dittolive/ditto";
 
 // Mock dependencies
 vi.mock("../MessageBubble", () => ({

@@ -116,7 +116,7 @@ function MessageInput({
     if (text.trim()) {
       const validMentions = mentions.filter((m) => {
         const user = users.find((u) => u._id === m.userId);
-        if (!user) return false;
+        if (!user) {return false;}
         const mentionText = text.substring(m.startIndex, m.endIndex);
         return mentionText === `@${user.name}`;
       });
@@ -287,7 +287,7 @@ function MessageInput({
    */
   const handleMentionSelect = (user: ChatUser) => {
     const textarea = textareaRef.current;
-    if (!textarea) return;
+    if (!textarea) {return;}
 
     // --- Part 1: Identify the mention query and construct the new text ---
 

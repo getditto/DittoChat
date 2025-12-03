@@ -1,20 +1,20 @@
 import js from '@eslint/js'
 import tseslint from 'typescript-eslint'
+import { defineConfig, globalIgnores } from 'eslint/config'
 
-export default [
-    {
-        ignores: ['dist/**', 'node_modules/**'],
+export default defineConfig([
+  globalIgnores(['dist', 'node_modules']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      js.configs.recommended,
+      tseslint.configs.recommended,
+    ],
+    languageOptions: {
+      ecmaVersion: 2020,
     },
-    js.configs.recommended,
-    ...tseslint.configs.recommended,
-    {
-        files: ['**/*.{ts,tsx}'],
-        languageOptions: {
-            ecmaVersion: 2020,
-        },
-        rules: {
-            // Enforce curly braces for all control statements
-            curly: ['error', 'all'],
-        },
+    rules: {
+      curly: ['error', 'all'],
     },
-]
+  },
+])

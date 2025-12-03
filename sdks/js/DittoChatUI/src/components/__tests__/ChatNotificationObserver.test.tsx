@@ -3,8 +3,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import ChatNotificationObserver from "../ChatNotificationObserver";
 import type { ChatStore } from "@dittolive/ditto-chat-core";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
-import type MessageWithUser from "@dittolive/ditto-chat-core/dist/types/MessageWithUser";
-import type Room from "@dittolive/ditto-chat-core/dist/types/Room";
 
 // Mock dependencies
 const mockAddToast = vi.fn();

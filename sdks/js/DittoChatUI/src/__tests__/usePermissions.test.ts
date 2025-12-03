@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { usePermissions } from "../utils/usePermissions";
+import type { ChatStore } from "@dittolive/ditto-chat-core";
 
 // Mock useDittoChatStore
 const mockUseDittoChatStore = vi.fn();
 vi.mock("@dittolive/ditto-chat-core", () => ({
-    useDittoChatStore: (selector: any) => mockUseDittoChatStore(selector),
+    useDittoChatStore: <T>(selector: (state: ChatStore) => T) => mockUseDittoChatStore(selector),
 }));
 
 describe("usePermissions", () => {
@@ -57,8 +58,8 @@ describe("usePermissions", () => {
         mockUseDittoChatStore.mockImplementation((selector) => {
             const state = {
                 canPerformAction: (action: string) => {
-                    if (action === "canCreateRoom") return true;
-                    if (action === "canEditOwnMessage") return false;
+                    if (action === "canCreateRoom") { return true; }
+                    if (action === "canEditOwnMessage") { return false; }
                     return true;
                 },
             };

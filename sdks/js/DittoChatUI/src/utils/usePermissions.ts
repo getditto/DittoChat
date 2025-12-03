@@ -1,4 +1,4 @@
-import { useDittoChatStore, PermissionKey } from "@dittolive/ditto-chat-core";
+import { useDittoChatStore } from "@dittolive/ditto-chat-core";
 
 export function usePermissions() {
     const canPerformAction = useDittoChatStore(

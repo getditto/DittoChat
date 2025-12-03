@@ -74,7 +74,7 @@ function ChatView({ chat, onBack }: ChatViewProps) {
 
   // TODO: When the user opens/views the room, mark it as read (update subscription timestamp)
   useEffect(() => {
-    if (!room?._id) return;
+    if (!room?._id) {return;}
     markRoomAsRead(room._id).catch(console.error);
   }, [messages.length, room?._id, markRoomAsRead]);
 
@@ -90,16 +90,16 @@ function ChatView({ chat, onBack }: ChatViewProps) {
     newContent: string,
     mentions: Mention[] = [],
   ) => {
-    if (!room || !editingMessage) return;
+    if (!room || !editingMessage) {return;}
     const updatedMessage = { ...editingMessage, text: newContent, mentions };
     await saveEditedTextMessage(updatedMessage, room);
     setEditingMessage(null);
   };
 
   const handleDeleteMessage = async (messageId: string | number) => {
-    if (!room) return;
+    if (!room) {return;}
     const msgObj = messages.find((m) => m.id === String(messageId));
-    if (!msgObj) return;
+    if (!msgObj) {return;}
     const msg = msgObj.message;
     // If message has file token, treat as file delete
     if (msg.fileAttachmentToken) {
@@ -112,7 +112,7 @@ function ChatView({ chat, onBack }: ChatViewProps) {
   };
 
   const handleAddReaction = async (message: Message, emoji: EmojiClickData) => {
-    if (!room) return;
+    if (!room) {return;}
     const reaction: Reaction = {
       emoji: emoji.emoji,
       userId: currentUser?._id || "",
@@ -127,11 +127,11 @@ function ChatView({ chat, onBack }: ChatViewProps) {
     userId: string,
     emoji: string,
   ) => {
-    if (!room) return;
+    if (!room) {return;}
     const reaction = (message.reactions || []).find(
       (r) => r.userId === userId && r.emoji === emoji,
     );
-    if (!reaction) return;
+    if (!reaction) {return;}
     await removeReactionFromMessage(message, room, reaction);
   };
 
@@ -237,14 +237,13 @@ function ChatView({ chat, onBack }: ChatViewProps) {
       <MessageInput
         onSendMessage={(content: string, mentions: Mention[] = []) => {
           //TODO: Refactor room null check
-          if (room) createMessage(room, content, mentions).catch(console.error);
+          if (room) {createMessage(room, content, mentions).catch(console.error);}
         }}
         onSendImage={(file, caption) => {
-          if (room)
-            createImageMessage(room, file, caption).catch(console.error);
+          if (room) {createImageMessage(room, file, caption).catch(console.error);}
         }}
         onSendFile={(file, caption) => {
-          if (room) createFileMessage(room, file, caption).catch(console.error);
+          if (room) {createFileMessage(room, file, caption).catch(console.error);}
         }}
         editingMessage={editingMessage}
         onCancelEdit={handleCancelEdit}

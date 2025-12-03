@@ -45,7 +45,7 @@ describe("useRooms Slice", () => {
       mockDittoForTest.sync.registerSubscription.mockClear();
       mockDittoForTest.store.registerObserver.mockClear();
 
-      const storeWithoutDitto = createTestStore(null);
+      createTestStore(null);
 
       expect(mockDittoForTest.sync.registerSubscription).not.toHaveBeenCalled();
       expect(mockDittoForTest.store.registerObserver).not.toHaveBeenCalled();

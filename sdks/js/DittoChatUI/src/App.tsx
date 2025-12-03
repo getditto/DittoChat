@@ -1,4 +1,3 @@
-import React from "react";
 import { Ditto } from "@dittolive/ditto";
 import {
   DittoProvider,
@@ -12,7 +11,7 @@ const DittoChatUIWrapper = () => {
   return (
     <div>
       <DittoChatUI
-        // @ts-expect-error
+        // @ts-expect-error - theme prop not yet implemented in DittoChatUI component
         theme="light"
         ditto={ditto?.ditto as Ditto}
         // userId="690342270008f55100255f92" // update actual user id
@@ -51,8 +50,8 @@ function App() {
     /* initOptions={initOptions} */
     >
       {({ loading, error }) => {
-        if (loading) return <p>Loading</p>;
-        if (error) return <p>{error.message}</p>;
+        if (loading) { return <p>Loading</p>; }
+        if (error) { return <p>{error.message}</p>; }
         return <DittoChatUIWrapper />;
       }}
     </DittoProvider>

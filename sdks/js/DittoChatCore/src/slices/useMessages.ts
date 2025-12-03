@@ -1,6 +1,6 @@
 import {
+  Attachment,
   AttachmentToken,
-  DQLQueryArgumentValue,
   StoreObserver,
   SyncSubscription,
 } from "@dittolive/ditto";
@@ -281,7 +281,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     }
 
     const user = await getCurrentUser();
-    const attachments: Record<string, any> = {
+    const attachments: Record<string, Attachment | null> = {
       thumbnailImageToken: null,
       largeImageToken: null,
       fileAttachmentToken: null,
@@ -520,11 +520,12 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       try {
         ditto.store.fetchAttachment(token, async (event) => {
           switch (event.type) {
-            case "Progress":
+            case "Progress": {
               const progress =
                 Number(event.downloadedBytes) / (Number(event.totalBytes) || 1);
               onProgress(progress);
               break;
+            }
 
             case "Completed":
               try {

@@ -29,7 +29,7 @@ export type ChatStore = RoomSlice &
   RBACSlice & { chatLogout: () => void };
 
 export let chatStore: StoreApi<ChatStore> | null = null;
-export let chatStoreSub: Function;
+export let chatStoreSub: (() => void) | undefined;
 
 function cancelSubscriptionOrObserver(
   subscription: SyncSubscription | StoreObserver | null,
@@ -80,6 +80,6 @@ export function useDittoChatStore<T = Partial<ChatStore>>(
       "chatStore must be initialized before useDittoChatStore. use useDittoChat for initialization",
     );
   }
-  if (selector) {return useStore(chatStore, useShallow(selector));}
+  if (selector) { return useStore(chatStore, useShallow(selector)); }
   return useStore(chatStore) as T;
 }

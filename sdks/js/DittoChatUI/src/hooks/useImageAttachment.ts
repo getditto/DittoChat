@@ -138,9 +138,9 @@ function toBlobFromUint8(
   data: Uint8Array | ArrayBuffer | unknown,
   mime = "image/jpeg"
 ): Blob {
-  if (!data) throw new Error("No data provided for blob conversion");
-  if (data instanceof Blob) return data;
-  if (data instanceof ArrayBuffer) return new Blob([data], { type: mime });
+  if (!data) {throw new Error("No data provided for blob conversion");}
+  if (data instanceof Blob) {return data;}
+  if (data instanceof ArrayBuffer) {return new Blob([data], { type: mime });}
   if (ArrayBuffer.isView(data)) {
     const view = data as ArrayBufferView;
     const copy = new Uint8Array(view.byteLength);

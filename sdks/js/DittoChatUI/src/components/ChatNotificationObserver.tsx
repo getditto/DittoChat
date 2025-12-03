@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useDittoChatStore } from "@dittolive/ditto-chat-core";
 import { useToast } from "./ToastProvider";
 import { useBrowserNotifications } from "../hooks/useBrowserNotifications";
@@ -27,7 +27,7 @@ function ChatNotificationObserver({ activeRoomId }: ChatNotificationObserverProp
         return;
       }
       const user = users.find((u) => u._id === messageWithUser.message?.userId);
-      if (!user) return;
+      if (!user) {return;}
       const senderName = user?.name || "Unknown User";
       const roomName = room.name;
       const isDM = room.collectionId === "dm_rooms";

@@ -15,7 +15,7 @@ describe("useDittoChatStore - Uninitialized Store Error", () => {
         const { useDittoChatStore } = await import("../src/useChat");
 
         // Mock the chatStore as null by accessing the module
-        const useChatModule = await import("../src/useChat");
+        await import("../src/useChat");
 
         // Try to use the store before initialization
         expect(() => {

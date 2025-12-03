@@ -35,7 +35,7 @@ HTMLCanvasElement.prototype.toBlob = vi.fn((callback) => {
 // Mock FileReader
 global.FileReader = class {
   readAsDataURL() {
-    // @ts-ignore
+    // @ts-expect-error - Mock onload without proper event type
     this.onload({ target: { result: "data:image/png;base64,fake-data" } });
   }
   onload() { }
@@ -48,7 +48,6 @@ global.Image = class {
   height = 100;
   constructor() {
     setTimeout(() => {
-      // @ts-ignore
       this.onload();
     }, 10);
   }

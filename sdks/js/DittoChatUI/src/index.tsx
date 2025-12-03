@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import DittoChatUI from "./DittoChatUI";
 
 export { useBrowserNotifications } from "./hooks/useBrowserNotifications";

@@ -215,7 +215,7 @@ function MessageBubble({
         reaction.emoji === emoji.emoji &&
         reaction.userIds.includes(currentUserId)
     );
-    if (existingReactionIndex !== -1) return;
+    if (existingReactionIndex !== -1) {return;}
     onAddReaction(message, emoji);
   };
 
@@ -230,7 +230,7 @@ function MessageBubble({
     <div
       className={`flex flex-col ${alignmentClass}`}
       onMouseEnter={() => {
-        if (isOwnMessage) setIsActionsVisible(true);
+        if (isOwnMessage) {setIsActionsVisible(true);}
       }}
       onMouseLeave={() => {
         if (isOwnMessage) {

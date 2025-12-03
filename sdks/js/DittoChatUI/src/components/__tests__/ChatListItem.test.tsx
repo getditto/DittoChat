@@ -4,8 +4,7 @@ import ChatListItem from "../ChatListItem";
 import type { Chat } from "../../types";
 import type { ChatStore } from "@dittolive/ditto-chat-core";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
-import type MessageWithUser from "@dittolive/ditto-chat-core/dist/types/MessageWithUser";
-import type { Attachment, AttachmentToken } from "@dittolive/ditto";
+import type { Attachment } from "@dittolive/ditto";
 
 // Mock dependencies
 vi.mock("../Avatar", () => ({

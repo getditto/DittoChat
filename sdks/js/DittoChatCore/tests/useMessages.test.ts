@@ -417,7 +417,7 @@ describe("useMessages Slice", () => {
           reactions: [],
         };
 
-        store.setState((state) => ({
+        store.setState({
           messagesByRoom: {
             [mockRoom._id]: [
               {
@@ -427,7 +427,7 @@ describe("useMessages Slice", () => {
               },
             ],
           },
-        }));
+        });
 
         const reaction = { userId: "test-user-id", emoji: "👍" };
 
@@ -488,7 +488,7 @@ describe("useMessages Slice", () => {
           reactions: [],
         };
 
-        store.setState((state) => ({
+        store.setState({
           messagesByRoom: {
             [mockRoom._id]: [
               {
@@ -498,7 +498,7 @@ describe("useMessages Slice", () => {
               },
             ],
           },
-        }));
+        });
 
         const reaction = { userId: "test-user-id", emoji: "👍" };
 
@@ -526,13 +526,13 @@ describe("useMessages Slice", () => {
           reactions: [reactionToRemove, reactionToKeep],
         };
 
-        store.setState((state) => ({
+        store.setState({
           messagesByRoom: {
             [mockRoom._id]: [
               { message: initialMessage as Message, id: messageId, user: null },
             ],
           },
-        }));
+        });
 
         await store
           .getState()
@@ -594,13 +594,13 @@ describe("useMessages Slice", () => {
           reactions: [reactionToRemove, reactionToKeep],
         };
 
-        store.setState((state) => ({
+        store.setState({
           messagesByRoom: {
             [mockRoom._id]: [
               { message: initialMessage as Message, id: messageId, user: null },
             ],
           },
-        }));
+        });
 
         vi.clearAllMocks();
 

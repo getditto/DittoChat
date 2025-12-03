@@ -76,7 +76,9 @@ export default function DittoChatUI({
     const latestMessages: Message[] = roomKeys
       .map((key) => {
         const messages = messagesByRoom[key];
-        if (!messages || messages.length === 0) return null;
+        if (!messages || messages.length === 0) {
+          return null;
+        }
         return messages[messages.length - 1].message;
       })
       .filter((msg): msg is Message => msg !== null);
@@ -92,7 +94,7 @@ export default function DittoChatUI({
   };
 
   useEffect(() => {
-    if (!rooms.length || !users.length) return;
+    if (!rooms.length || !users.length) {return;}
     const userMap = new Map(users.map((u) => [u._id, u]));
     const messageMap = new Map<string, Message>();
     for (const msg of latestMessages) {
@@ -103,7 +105,7 @@ export default function DittoChatUI({
     const chatsWithMessages: Chat[] = latestMessages
       .map((message: Message) => {
         const room = rooms.find((r) => r._id === message.roomId);
-        if (!room) return null;
+        if (!room) {return null;}
         messageRoomIds.push(message.roomId);
 
         const participants: ChatUser[] = (room.participants || [])
@@ -185,7 +187,7 @@ export default function DittoChatUI({
 
   const handleNewDMCreate = async (user: ChatUser) => {
     const isExists = chats.find((chat) => {
-      if (chat.participants.length !== 2) return false;
+      if (chat.participants.length !== 2) {return false;}
       const ids = chat.participants.map((p) => p._id);
       return ids.includes(user._id) && ids.includes(currentUser?._id);
     });
@@ -205,7 +207,7 @@ export default function DittoChatUI({
   };
 
   useEffect(() => {
-    if (!newlyCreatedRoom) return;
+    if (!newlyCreatedRoom) {return;}
     const chat = chats.find((chat) => chat.id === newlyCreatedRoom);
     if (chat) {
       handleSelectChat(chat);

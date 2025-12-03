@@ -4,20 +4,7 @@ import MessageBubble from "../MessageBubble";
 import type Message from "@dittolive/ditto-chat-core/dist/types/Message";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import type { Reaction } from "@dittolive/ditto-chat-core/dist/types/Message";
-import QuickReaction from "../QuickReaction";
 import type { Attachment } from "@dittolive/ditto";
-import type { useImageAttachment } from "../../hooks/useImageAttachment";
-
-type UseImageAttachmentReturn = ReturnType<typeof useImageAttachment>;
-
-// Mock dependencies
-const mockUseImageAttachment = vi.fn((...args: Parameters<typeof useImageAttachment>): UseImageAttachmentReturn => ({
-    imageUrl: null,
-    progress: 0,
-    isLoading: false,
-    error: null,
-    fetchImage: vi.fn(),
-}));
 
 vi.mock("../Icons", () => ({
     Icons: {
@@ -32,9 +19,12 @@ vi.mock("../QuickReaction", () => ({
     default: () => <div data-testid="quick-reaction" />,
 }));
 
-vi.mock("../../hooks/useImageAttachment", () => ({
-    useImageAttachment: (...args: Parameters<typeof useImageAttachment>) => mockUseImageAttachment.apply(null, args),
-}));
+vi.mock("../../hooks/useImageAttachment");
+
+// Mock dependencies - import after vi.mock to get the mocked version
+import { useImageAttachment } from "../../hooks/useImageAttachment";
+type UseImageAttachmentReturn = ReturnType<typeof useImageAttachment>;
+const mockUseImageAttachment = vi.mocked(useImageAttachment);
 
 // Mock usePermissions
 import { usePermissions } from "../../utils/usePermissions";
@@ -323,8 +313,8 @@ describe("MessageBubble", () => {
     it("handles thumbnail click to show large image", () => {
         const fetchLargeImageMock = vi.fn();
 
-        mockUseImageAttachment.mockImplementation((args: Parameters<typeof useImageAttachment>[0]): UseImageAttachmentReturn => {
-            if (args.token?.id === "token-1") {
+        mockUseImageAttachment.mockImplementation((config?: Parameters<typeof useImageAttachment>[0]): UseImageAttachmentReturn => {
+            if (config?.token?.id === "token-1") {
                 return {
                     imageUrl: "thumbnail-url",
                     progress: 1,
@@ -333,7 +323,7 @@ describe("MessageBubble", () => {
                     fetchImage: vi.fn(),
                 };
             }
-            if (args.token?.id === "token-large") {
+            if (config?.token?.id === "token-large") {
                 return {
                     imageUrl: null,
                     progress: 0,
@@ -427,7 +417,7 @@ describe("MessageBubble", () => {
     });
 
     it("shows error state for image load failure", () => {
-        mockUseImageAttachment.mockImplementation((args: Parameters<typeof useImageAttachment>[0]): UseImageAttachmentReturn => {
+        mockUseImageAttachment.mockImplementation((): UseImageAttachmentReturn => {
             return {
                 imageUrl: null,
                 progress: 0,
@@ -447,8 +437,8 @@ describe("MessageBubble", () => {
     });
 
     it("shows loading state for large image", () => {
-        mockUseImageAttachment.mockImplementation((args: Parameters<typeof useImageAttachment>[0]): UseImageAttachmentReturn => {
-            if (args.token?.id === "token-large") {
+        mockUseImageAttachment.mockImplementation((config?: Parameters<typeof useImageAttachment>[0]): UseImageAttachmentReturn => {
+            if (config?.token?.id === "token-large") {
                 return {
                     imageUrl: null,
                     progress: 0.5,
@@ -575,7 +565,7 @@ describe("MessageBubble", () => {
 
         const originalCreateElement = document.createElement.bind(document);
         const createElementSpy = vi.spyOn(document, "createElement").mockImplementation((tagName: string, options?: ElementCreationOptions) => {
-            if (tagName === "a") return mockAnchor;
+            if (tagName === "a") { return mockAnchor; }
             return originalCreateElement(tagName, options);
         });
 

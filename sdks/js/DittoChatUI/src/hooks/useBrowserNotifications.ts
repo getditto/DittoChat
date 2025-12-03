@@ -106,7 +106,7 @@ export const useBrowserNotifications = (): UseBrowserNotificationsReturn => {
 
     // Update permission state if it changes externally
     useEffect(() => {
-        if (!isSupported) return;
+        if (!isSupported) {return;}
 
         const handlePermissionChange = () => {
             setPermission(Notification.permission);

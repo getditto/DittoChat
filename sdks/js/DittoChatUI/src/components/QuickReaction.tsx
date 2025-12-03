@@ -52,7 +52,7 @@ function EmojiPickerComponent({
 
   // Smart positioning: top/bottom + left/right/center
   useEffect(() => {
-    if (!triggerRef.current) return;
+    if (!triggerRef.current) {return;}
 
     const triggerRect = triggerRef.current.getBoundingClientRect();
     const pickerHeight = 459;

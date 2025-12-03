@@ -31,7 +31,7 @@ describe("useImageAttachment", () => {
     });
 
     it("fetches image automatically on mount", async () => {
-        mockFetchAttachment.mockImplementation((token, onProgress, onComplete) => {
+        mockFetchAttachment.mockImplementation((_token, _onProgress, onComplete) => {
             setTimeout(() => {
                 onComplete({ success: true, data: new Uint8Array([1, 2, 3]) });
             }, 10);
@@ -54,7 +54,7 @@ describe("useImageAttachment", () => {
     });
 
     it("handles fetch error", async () => {
-        mockFetchAttachment.mockImplementation((token, onProgress, onComplete) => {
+        mockFetchAttachment.mockImplementation((_token, _onProgress, onComplete) => {
             onComplete({ success: false, error: new Error("Fetch failed") });
         });
 
@@ -71,7 +71,7 @@ describe("useImageAttachment", () => {
     });
 
     it("updates progress", async () => {
-        mockFetchAttachment.mockImplementation((token, onProgress, onComplete) => {
+        mockFetchAttachment.mockImplementation((_token, onProgress, onComplete) => {
             onProgress(0.5);
             setTimeout(() => {
                 onComplete({ success: true, data: new Uint8Array([]) });
@@ -99,7 +99,7 @@ describe("useImageAttachment", () => {
             throw new Error("Blob failed");
         });
 
-        mockFetchAttachment.mockImplementation((token, onProgress, onComplete) => {
+        mockFetchAttachment.mockImplementation((_token, _onProgress, onComplete) => {
             onComplete({ success: true, data: new Uint8Array([]) });
         });
 
@@ -125,7 +125,8 @@ describe("useImageAttachment", () => {
     });
 
     it("prevents duplicate fetch when already loading", async () => {
-        mockFetchAttachment.mockImplementation((token, onProgress, onComplete) => {
+        mockFetchAttachment.mockImplementation(() => {
+
         });
 
         const { result } = renderHook(() =>
