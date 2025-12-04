@@ -228,9 +228,7 @@ useDittoChat({
 
 The chat system triggers notifications for various events:
 - New messages in subscribed rooms
-- Room creation
 - User mentions
-- System errors or warnings
 
 ## Architecture & Performance
 
