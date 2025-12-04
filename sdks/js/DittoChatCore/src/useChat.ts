@@ -15,6 +15,7 @@ export type DittoConfParams = {
   userCollectionKey: string;
   retentionDays?: number;
   rbacConfig?: RBACConfig;
+  notificationHandler?: (title: string, description: string) => void;
 };
 
 export type CreateSlice<T> = (

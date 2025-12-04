@@ -5,6 +5,7 @@ import {
   useOnlinePlaygroundIdentity,
 } from "@dittolive/react-ditto";
 import DittoChatUI from "./DittoChatUI";
+import { toast } from "sonner";
 
 const DittoChatUIWrapper = () => {
   const ditto = useDitto("testing");
@@ -18,6 +19,11 @@ const DittoChatUIWrapper = () => {
         userId="6903511900bd187500bb5c12" // update actual user id
         userCollectionKey="users"
         rbacConfig={{ canMentionUsers: true, canSubscribeToRoom: true, canCreateRoom: true }}
+        notificationHandler={(title, description) => {
+          toast.info(title, {
+            description,
+          });
+        }}
       />
     </div>
   );

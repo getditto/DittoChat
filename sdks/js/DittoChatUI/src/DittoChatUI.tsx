@@ -7,7 +7,6 @@ import { Icons } from "./components/Icons";
 import {
   useDittoChat,
   useDittoChatStore,
-  DittoToaster,
   type DittoConfParams,
 } from "@dittolive/ditto-chat-core";
 import type { Chat } from "./types";
@@ -17,6 +16,7 @@ import Room from "@dittolive/ditto-chat-core/dist/types/Room";
 import Message from "@dittolive/ditto-chat-core/dist/types/Message";
 import NewRoomModal from "./components/NewRoomModal";
 import ChatListSkeleton from "./components/ChatListSkeleton";
+import { Toaster, toast } from "sonner";
 
 const getSystemTheme = () => {
   if (
@@ -34,12 +34,18 @@ export default function DittoChatUI({
   userId,
   theme = "light",
   rbacConfig,
+  notificationHandler
 }: DittoConfParams & { theme: "light" | "dark" | "auto" }) {
   useDittoChat({
     ditto,
     userCollectionKey,
     userId,
     rbacConfig,
+    notificationHandler: notificationHandler ? notificationHandler : (title, description) => {
+      toast.info(title, {
+        description,
+      });
+    },
   });
 
   const [chats, setChats] = useState<Chat[]>([]);
@@ -230,7 +236,7 @@ export default function DittoChatUI({
   return (
     <div className="web-chat-root">
       <div className={themeName}>
-        <DittoToaster
+        <Toaster
           position="top-right"
           richColors
           closeButton

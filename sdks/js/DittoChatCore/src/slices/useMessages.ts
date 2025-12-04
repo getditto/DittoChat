@@ -11,7 +11,6 @@ import Room from "../types/Room";
 import ChatUser from "../types/ChatUser";
 import { ChatStore, CreateSlice } from "../useChat";
 import MessageWithUser from "../types/MessageWithUser";
-import { toast } from "../components/DittoToaster";
 
 
 export interface MessageSlice {
@@ -77,7 +76,7 @@ const THUMBNAIL_MAX_SIZE = 282;
 export const createMessageSlice: CreateSlice<MessageSlice> = (
   _set,
   _get,
-  { ditto, userId, userCollectionKey, retentionDays: globalRetentionDays }
+  { ditto, userId, userCollectionKey, retentionDays: globalRetentionDays, notificationHandler }
 ) => {
   // Helper: Get room details
   const getRoomDetails = async (room: Room) => {
@@ -144,15 +143,13 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     if (
       existingIndex === -1 &&
       !message.archivedMessage &&
-      shouldNotify(message, room)
+      shouldNotify(message, room) && notificationHandler
     ) {
       // Trigger notification handler if registered (for browser notifications and toasts)
       // _get().notificationHandler?.({ message, user, id: message._id }, room);
 
       // Trigger toast notification if not viewing this room
       const activeRoomId = _get().activeRoomId;
-      console.log("User Name", user?.name);
-      console.log("User", user)
       if (activeRoomId !== room._id) {
         const senderName = user?.name || "Unknown User";
         const roomName = room.name;
@@ -167,10 +164,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
           (message.text.length > 30 ? "..." : "")
           : "Sent an attachment";
 
-        toast({
-          title,
-          description: preview,
-        });
+        notificationHandler(title, preview)
       }
     }
 
@@ -200,6 +194,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
   // Helper: Check if should notify user
   const shouldNotify = (message: Message, room: Room) => {
+    return true;
     const currentState = _get();
     const currentUser = currentState.currentUser;
 

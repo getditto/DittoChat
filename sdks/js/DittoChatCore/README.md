@@ -144,6 +144,94 @@ if (canPerformAction('canCreateRoom')) {
 
 **Note:** When a permission is denied, the action will fail silently with a warning logged to the console. The UI layer should check permissions before displaying action buttons to provide better UX.
 
+## Notifications
+
+DittoChatCore provides a customizable notification system through the `notificationHandler` prop. This allows you to integrate chat notifications with your preferred toast/notification library.
+
+### Notification Handler
+
+The `notificationHandler` is an optional callback function that receives notification events from the chat system.
+
+**Signature:**
+```typescript
+notificationHandler?: (title: string, description: string) => void
+```
+
+**Parameters:**
+- `title` - The notification title (e.g., "New Message", "Room Created")
+- `description` - Additional details about the notification
+
+### Default Behavior
+
+If no `notificationHandler` is provided, notifications will not trigger or be logged. You must provide a custom handler to receive and display notifications.
+
+### Custom Notification Handler
+
+You can provide a custom handler to integrate with any toast/notification library:
+
+#### Example with Sonner
+
+```typescript
+import { toast } from 'sonner';
+import { useDittoChat } from '@dittolive/ditto-chat-core';
+
+useDittoChat({
+  ditto: dittoInstance,
+  userId: currentUserId,
+  userCollectionKey: userCollectionKey,
+  notificationHandler: (title, description) => {
+    toast.info(title, {
+      description,
+    });
+  },
+});
+```
+
+#### Example with React-Toastify
+
+```typescript
+import { toast } from 'react-toastify';
+import { useDittoChat } from '@dittolive/ditto-chat-core';
+
+useDittoChat({
+  ditto: dittoInstance,
+  userId: currentUserId,
+  userCollectionKey: userCollectionKey,
+  notificationHandler: (title, description) => {
+    toast.info(`${title}: ${description}`);
+  },
+});
+```
+
+#### Example with Custom Notification System
+
+```typescript
+import { useDittoChat } from '@dittolive/ditto-chat-core';
+
+useDittoChat({
+  ditto: dittoInstance,
+  userId: currentUserId,
+  userCollectionKey: userCollectionKey,
+  notificationHandler: (title, description) => {
+    // Custom notification logic
+    showCustomNotification({
+      type: 'info',
+      title,
+      message: description,
+      duration: 3000,
+    });
+  },
+});
+```
+
+### Common Notification Events
+
+The chat system triggers notifications for various events:
+- New messages in subscribed rooms
+- Room creation
+- User mentions
+- System errors or warnings
+
 ## Architecture & Performance
 
 ### Optimistic UI Updates

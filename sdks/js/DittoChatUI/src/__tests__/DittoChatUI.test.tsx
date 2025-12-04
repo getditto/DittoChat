@@ -54,9 +54,6 @@ vi.mock("../components/ToastProvider", () => ({
     ToastProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-vi.mock("../components/ChatNotificationObserver", () => ({
-    default: () => null,
-}));
 
 vi.mock("../components/ChatListSkeleton", () => ({
     default: () => <div data-testid="chat-list-skeleton">Loading...</div>,
@@ -127,6 +124,7 @@ describe("DittoChatUI", () => {
             userCollectionKey: defaultProps.userCollectionKey,
             userId: defaultProps.userId,
             rbacConfig: rbacConfig,
+            notificationHandler: expect.any(Function),
         });
     });
 
