@@ -144,6 +144,21 @@ if (canPerformAction('canCreateRoom')) {
 
 **Note:** When a permission is denied, the action will fail silently with a warning logged to the console. The UI layer should check permissions before displaying action buttons to provide better UX.
 
+## Architecture & Performance
+
+### Optimistic UI Updates
+
+DittoChatCore uses an **optimistic update pattern** for message reactions to provide instant UI feedback.
+
+**How it works:**
+1. **Immediate UI Update** - Reaction appears instantly in the UI before any database operations
+2. **Async Persistence** - Change persists to Ditto database in the background
+3. **Auto Rollback** - If database update fails, the reaction is automatically removed from the UI
+
+**Benefits:** Instant feedback, no perceived latency, automatic data consistency.
+
+**Implementation:** See `updateMessageReactions()` function in [`src/slices/useMessages.ts`](src/slices/useMessages.ts) for the complete implementation details.
+
 ## Available Scripts
 
 In the project directory, you can run:
