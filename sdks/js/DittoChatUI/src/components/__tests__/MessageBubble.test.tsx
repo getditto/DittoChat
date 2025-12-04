@@ -210,7 +210,7 @@ describe("MessageBubble", () => {
     it("renders image attachment", () => {
         const imageMessage: Message = {
             ...mockMessage,
-            thumbnailImageToken: { id: "token-1", len: 0, metadata: {} } as any,
+            thumbnailImageToken: { id: "token-1", len: 0, metadata: {} } as unknown as Attachment,
         };
 
         render(<MessageBubble {...defaultProps} message={imageMessage} />);
@@ -228,7 +228,7 @@ describe("MessageBubble", () => {
 
         const imageMessage: Message = {
             ...mockMessage,
-            thumbnailImageToken: { id: "token-1", len: 0, metadata: {} } as any,
+            thumbnailImageToken: { id: "token-1", len: 0, metadata: {} } as unknown as Attachment,
         };
 
         render(<MessageBubble {...defaultProps} message={imageMessage} />);
@@ -241,7 +241,7 @@ describe("MessageBubble", () => {
     it("renders file attachment", () => {
         const fileMessage: Message = {
             ...mockMessage,
-            fileAttachmentToken: { id: "token-2", len: 0, metadata: {} } as any,
+            fileAttachmentToken: { id: "token-2", len: 0, metadata: {} } as unknown as Attachment,
             text: "document.pdf",
         };
 
@@ -253,7 +253,7 @@ describe("MessageBubble", () => {
     it("handles file download", () => {
         const fileMessage: Message = {
             ...mockMessage,
-            fileAttachmentToken: { id: "token-2", len: 0, metadata: {} } as any,
+            fileAttachmentToken: { id: "token-2", len: 0, metadata: {} } as unknown as Attachment,
             text: "document.pdf",
         };
 
@@ -343,8 +343,8 @@ describe("MessageBubble", () => {
 
         const imageMessage: Message = {
             ...mockMessage,
-            thumbnailImageToken: { id: "token-1", len: 0, metadata: {} } as any,
-            largeImageToken: { id: "token-large", len: 0, metadata: {} } as any,
+            thumbnailImageToken: { id: "token-1", len: 0, metadata: {} } as unknown as Attachment,
+            largeImageToken: { id: "token-large", len: 0, metadata: {} } as unknown as Attachment,
         };
 
         render(<MessageBubble {...defaultProps} message={imageMessage} />);
@@ -366,8 +366,8 @@ describe("MessageBubble", () => {
 
         const imageMessage: Message = {
             ...mockMessage,
-            thumbnailImageToken: { id: "token-1", len: 0, metadata: {} } as any,
-            largeImageToken: { id: "token-large", len: 0, metadata: {} } as any,
+            thumbnailImageToken: { id: "token-1", len: 0, metadata: {} } as unknown as Attachment,
+            largeImageToken: { id: "token-large", len: 0, metadata: {} } as unknown as Attachment,
         };
 
         render(<MessageBubble {...defaultProps} message={imageMessage} />);
@@ -429,7 +429,7 @@ describe("MessageBubble", () => {
 
         const imageMessage: Message = {
             ...mockMessage,
-            thumbnailImageToken: { id: "token-1", len: 0, metadata: {} } as any,
+            thumbnailImageToken: { id: "token-1", len: 0, metadata: {} } as unknown as Attachment,
         };
 
         render(<MessageBubble {...defaultProps} message={imageMessage} />);
@@ -452,8 +452,8 @@ describe("MessageBubble", () => {
 
         const imageMessage: Message = {
             ...mockMessage,
-            thumbnailImageToken: { id: "token-1", len: 0, metadata: {} } as any,
-            largeImageToken: { id: "token-large", len: 0, metadata: {} } as any,
+            thumbnailImageToken: { id: "token-1", len: 0, metadata: {} } as unknown as Attachment,
+            largeImageToken: { id: "token-large", len: 0, metadata: {} } as unknown as Attachment,
         };
 
         render(<MessageBubble {...defaultProps} message={imageMessage} />);
@@ -476,8 +476,8 @@ describe("MessageBubble", () => {
 
         const imageMessage: Message = {
             ...mockMessage,
-            thumbnailImageToken: { id: "token-1", len: 0, metadata: {} } as any,
-            largeImageToken: { id: "token-large", len: 0, metadata: {} } as any,
+            thumbnailImageToken: { id: "token-1", len: 0, metadata: {} } as unknown as Attachment,
+            largeImageToken: { id: "token-large", len: 0, metadata: {} } as unknown as Attachment,
         };
 
         render(
@@ -523,7 +523,7 @@ describe("MessageBubble", () => {
 
         const imageMessage: Message = {
             ...mockMessage,
-            thumbnailImageToken: { id: "token-1", len: 0, metadata: {} } as any,
+            thumbnailImageToken: { id: "token-1", len: 0, metadata: {} } as unknown as Attachment,
         };
 
         render(<MessageBubble {...defaultProps} message={imageMessage} />);
@@ -534,7 +534,7 @@ describe("MessageBubble", () => {
         const deletedFileMessage: Message = {
             ...mockMessage,
             text: "file.pdf",
-            fileAttachmentToken: { id: "file-token", len: 0, metadata: {} } as any,
+            fileAttachmentToken: { id: "file-token", len: 0, metadata: {} } as unknown as Attachment,
             isDeleted: true,
         };
 
@@ -550,7 +550,7 @@ describe("MessageBubble", () => {
         const fileMessage: Message = {
             ...mockMessage,
             text: "test.pdf",
-            fileAttachmentToken: { id: "file-token", len: 0, metadata: {} } as any,
+            fileAttachmentToken: { id: "file-token", len: 0, metadata: {} } as unknown as Attachment,
         };
 
         // Mock URL.createObjectURL and URL.revokeObjectURL

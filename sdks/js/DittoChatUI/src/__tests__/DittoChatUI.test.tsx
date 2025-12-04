@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import "@testing-library/jest-dom";
 import DittoChatUI from "../DittoChatUI";
 import type { ChatStore, DittoConfParams } from "@dittolive/ditto-chat-core";
 import type Room from "@dittolive/ditto-chat-core/dist/types/Room";
@@ -68,6 +69,7 @@ const mockUseDittoChat = vi.fn();
 vi.mock("@dittolive/ditto-chat-core", () => ({
     useDittoChat: (params: DittoConfParams) => mockUseDittoChat(params),
     useDittoChatStore: <T,>(selector: (state: ChatStore) => T) => mockUseDittoChatStore(selector),
+    DittoToaster: () => null,
 }));
 
 describe("DittoChatUI", () => {
@@ -94,6 +96,7 @@ describe("DittoChatUI", () => {
             usersLoading: false,
             messagesLoading: false,
             messagesByRoom: {},
+            setActiveRoomId: vi.fn(),
         };
 
         mockUseDittoChatStore.mockImplementation((selector) => {

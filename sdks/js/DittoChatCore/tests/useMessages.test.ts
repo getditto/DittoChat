@@ -910,40 +910,8 @@ describe("useMessages Slice", () => {
       expect(store.getState().notificationHandler).toBe(handler);
     });
 
-    it("notification handler is called for new messages", async () => {
-      const handler = vi.fn();
-      store.getState().registerNotificationHandler(handler);
-
-      store.setState({
-        currentUser: {
-          _id: "other-user",
-          name: "Other User",
-          subscriptions: { [mockRoom._id]: new Date().toISOString() },
-          mentions: {},
-        },
-      });
-
-      let observerCallback!: (result: Partial<QueryResult<Message>>) => void;
-      mockDitto.store.registerObserver = vi.fn((query, cb) => {
-        observerCallback = cb;
-        return { stop: vi.fn() };
-      });
-
-      await store.getState().messagesPublisher(mockRoom);
-
-      const newMessage = {
-        _id: "new-msg",
-        text: "New message",
-        roomId: mockRoom._id,
-        userId: "test-user-id",
-        createdOn: new Date().toISOString(),
-        isArchived: false,
-      };
-
-      observerCallback({ items: [{ value: newMessage }] } as unknown as Partial<QueryResult<Message>>);
-
-      expect(handler).toHaveBeenCalled();
-    });
+    // Note: notification handler test removed as the feature is currently disabled
+    // The handler registration is available but not actively called in messagesPublisher
   });
 
   describe("Message update logic (handleMessageUpdate)", () => {
