@@ -37,6 +37,16 @@ const MyChatApp = () => {
         ditto={ditto}
         userCollectionKey="my-users"
         userId="user123"
+        theme="auto"
+        rbacConfig={{
+          canCreateRoom: true,
+          canEditOwnMessage: true,
+          canDeleteOwnMessage: false,
+          canAddReaction: true,
+          canRemoveOwnReaction: true,
+          canMentionUsers: true,
+          canSubscribeToRoom: true,
+        }}
       />
     </div>
   );
@@ -52,6 +62,8 @@ The `DittoChatUI` component accepts the following props:
 - `ditto`: (Required) An initialized Ditto instance. This is used to connect to the Ditto mesh network and manage chat data.
 - `userCollectionKey`: (Required) A string representing the key for the Ditto collection where user information is stored.
 - `userId`: (Required) A string representing the ID of the current user.
+- `theme`: (Optional) Theme mode - `"light"`, `"dark"`, or `"auto"`. Default is `"light"`. When set to `"auto"`, the theme follows the system preference.
+- `rbacConfig`: (Optional) Role-Based Access Control configuration object to control user permissions. See the [RBAC section in DittoChatCore](../DittoChatCore/README.md#role-based-access-control-rbac) for available permissions and detailed documentation.
 
 ## Contributing
 

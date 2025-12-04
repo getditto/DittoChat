@@ -567,6 +567,32 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       }
     },
 
+    /**
+     * Updates message reactions using an optimistic update pattern.
+     * 
+     * This function implements optimistic UI updates to provide instant feedback
+     * to users without waiting for database operations to complete. The pattern
+     * works in two phases:
+     * 
+     * 1. **Optimistic Update (Immediate)**:
+     *    - Updates the local state immediately with the new reactions
+     *    - Provides instant UI feedback for a responsive user experience
+     *    - Users see their reaction changes without any delay
+     * 
+     * 2. **Database Persistence (Async)**:
+     *    - Asynchronously persists the changes to the Ditto database
+     *    - If the database update fails, automatically rolls back the UI changes
+     *    - Restores the previous reactions state to maintain data consistency
+     * 
+     * This approach ensures:
+     * - Quick UI interactions without perceived latency
+     * - Data consistency through automatic rollback on errors
+     * - Better user experience compared to waiting for DB operations
+     * 
+     * @param message - The message whose reactions are being updated
+     * @param room - The room containing the message
+     * @param reactions - The new array of reactions to apply
+     */
     async updateMessageReactions(
       message: Message,
       room: Room,
@@ -583,14 +609,16 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       const originalMessage = roomMessages[index].message;
       const previousReactions = originalMessage.reactions || [];
 
-      // Optimistic update
+      // Phase 1: Optimistic update - immediately update UI state
+      // This provides instant feedback to the user without waiting for DB operations
       _set((state: ChatStore) =>
         produce(state, (draft) => {
           draft.messagesByRoom[roomId][index].message.reactions = reactions;
         }),
       );
 
-      // Async DB update with rollback on error
+      // Phase 2: Async DB persistence with automatic rollback on failure
+      // Using setTimeout(0) to defer DB operations without blocking the UI
       setTimeout(async () => {
         try {
           await ditto.store.execute(
@@ -598,6 +626,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
             { id: originalMessage._id, reactions },
           );
         } catch (err) {
+          // Rollback: Restore previous state if DB update fails
           console.error("Error updating reactions, rolling back:", err);
           _set((state: ChatStore) =>
             produce(state, (draft) => {
