@@ -26,7 +26,11 @@ export type CreateSlice<T> = (
 export type ChatStore = RoomSlice &
   ChatUserSlice &
   MessageSlice &
-  RBACSlice & { chatLogout: () => void };
+  RBACSlice & {
+    activeRoomId: string | number | null;
+    setActiveRoomId: (roomId: string | number | null) => void;
+    chatLogout: () => void;
+  };
 
 export let chatStore: StoreApi<ChatStore> | null = null;
 export let chatStoreSub: (() => void) | undefined;
@@ -47,6 +51,8 @@ export function useDittoChat(params: DittoConfParams) {
         ...createChatUserSlice(set, get, params),
         ...createMessageSlice(set, get, params),
         ...createRBACSlice(set, get, params),
+        activeRoomId: null,
+        setActiveRoomId: (roomId) => set({ activeRoomId: roomId }),
         chatLogout: () => {
           const state = get();
           cancelSubscriptionOrObserver(state.roomsSubscription);

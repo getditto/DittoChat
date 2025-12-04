@@ -11,6 +11,8 @@ import Room from "../types/Room";
 import ChatUser from "../types/ChatUser";
 import { ChatStore, CreateSlice } from "../useChat";
 import MessageWithUser from "../types/MessageWithUser";
+import { toast } from "../components/DittoToaster";
+
 
 export interface MessageSlice {
   messagesByRoom: Record<string, MessageWithUser[]>;
@@ -144,8 +146,34 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       !message.archivedMessage &&
       shouldNotify(message, room)
     ) {
-      _get().notificationHandler?.({ message, user, id: message._id }, room);
+      // Trigger notification handler if registered (for browser notifications and toasts)
+      // _get().notificationHandler?.({ message, user, id: message._id }, room);
+
+      // Trigger toast notification if not viewing this room
+      const activeRoomId = _get().activeRoomId;
+      console.log("User Name", user?.name);
+      console.log("User", user)
+      if (activeRoomId !== room._id) {
+        const senderName = user?.name || "Unknown User";
+        const roomName = room.name;
+        const isDM = room.collectionId === "dm_rooms";
+
+        const title = isDM
+          ? `New message from ${senderName}`
+          : `#${roomName}: ${senderName}`;
+
+        const preview = message.text
+          ? message.text.substring(0, 30) +
+          (message.text.length > 30 ? "..." : "")
+          : "Sent an attachment";
+
+        toast({
+          title,
+          description: preview,
+        });
+      }
     }
+
 
     // Handle edited messages
     if (message.archivedMessage) {

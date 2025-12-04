@@ -1,6 +1,5 @@
 import { useEffect } from "react";
-import { useDittoChatStore } from "@dittolive/ditto-chat-core";
-import { useToast } from "./ToastProvider";
+import { useDittoChatStore, toast } from "@dittolive/ditto-chat-core";
 import { useBrowserNotifications } from "../hooks/useBrowserNotifications";
 
 interface ChatNotificationObserverProps {
@@ -12,7 +11,6 @@ function ChatNotificationObserver({ activeRoomId }: ChatNotificationObserverProp
     (state) => state.registerNotificationHandler,
   );
   const users = useDittoChatStore((state) => state.allUsers);
-  const { addToast } = useToast();
   const {
     permission,
     isSupported,
@@ -27,7 +25,7 @@ function ChatNotificationObserver({ activeRoomId }: ChatNotificationObserverProp
         return;
       }
       const user = users.find((u) => u._id === messageWithUser.message?.userId);
-      if (!user) {return;}
+      if (!user) { return; }
       const senderName = user?.name || "Unknown User";
       const roomName = room.name;
       const isDM = room.collectionId === "dm_rooms";
@@ -41,7 +39,7 @@ function ChatNotificationObserver({ activeRoomId }: ChatNotificationObserverProp
         (messageWithUser.message.text.length > 30 ? "..." : "")
         : "Sent an attachment";
 
-      // Try browser notifications first
+      // Try browser notifications
       if (isSupported) {
         if (permission === "default") {
           requestPermission().then((newPermission) => {
@@ -53,8 +51,12 @@ function ChatNotificationObserver({ activeRoomId }: ChatNotificationObserverProp
                 data: { roomId: room._id },
               });
             } else {
-              // Fall back to toast
-              addToast(messageWithUser.id, `${title}: ${preview}`, "info");
+              // Permission denied, show toast as fallback
+              console.log('[ChatNotificationObserver] Triggering toast (permission denied):', { title, preview });
+              toast({
+                title,
+                description: preview,
+              });
             }
           });
         } else if (permission === "granted") {
@@ -65,17 +67,24 @@ function ChatNotificationObserver({ activeRoomId }: ChatNotificationObserverProp
             data: { roomId: room._id },
           });
         } else {
-          // Permission denied, fall back to toast
-          addToast(messageWithUser.id, `${title}: ${preview}`, "info");
+          // Permission denied, show toast as fallback
+          console.log('[ChatNotificationObserver] Triggering toast (permission denied):', { title, preview });
+          toast({
+            title,
+            description: preview,
+          });
         }
       } else {
-        // Browser notifications not supported, use toast
-        addToast(messageWithUser.id, `${title}: ${preview}`, "info");
+        // Browser notifications not supported, show toast as fallback
+        console.log('[ChatNotificationObserver] Triggering toast (not supported):', { title, preview });
+        toast({
+          title,
+          description: preview,
+        });
       }
     });
   }, [
     registerNotificationHandler,
-    addToast,
     activeRoomId,
     users,
     permission,

@@ -7,16 +7,15 @@ import { Icons } from "./components/Icons";
 import {
   useDittoChat,
   useDittoChatStore,
+  DittoToaster,
   type DittoConfParams,
 } from "@dittolive/ditto-chat-core";
 import type { Chat } from "./types";
 
-import { ToastProvider } from "./components/ToastProvider";
 import ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import Room from "@dittolive/ditto-chat-core/dist/types/Room";
 import Message from "@dittolive/ditto-chat-core/dist/types/Message";
 import NewRoomModal from "./components/NewRoomModal";
-import ChatNotificationObserver from "./components/ChatNotificationObserver";
 import ChatListSkeleton from "./components/ChatListSkeleton";
 
 const getSystemTheme = () => {
@@ -94,7 +93,7 @@ export default function DittoChatUI({
   };
 
   useEffect(() => {
-    if (!rooms.length || !users.length) {return;}
+    if (!rooms.length || !users.length) { return; }
     const userMap = new Map(users.map((u) => [u._id, u]));
     const messageMap = new Map<string, Message>();
     for (const msg of latestMessages) {
@@ -105,7 +104,7 @@ export default function DittoChatUI({
     const chatsWithMessages: Chat[] = latestMessages
       .map((message: Message) => {
         const room = rooms.find((r) => r._id === message.roomId);
-        if (!room) {return null;}
+        if (!room) { return null; }
         messageRoomIds.push(message.roomId);
 
         const participants: ChatUser[] = (room.participants || [])
@@ -185,9 +184,15 @@ export default function DittoChatUI({
     setActiveScreen("list");
   };
 
+  // Update activeRoomId in store when selectedChat changes
+  const setActiveRoomId = useDittoChatStore((state) => state.setActiveRoomId);
+  useEffect(() => {
+    setActiveRoomId(selectedChat?.id || null);
+  }, [selectedChat, setActiveRoomId]);
+
   const handleNewDMCreate = async (user: ChatUser) => {
     const isExists = chats.find((chat) => {
-      if (chat.participants.length !== 2) {return false;}
+      if (chat.participants.length !== 2) { return false; }
       const ids = chat.participants.map((p) => p._id);
       return ids.includes(user._id) && ids.includes(currentUser?._id);
     });
@@ -207,7 +212,7 @@ export default function DittoChatUI({
   };
 
   useEffect(() => {
-    if (!newlyCreatedRoom) {return;}
+    if (!newlyCreatedRoom) { return; }
     const chat = chats.find((chat) => chat.id === newlyCreatedRoom);
     if (chat) {
       handleSelectChat(chat);
@@ -225,60 +230,65 @@ export default function DittoChatUI({
   return (
     <div className="web-chat-root">
       <div className={themeName}>
-        <ToastProvider>
-          <ChatNotificationObserver activeRoomId={selectedChat?.id} />
-          <div className="flex h-screen bg-(--surface-color) font-sans text-(--text-color) overflow-hidden">
-            {/* Chat List */}
-            <aside
-              className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--border-color) flex flex-col ${activeScreen !== "list" && "hidden"
-                } md:flex`}
-            >
-              {loading ? (
-                <ChatListSkeleton />
-              ) : (
-                <ChatList
-                  chats={chats}
-                  onSelectChat={handleSelectChat}
-                  onNewMessage={handleNewMessage}
-                  selectedChatId={selectedChat?.id || ""}
-                />
-              )}
-            </aside>
+        <DittoToaster
+          position="top-right"
+          richColors
+          closeButton
+          toastOptions={{
+            duration: 3000,
+          }}
+        />
+        <div className="flex h-screen bg-(--surface-color) font-sans text-(--text-color) overflow-hidden">
+          {/* Chat List */}
+          <aside
+            className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--border-color) flex flex-col ${activeScreen !== "list" && "hidden"
+              } md:flex`}
+          >
+            {loading ? (
+              <ChatListSkeleton />
+            ) : (
+              <ChatList
+                chats={chats}
+                onSelectChat={handleSelectChat}
+                onNewMessage={handleNewMessage}
+                selectedChatId={selectedChat?.id || ""}
+              />
+            )}
+          </aside>
 
-            {/* Main Content Area */}
-            <main
-              className={`w-full flex-1 flex-col ${activeScreen === "list" && "hidden"
-                } md:flex`}
-            >
-              {activeScreen === "chat" && selectedChat && (
-                <ChatView
-                  key={selectedChat.id}
-                  chat={selectedChat}
-                  onBack={handleBack}
-                />
-              )}
-              {activeScreen === "newMessage" && (
-                <NewMessageModal
-                  onClose={handleBack}
-                  onNewDMCreate={handleNewDMCreate}
-                />
-              )}
-              {activeScreen === "newRoom" && (
-                <NewRoomModal
-                  onClose={handleBack}
-                  onCreateRoom={handleNewRoomCreate}
-                />
-              )}
-              {(!selectedChat && (activeScreen === "list" || activeScreen === "chat")) && (
-                <div className="hidden md:flex flex-col items-center justify-center h-full bg-(--surface-color-light) text-(--text-color-lightest)">
-                  <Icons.messageCircle className="w-24 h-24 text-(--text-color-disabled) mb-4" />
-                  <p className="text-lg font-medium">Select a conversation</p>
-                  <p className="text-sm">or start a new message</p>
-                </div>
-              )}
-            </main>
-          </div>
-        </ToastProvider>
+          {/* Main Content Area */}
+          <main
+            className={`w-full flex-1 flex-col ${activeScreen === "list" && "hidden"
+              } md:flex`}
+          >
+            {activeScreen === "chat" && selectedChat && (
+              <ChatView
+                key={selectedChat.id}
+                chat={selectedChat}
+                onBack={handleBack}
+              />
+            )}
+            {activeScreen === "newMessage" && (
+              <NewMessageModal
+                onClose={handleBack}
+                onNewDMCreate={handleNewDMCreate}
+              />
+            )}
+            {activeScreen === "newRoom" && (
+              <NewRoomModal
+                onClose={handleBack}
+                onCreateRoom={handleNewRoomCreate}
+              />
+            )}
+            {(!selectedChat && (activeScreen === "list" || activeScreen === "chat")) && (
+              <div className="hidden md:flex flex-col items-center justify-center h-full bg-(--surface-color-light) text-(--text-color-lightest)">
+                <Icons.messageCircle className="w-24 h-24 text-(--text-color-disabled) mb-4" />
+                <p className="text-lg font-medium">Select a conversation</p>
+                <p className="text-sm">or start a new message</p>
+              </div>
+            )}
+          </main>
+        </div>
       </div>
     </div>
   );
