@@ -194,7 +194,7 @@ describe("ChatListItem", () => {
             mockUsers[0],
             {
                 ...mockUsers[1],
-                profilePictureThumbnail: { id: "token-123", len: 100, metadata: {}, idBytes: new Uint8Array(), token: "token-123" } as unknown as Attachment
+                profilePictureThumbnail: { id: "token-123", len: 100, metadata: {}, idBytes: new Uint8Array(), token: "token-123" } as any,
             }
         ];
 
@@ -217,7 +217,7 @@ describe("ChatListItem", () => {
                 {
                     ...mockChat.messages[0],
                     text: "Check this out",
-                    thumbnailImageToken: { id: "thumb-123", len: 0, metadata: {}, idBytes: new Uint8Array(), token: "thumb-123" } as unknown as Attachment,
+                    thumbnailImageToken: { id: "thumb-123", len: 0, metadata: {}, idBytes: new Uint8Array(), token: "thumb-123" } as any,
                 },
             ],
         };

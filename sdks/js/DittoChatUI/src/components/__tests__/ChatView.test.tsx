@@ -394,7 +394,7 @@ describe("ChatView", () => {
                 isDeleted: false,
                 isEdited: false,
                 isArchived: false,
-                fileAttachmentToken: { id: "file-token-123", len: 0, metadata: {}, idBytes: new Uint8Array(), token: "file-token-123" } as unknown as Attachment,
+                fileAttachmentToken: { id: "file-token-123", len: 0, metadata: {}, idBytes: new Uint8Array(), token: "file-token-123" } as any,
             },
             user: {
                 _id: "user-1",
@@ -441,8 +441,8 @@ describe("ChatView", () => {
                 isDeleted: false,
                 isEdited: false,
                 isArchived: false,
-                thumbnailImageToken: { id: "thumb-token", len: 0, metadata: {}, idBytes: new Uint8Array(), token: "thumb-token" } as unknown as Attachment,
-                largeImageToken: { id: "large-token", len: 0, metadata: {}, idBytes: new Uint8Array(), token: "large-token" } as unknown as Attachment,
+                thumbnailImageToken: { id: "thumb-token", len: 0, metadata: {}, idBytes: new Uint8Array(), token: "thumb-token" } as any,
+                largeImageToken: { id: "large-token", len: 0, metadata: {}, idBytes: new Uint8Array(), token: "large-token" } as any,
             },
             user: {
                 _id: "user-1",
