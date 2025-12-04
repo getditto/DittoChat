@@ -1,18 +1,14 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useCallback } from "react";
-import Toast from "./Toast";
+import React, { createContext, useContext, useCallback, useRef } from "react";
+import { Toaster, toast } from "sonner";
 
-type ToastMessage = {
-  id: string;
-  message: string;
-  type: "success" | "info" | "error";
-};
+type ToastType = "success" | "info" | "error";
 
 type ToastContextType = {
   addToast: (
     id: string | undefined,
     message: string,
-    type?: ToastMessage["type"]
+    type?: ToastType
   ) => void;
 };
 
@@ -27,44 +23,59 @@ export const useToast = () => {
 };
 
 export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
-  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  // Track displayed toast IDs to prevent duplicates
+  const displayedToasts = useRef<Set<string>>(new Set());
 
   const addToast = useCallback(
     (
       id: string | undefined = Date.now().toString(),
       message: string,
-      type: ToastMessage["type"] = "info"
+      type: ToastType = "info"
     ) => {
-      setToasts((prevToasts) => {
-        const isToastAlreadyDisplayed = prevToasts.some(
-          (toast) => toast.id === id
-        );
-        if (!isToastAlreadyDisplayed) {
-          return [...prevToasts, { id, message, type }];
-        }
-        return prevToasts;
-      });
+      // Prevent duplicate toasts with the same ID
+      if (displayedToasts.current.has(id)) {
+        return;
+      }
+
+      displayedToasts.current.add(id);
+
+      const toastOptions = {
+        id,
+        onDismiss: () => {
+          displayedToasts.current.delete(id);
+        },
+        onAutoClose: () => {
+          displayedToasts.current.delete(id);
+        },
+      };
+
+      switch (type) {
+        case "success":
+          toast.success(message, toastOptions);
+          break;
+        case "error":
+          toast.error(message, toastOptions);
+          break;
+        case "info":
+        default:
+          toast.info(message, toastOptions);
+          break;
+      }
     },
     []
   );
 
-  const removeToast = useCallback((id: string) => {
-    setToasts((prevToasts) => prevToasts.filter((toast) => toast.id !== id));
-  }, []);
-
   return (
     <ToastContext.Provider value={{ addToast }}>
       {children}
-      <div className="fixed top-4 right-4 z-50 space-y-2 w-full max-w-sm">
-        {toasts.map((toast, index) => (
-          <Toast
-            key={`${toast.id} - ${index}`}
-            message={toast.message}
-            type={toast.type}
-            onClose={() => removeToast(toast.id)}
-          />
-        ))}
-      </div>
+      <Toaster
+        position="top-right"
+        richColors
+        closeButton
+        toastOptions={{
+          duration: 3000,
+        }}
+      />
     </ToastContext.Provider>
   );
 };

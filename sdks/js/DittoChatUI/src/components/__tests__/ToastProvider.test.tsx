@@ -1,51 +1,86 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ToastProvider, useToast } from "../ToastProvider";
 import React from "react";
 
-// Mock Toast component to avoid animation delays in tests
-vi.mock("../Toast", () => ({
-    default: ({ message, onClose }: { message: string; onClose: () => void }) => (
-        <div data-testid="toast">
-            {message}
-            <button onClick={onClose}>Close</button>
-        </div>
-    ),
+// Mock sonner
+const mockToastSuccess = vi.fn();
+const mockToastError = vi.fn();
+const mockToastInfo = vi.fn();
+
+vi.mock("sonner", () => ({
+    Toaster: () => <div data-testid="sonner-toaster" />,
+    toast: {
+        success: (...args: unknown[]) => mockToastSuccess(...args),
+        error: (...args: unknown[]) => mockToastError(...args),
+        info: (...args: unknown[]) => mockToastInfo(...args),
+    },
 }));
 
-const TestComponent = () => {
+const TestComponent = ({ type = "info" as "success" | "info" | "error" }) => {
     const { addToast } = useToast();
     return (
-        <button onClick={() => addToast("test-id", "Hello World", "info")}>
+        <button onClick={() => addToast("test-id", "Hello World", type)}>
             Show Toast
         </button>
     );
 };
 
 describe("ToastProvider", () => {
-    it("provides addToast function", () => {
-        render(
-            <ToastProvider>
-                <TestComponent />
-            </ToastProvider>
-        );
-
-        fireEvent.click(screen.getByText("Show Toast"));
-        expect(screen.getByTestId("toast")).toHaveTextContent("Hello World");
+    beforeEach(() => {
+        vi.clearAllMocks();
     });
 
-    it("removes toast when closed", () => {
+    it("provides addToast function and renders Toaster", () => {
         render(
             <ToastProvider>
                 <TestComponent />
             </ToastProvider>
         );
 
-        fireEvent.click(screen.getByText("Show Toast"));
-        expect(screen.getByTestId("toast")).toBeInTheDocument();
+        expect(screen.getByTestId("sonner-toaster")).toBeInTheDocument();
+    });
 
-        fireEvent.click(screen.getByText("Close"));
-        expect(screen.queryByTestId("toast")).not.toBeInTheDocument();
+    it("calls toast.info for info type", () => {
+        render(
+            <ToastProvider>
+                <TestComponent type="info" />
+            </ToastProvider>
+        );
+
+        fireEvent.click(screen.getByText("Show Toast"));
+        expect(mockToastInfo).toHaveBeenCalledWith(
+            "Hello World",
+            expect.objectContaining({ id: "test-id" })
+        );
+    });
+
+    it("calls toast.success for success type", () => {
+        render(
+            <ToastProvider>
+                <TestComponent type="success" />
+            </ToastProvider>
+        );
+
+        fireEvent.click(screen.getByText("Show Toast"));
+        expect(mockToastSuccess).toHaveBeenCalledWith(
+            "Hello World",
+            expect.objectContaining({ id: "test-id" })
+        );
+    });
+
+    it("calls toast.error for error type", () => {
+        render(
+            <ToastProvider>
+                <TestComponent type="error" />
+            </ToastProvider>
+        );
+
+        fireEvent.click(screen.getByText("Show Toast"));
+        expect(mockToastError).toHaveBeenCalledWith(
+            "Hello World",
+            expect.objectContaining({ id: "test-id" })
+        );
     });
 
     it("does not add duplicate toast with same id", () => {
@@ -58,6 +93,7 @@ describe("ToastProvider", () => {
         fireEvent.click(screen.getByText("Show Toast"));
         fireEvent.click(screen.getByText("Show Toast"));
 
-        expect(screen.getAllByTestId("toast")).toHaveLength(1);
+        expect(mockToastInfo).toHaveBeenCalledTimes(1);
     });
 });
+

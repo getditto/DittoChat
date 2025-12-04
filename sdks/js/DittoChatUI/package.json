@@ -25,12 +25,13 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "@dittolive/ditto-chat-core": "file:../DittoChatCore",
     "clsx": "^2.1.1",
     "emoji-picker-react": "^4.15.0",
-    "@dittolive/ditto-chat-core": "file:../DittoChatCore",
     "react": "^18 || ^19",
     "react-dom": "^18 || ^19",
-    "react-virtualized": "^9.22.6"
+    "react-virtualized": "^9.22.6",
+    "sonner": "^2.0.7"
   },
   "peerDependencies": {
     "@dittolive/ditto": "^4.12.3",
