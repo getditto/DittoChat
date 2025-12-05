@@ -1,20 +1,35 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Icons } from "./Icons";
 import type Message from "@dittolive/ditto-chat-core/dist/types/Message";
 import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import { formatDate } from "../utils";
-import { useImageAttachment } from "../utils/useImageAttachment";
+import { useImageAttachment } from "../hooks/useImageAttachment";
 import { AttachmentToken } from "@dittolive/ditto";
+import { EmojiClickData } from "emoji-picker-react";
+import QuickReaction from "./QuickReaction";
+import { usePermissions } from "../utils/usePermissions";
 
-interface MessageBubbleProps {
+type MessageReaction = {
+  id: number;
+  emoji: string;
+  userIds: string[];
+};
+
+export interface MessageBubbleProps {
   message: Message;
   sender?: ChatUser;
+  currentUserId: string;
   isOwnMessage: boolean;
   isGroupChat: boolean;
   showSenderInfo: boolean;
   onStartEdit: (message: Message) => void;
   onDeleteMessage: (messageId: number | string) => void;
-  onAddReaction: (messageId: number | string, emoji: string) => void;
+  onAddReaction: (message: Message, reaction: EmojiClickData) => Promise<void>;
+  onRemoveReaction: (
+    message: Message,
+    userId: string,
+    emoji: string
+  ) => Promise<void>;
   fetchAttachment?: (
     token: AttachmentToken,
     onProgress: (progress: number) => void,
@@ -23,98 +38,104 @@ interface MessageBubbleProps {
       data?: Uint8Array;
       metadata?: Record<string, string>;
       error?: Error;
-    }) => void,
+    }) => void
   ) => void;
 }
 
 function FormattedMessage({
-  content,
+  message,
   isOwn,
 }: {
-  content: string;
+  message: Message;
   isOwn: boolean;
 }) {
-  const parts = content.split(/(@[A-Za-z\s\d]+)/g);
-  return (
-    <>
-      {parts.map((part, i) =>
-        part.startsWith("@") ? (
-          <span
-            key={i}
-            className={`font-semibold ${isOwn ? "text-(--mention-text-on-primary)" : "text-(--mention-text)"}`}
-          >
-            {part}
-          </span>
-        ) : (
-          <React.Fragment key={i}>
-            <span className="whitespace-pre-line">{part}</span>
-          </React.Fragment>
-        ),
-      )}
-    </>
+  const { text, mentions } = message;
+
+  if (!mentions || mentions.length === 0) {
+    return <>{text}</>;
+  }
+
+  const sortedMentions = [...mentions].sort(
+    (a, b) => a.startIndex - b.startIndex
   );
-}
 
-const EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
+  const finalParts: React.ReactNode[] = [];
+  let currentIndex = 0;
 
-function EmojiPicker({
-  onSelect,
-  closePicker,
-}: {
-  onSelect: (emoji: string) => void;
-  closePicker: () => void;
-}) {
-  const pickerRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        pickerRef.current &&
-        !pickerRef.current.contains(event.target as Node)
-      ) {
-        closePicker();
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [closePicker]);
+  sortedMentions.forEach((mention, index) => {
+    if (mention.startIndex > currentIndex) {
+      finalParts.push(
+        <React.Fragment key={`text-${index}`}>
+          {text.slice(currentIndex, mention.startIndex)}
+        </React.Fragment>
+      );
+    }
+    finalParts.push(
+      <span
+        key={`mention-${index}`}
+        className={`font-semibold ${isOwn ? "text-(--mention-text-on-primary)" : "text-(--mention-text)"
+          }`}
+      >
+        {text.slice(mention.startIndex, mention.endIndex)}
+      </span>
+    );
+    currentIndex = mention.endIndex;
+  });
 
-  return (
-    <div
-      ref={pickerRef}
-      className="absolute bottom-full mb-2 bg-white rounded-lg shadow-lg border border-(--border-color) p-1 flex gap-1 z-10"
-    >
-      {EMOJIS.map((emoji) => (
-        <button
-          key={emoji}
-          onClick={() => onSelect(emoji)}
-          className="text-2xl p-1 rounded-md hover:bg-(--secondary-bg-hover) transition-colors"
-          aria-label={`react with ${emoji}`}
-        >
-          {emoji}
-        </button>
-      ))}
-    </div>
-  );
-}
+  if (currentIndex < text.length) {
+    finalParts.push(
+      <React.Fragment key="text-last">
+        {text.slice(currentIndex)}
+      </React.Fragment>
+    );
+  }
+
+  return <>{finalParts}</>;
+};
 
 function MessageBubble({
   message,
   sender,
   isOwnMessage,
+  currentUserId,
   isGroupChat,
   showSenderInfo,
   fetchAttachment,
   onStartEdit,
   onDeleteMessage,
   onAddReaction,
+  onRemoveReaction,
 }: MessageBubbleProps) {
+  const {
+    canEditOwnMessage,
+    canDeleteOwnMessage,
+    canAddReaction,
+    canRemoveOwnReaction,
+  } = usePermissions();
+
+  const thumbnailToken = useMemo(
+    () =>
+      message.thumbnailImageToken
+        ? (message.thumbnailImageToken as unknown as AttachmentToken)
+        : null,
+    [message.thumbnailImageToken?.id]
+  );
+
+  const largeToken = useMemo(
+    () =>
+      message.largeImageToken
+        ? (message.largeImageToken as unknown as AttachmentToken)
+        : null,
+    [message.largeImageToken?.id]
+  );
+
   const {
     imageUrl: thumbnailUrl,
     progress: thumbnailProgress,
     isLoading: isLoadingThumbnail,
     error: thumbnailError,
   } = useImageAttachment({
-    token: message.thumbnailImageToken,
+    token: thumbnailToken,
     fetchAttachment,
     autoFetch: true,
   });
@@ -126,7 +147,7 @@ function MessageBubble({
     error: largeImageError,
     fetchImage: fetchLargeImage,
   } = useImageAttachment({
-    token: message.largeImageToken,
+    token: largeToken,
     fetchAttachment,
     autoFetch: false,
   });
@@ -134,9 +155,9 @@ function MessageBubble({
   const [showLargeImage, setShowLargeImage] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isActionsVisible, setIsActionsVisible] = useState(false);
-  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  const [reactions, setReactions] = useState<MessageReaction[]>([]);
 
-  const hasImage = message.thumbnailImageToken || message.largeImageToken;
+  const hasImage = !!(message.thumbnailImageToken || message.largeImageToken);
   const hasFile = !!message.fileAttachmentToken;
   const hasText =
     !!message.text &&
@@ -144,6 +165,23 @@ function MessageBubble({
     (!hasFile || message.isDeleted);
 
   const imageError = thumbnailError || largeImageError;
+
+  useEffect(() => {
+    const r = (message.reactions || []).reduce((acc, reaction) => {
+      const existingReaction = acc.find((r) => r.emoji === reaction.emoji);
+      if (existingReaction) {
+        existingReaction.userIds.push(reaction.userId);
+      } else {
+        acc.push({
+          id: acc.length + 1,
+          emoji: reaction.emoji,
+          userIds: [reaction.userId],
+        });
+      }
+      return acc;
+    }, [] as MessageReaction[]);
+    setReactions(r);
+  }, [message]);
 
   const handleThumbnailClick = () => {
     if (largeImageUrl) {
@@ -171,9 +209,14 @@ function MessageBubble({
     }
   };
 
-  const handleAddReactionClick = (emoji: string) => {
-    onAddReaction(message._id, emoji);
-    setIsEmojiPickerOpen(false);
+  const handleAddReactionClick = (emoji: EmojiClickData) => {
+    const existingReactionIndex = reactions.findIndex(
+      (reaction) =>
+        reaction.emoji === emoji.emoji &&
+        reaction.userIds.includes(currentUserId)
+    );
+    if (existingReactionIndex !== -1) {return;}
+    onAddReaction(message, emoji);
   };
 
   const senderName = isOwnMessage ? "You" : sender?.name || "Unknown User";
@@ -187,7 +230,7 @@ function MessageBubble({
     <div
       className={`flex flex-col ${alignmentClass}`}
       onMouseEnter={() => {
-        if (isOwnMessage) setIsActionsVisible(true);
+        if (isOwnMessage) {setIsActionsVisible(true);}
       }}
       onMouseLeave={() => {
         if (isOwnMessage) {
@@ -198,7 +241,8 @@ function MessageBubble({
     >
       {showSenderInfo && (
         <div
-          className={`flex items-baseline text-xs text-(--text-color-lightest) mb-1 ${isOwnMessage ? "justify-end" : ""}`}
+          className={`flex items-baseline text-xs text-(--text-color-lightest) mb-1 ${isOwnMessage ? "justify-end" : ""
+            }`}
         >
           {(isGroupChat || !isOwnMessage) && (
             <span className="mr-1">{senderName}</span>
@@ -214,10 +258,12 @@ function MessageBubble({
       )}
 
       <div
-        className={`flex items-center gap-2 ${isOwnMessage ? "flex-row-reverse" : "flex-row"}`}
+        className={`flex items-center gap-2 ${isOwnMessage ? "flex-row-reverse" : "flex-row"
+          }`}
       >
         <div
-          className={`flex flex-col max-w-xs md:max-w-md lg:max-w-lg ${isOwnMessage ? "items-end" : "items-start"}`}
+          className={`flex flex-col max-w-xs md:max-w-md lg:max-w-lg ${isOwnMessage ? "items-end" : "items-start"
+            }`}
         >
           {hasImage && !message.isDeleted && (
             <div className={`relative ${hasText ? "mb-1" : ""}`}>
@@ -292,12 +338,12 @@ function MessageBubble({
                     if (fetchAttachment && message.fileAttachmentToken) {
                       fetchAttachment(
                         message.fileAttachmentToken as unknown as AttachmentToken,
-                        () => {},
+                        () => { },
                         (result) => {
                           if (result.success && result.data) {
                             const blob = new Blob(
                               [new Uint8Array(result.data)],
-                              { type: "application/octet-stream" },
+                              { type: "application/octet-stream" }
                             );
                             const url = URL.createObjectURL(blob);
                             const a = document.createElement("a");
@@ -308,7 +354,7 @@ function MessageBubble({
                             document.body.removeChild(a);
                             URL.revokeObjectURL(url);
                           }
-                        },
+                        }
                       );
                     }
                   }}
@@ -322,16 +368,13 @@ function MessageBubble({
 
           {hasText && (
             <div className={`px-4 py-2 rounded-xl ${bubbleClasses}`}>
-              <p className="break-words">
+              <p className="break-words whitespace-pre-wrap">
                 {message.isDeleted ? (
                   <span className="italic text-(--text-color-faint)">
                     [deleted message]
                   </span>
                 ) : (
-                  <FormattedMessage
-                    content={message.text!}
-                    isOwn={isOwnMessage}
-                  />
+                  <FormattedMessage message={message} isOwn={isOwnMessage} />
                 )}
               </p>
             </div>
@@ -340,113 +383,99 @@ function MessageBubble({
 
         {isOwnMessage && (
           <div
-            className={`relative flex items-center transition-opacity duration-200 ${
-              isActionsVisible ? "opacity-100" : "opacity-0"
-            }`}
+            className={`relative flex items-center transition-opacity duration-200 ${isActionsVisible ? "opacity-100" : "opacity-0"
+              }`}
           >
-            <div className="relative">
-              {isEmojiPickerOpen && (
-                <EmojiPicker
-                  onSelect={handleAddReactionClick}
-                  closePicker={() => setIsEmojiPickerOpen(false)}
-                />
-              )}
+            {canEditOwnMessage && (
               <button
-                onClick={() => setIsEmojiPickerOpen((p) => !p)}
-                disabled={message.isDeleted}
+                onClick={() => {
+                  onStartEdit(message);
+                  setIsActionsVisible(false);
+                }}
+                disabled={message.isDeleted || hasImage || hasFile}
                 className="p-1 rounded-full hover:bg-(--secondary-bg-hover) text-(--text-color-lightest) disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Add reaction"
+                aria-label="Edit message"
               >
-                <Icons.smile className="w-5 h-5" />
+                <Icons.edit3 className="w-5 h-5" />
               </button>
-            </div>
-            <button
-              onClick={() => {
-                onStartEdit(message);
-                setIsActionsVisible(false);
-              }}
-              disabled={message.isDeleted}
-              className="p-1 rounded-full hover:bg-(--secondary-bg-hover) text-(--text-color-lightest) disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="Edit message"
-            >
-              <Icons.edit3 className="w-5 h-5" />
-            </button>
-            <div className="relative">
-              <button
-                onClick={() => setIsMenuOpen((p) => !p)}
-                className="p-1 rounded-full hover:bg-[rgb(var(--secondary-bg-hover))] text-[rgb(var(--text-color-lightest))]"
-                aria-label="More options"
-              >
-                <Icons.moreHorizontal className="w-5 h-5" />
-              </button>
-              {isMenuOpen && (
-                <div className="absolute top-full mt-2 right-0 bg-white rounded-lg shadow-lg border border-(--border-color) w-40 z-10 py-1">
-                  {!message.isDeleted && (
-                    <button
-                      onClick={() => {
-                        onStartEdit(message);
-                        setIsMenuOpen(false);
-                      }}
-                      className="w-full text-left px-4 py-2 text-sm hover:bg-(--secondary-bg)"
-                    >
-                      Edit message
-                    </button>
-                  )}
-                  <button
-                    onClick={handleDelete}
-                    className="w-full text-left px-4 py-2 text-sm text-(--danger-text) hover:bg-(--secondary-bg)"
-                  >
-                    Delete message
-                  </button>
-                </div>
-              )}
-            </div>
+            )}
+            {(canEditOwnMessage || canDeleteOwnMessage) && (
+              <div className="relative">
+                <button
+                  onClick={() => setIsMenuOpen((p) => !p)}
+                  disabled={message.isDeleted}
+                className="p-1 rounded-full hover:bg-[rgb(var(--secondary-bg-hover))] text-[rgb(var(--text-color-lightest))] disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="More options"
+                >
+                  <Icons.moreHorizontal className="w-5 h-5" />
+                </button>
+                {isMenuOpen && (
+                  <div className="absolute top-full mt-2 right-0 bg-(--surface-color) rounded-lg shadow-lg border border-(--border-color) w-40 z-10 py-1">
+                    {!message.isDeleted && canEditOwnMessage && !hasImage && !hasFile && (
+                      <button
+                        onClick={() => {
+                          onStartEdit(message);
+                          setIsMenuOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-(--secondary-bg)"
+                      >
+                        Edit message
+                      </button>
+                    )}
+                    {canDeleteOwnMessage && (
+                      <button
+                        onClick={handleDelete}
+                        className="w-full text-left px-4 py-2 text-sm text-(--danger-text) hover:bg-(--secondary-bg)"
+                      >
+                        Delete message
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
 
       <div
-        className={`flex items-center space-x-1 mt-1 ${isOwnMessage ? "justify-end" : ""}`}
+        className={`flex items-center space-x-1 mt-1 ${isOwnMessage ? "justify-end" : ""
+          }`}
       >
-        {/*// TODO: Implement reactions*/}
-        {/*{message.reactions.map((reaction) => {
-          const userHasReacted = reaction.userIds.includes(CURRENT_USER_ID);
+        {reactions.map((reaction) => {
+          const userHasReacted = reaction.userIds.includes(currentUserId);
           return (
             <button
               key={reaction.emoji}
-              onClick={() => handleAddReactionClick(reaction.emoji)}
-              className={`text-xs px-2 py-0.5 rounded-full flex items-center space-x-1 cursor-pointer transition-colors ${
-                userHasReacted
-                  ? "bg-(--primary-color-lighter) border border-(--primary-color-light-border)"
-                  : "bg-(--secondary-bg-hover) hover:bg-(--disabled-bg)"
-              }`}
+              onClick={() =>
+                canRemoveOwnReaction && userHasReacted
+                  ? onRemoveReaction(message, currentUserId, reaction.emoji)
+                  : undefined
+              }
+              disabled={!canRemoveOwnReaction || !userHasReacted}
+              className={`text-xs px-2 py-0.5 rounded-full flex items-center space-x-1 transition-colors ${userHasReacted
+                ? "bg-(--primary-color-lighter) border border-(--primary-color-light-border) cursor-pointer"
+                : "bg-(--secondary-bg-hover) hover:bg-(--disabled-bg)"
+                } ${!canRemoveOwnReaction && userHasReacted ? "cursor-not-allowed" : ""}`}
             >
               <span>{reaction.emoji}</span>
               <span
-                className={`font-medium ${userHasReacted ? "text-(--primary-color-dark-text)" : "text-(--text-color-light)"}`}
+                className={`font-medium ${userHasReacted
+                  ? "text-(--primary-color-dark-text)"
+                  : "text-(--text-color-light)"
+                  }`}
               >
-                {reaction.count}
+                {reaction.userIds.length}
               </span>
             </button>
           );
-        })}*/}
-        {!isOwnMessage && (
-          <div className="relative">
-            <button
-              onClick={() => setIsEmojiPickerOpen((p) => !p)}
-              disabled={message.isDeleted}
-              className="p-1 rounded-full hover:bg-(--secondary-bg-hover) text-(--text-color-lightest) disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="Add reaction"
-            >
-              <Icons.smile className="w-5 h-5" />
-            </button>
-            {isEmojiPickerOpen && (
-              <EmojiPicker
-                onSelect={handleAddReactionClick}
-                closePicker={() => setIsEmojiPickerOpen(false)}
-              />
-            )}
-          </div>
+        })}
+        {canAddReaction && (
+          <QuickReaction
+            onSelect={handleAddReactionClick}
+            disabled={message.isDeleted}
+            isOwnMessage={isOwnMessage}
+          />
         )}
       </div>
 

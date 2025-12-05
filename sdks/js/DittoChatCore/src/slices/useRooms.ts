@@ -14,11 +14,12 @@ import { StoreApi } from "zustand";
 export interface RoomSlice {
   rooms: Room[];
   dmRooms: Room[];
+  roomsLoading: boolean;
   roomsObserver: StoreObserver | null;
   roomsSubscription: SyncSubscription | null;
   dmRoomsObserver: StoreObserver | null;
   dmRoomsSubscription: SyncSubscription | null;
-  createRoom: (name: string) => Promise<void | Room>;
+  createRoom: (name: string, retentionDays?: number) => Promise<void | Room>;
   createDMRoom: (user: ChatUser) => Promise<void | Room>;
 }
 
@@ -27,7 +28,7 @@ function handleRoomsObserverResult(
   _get: StoreApi<ChatStore>["getState"],
   observerResult: QueryResult<Room>,
 ) {
-  if (observerResult.items.length === 0) return;
+  if (observerResult.items.length === 0) {return;}
   const rooms = observerResult.items.map((doc) => {
     const messagePublisher = _get().messagesPublisher;
     messagePublisher(doc.value);
@@ -39,6 +40,7 @@ function handleRoomsObserverResult(
         (room) => room.collectionId !== rooms[0].collectionId,
       );
       draft.rooms = otherRooms.concat(rooms);
+      draft.roomsLoading = false;
       return draft;
     });
   });
@@ -51,6 +53,7 @@ async function createRoomBase({
   collectionId,
   messagesId,
   participants = [],
+  retentionDays,
 }: {
   ditto: Ditto | null;
   currentUserId: string;
@@ -58,8 +61,9 @@ async function createRoomBase({
   collectionId: "rooms" | "dm_rooms";
   messagesId: "messages" | "dm_messages";
   participants?: string[];
+  retentionDays?: number;
 }) {
-  if (!ditto) return;
+  if (!ditto) {return;}
 
   try {
     const id = uuidv4();
@@ -73,6 +77,7 @@ async function createRoomBase({
       createdBy: currentUserId,
       createdOn: new Date().toISOString(),
       participants: participants || undefined,
+      ...(retentionDays !== undefined && { retentionDays }),
     };
 
     const query = `INSERT INTO \`${collectionId}\` DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE`;
@@ -84,6 +89,7 @@ async function createRoomBase({
   }
 }
 
+
 export const createRoomSlice: CreateSlice<RoomSlice> = (
   _set,
   _get,
@@ -92,12 +98,19 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
   const store: RoomSlice = {
     rooms: [],
     dmRooms: [],
+    roomsLoading: true,
     roomsObserver: null,
     roomsSubscription: null,
     dmRoomsObserver: null,
     dmRoomsSubscription: null,
 
-    createRoom(name: string) {
+    createRoom(name: string, retentionDays?: number) {
+      // Check create room permission
+      if (!_get().canPerformAction("canCreateRoom")) {
+        console.warn("Permission denied: canCreateRoom is false");
+        return Promise.resolve(undefined);
+      }
+
       const currentUser = _get().currentUser;
       return createRoomBase({
         ditto,
@@ -105,12 +118,13 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
         name,
         collectionId: "rooms",
         messagesId: "messages",
+        retentionDays,
       });
     },
 
     createDMRoom(dmUser: ChatUser) {
       const currentUser = _get().currentUser;
-      if (!currentUser?._id || !dmUser?._id) throw Error("Invalid users");
+      if (!currentUser?._id || !dmUser?._id) {throw Error("Invalid users");}
       return createRoomBase({
         ditto,
         currentUserId: currentUser?._id || userId,

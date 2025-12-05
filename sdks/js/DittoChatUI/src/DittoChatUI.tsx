@@ -1,10 +1,9 @@
 import "./index.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import ChatList from "./components/ChatList";
 import ChatView from "./components/ChatView";
 import NewMessageModal from "./components/NewMessageModal";
 import { Icons } from "./components/Icons";
-// import { useToast } from "./components/ToastProvider";
 import {
   useDittoChat,
   useDittoChatStore,
@@ -12,21 +11,41 @@ import {
 } from "@dittolive/ditto-chat-core";
 import type { Chat } from "./types";
 
-import { ToastProvider } from "./components/ToastProvider";
 import ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
 import Room from "@dittolive/ditto-chat-core/dist/types/Room";
 import Message from "@dittolive/ditto-chat-core/dist/types/Message";
 import NewRoomModal from "./components/NewRoomModal";
+import ChatListSkeleton from "./components/ChatListSkeleton";
+import { Toaster, toast } from "sonner";
+
+const getSystemTheme = () => {
+  if (
+    window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches
+  ) {
+    return "dark";
+  }
+  return "light";
+};
 
 export default function DittoChatUI({
   ditto,
   userCollectionKey,
   userId,
-}: DittoConfParams) {
+  theme = "light",
+  rbacConfig,
+  notificationHandler
+}: DittoConfParams & { theme: "light" | "dark" | "auto" }) {
   useDittoChat({
     ditto,
     userCollectionKey,
     userId,
+    rbacConfig,
+    notificationHandler: notificationHandler ? notificationHandler : (title, description) => {
+      toast.info(title, {
+        description,
+      });
+    },
   });
 
   const [chats, setChats] = useState<Chat[]>([]);
@@ -34,8 +53,16 @@ export default function DittoChatUI({
   const createRoom = useDittoChatStore((state) => state.createRoom);
   const rooms: Room[] = useDittoChatStore((state) => state.rooms);
   const users: ChatUser[] = useDittoChatStore((state) => state.allUsers);
+  const [themeName, setThemeName] = useState(
+    theme === "auto" ? getSystemTheme() : theme,
+  );
   const currentUser: ChatUser | null = useDittoChatStore(
     (state) => state.currentUser,
+  );
+
+  const loading = useDittoChatStore(
+    (state) =>
+      state.roomsLoading || state.usersLoading || state.messagesLoading,
   );
 
   const [activeScreen, setActiveScreen] = useState<
@@ -47,12 +74,16 @@ export default function DittoChatUI({
     undefined,
   );
 
-  const latestMessages = useDittoChatStore((state) => {
-    const roomKeys = Object.keys(state.messagesByRoom);
+  const messagesByRoom = useDittoChatStore((state) => state.messagesByRoom);
+
+  const latestMessages = useMemo(() => {
+    const roomKeys = Object.keys(messagesByRoom);
     const latestMessages: Message[] = roomKeys
       .map((key) => {
-        const messages = state.messagesByRoom[key];
-        if (!messages || messages.length === 0) return null;
+        const messages = messagesByRoom[key];
+        if (!messages || messages.length === 0) {
+          return null;
+        }
         return messages[messages.length - 1].message;
       })
       .filter((msg): msg is Message => msg !== null);
@@ -61,15 +92,14 @@ export default function DittoChatUI({
         new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime(),
     );
     return sortedMessages;
-  });
+  }, [messagesByRoom]);
 
   const isDM = (room: Room) => {
     return room.participants?.length === 2;
   };
 
   useEffect(() => {
-    if (!rooms.length || !users.length) return;
-
+    if (!rooms.length || !users.length) { return; }
     const userMap = new Map(users.map((u) => [u._id, u]));
     const messageMap = new Map<string, Message>();
     for (const msg of latestMessages) {
@@ -80,7 +110,7 @@ export default function DittoChatUI({
     const chatsWithMessages: Chat[] = latestMessages
       .map((message: Message) => {
         const room = rooms.find((r) => r._id === message.roomId);
-        if (!room) return null;
+        if (!room) { return null; }
         messageRoomIds.push(message.roomId);
 
         const participants: ChatUser[] = (room.participants || [])
@@ -118,6 +148,33 @@ export default function DittoChatUI({
     setChats([...chatsWithMessages, ...chatsWithoutMessages]);
   }, [rooms, latestMessages, users]);
 
+  // EFFECT 1: This effect sets up the listener for OS theme changes.
+  useEffect(() => {
+    const mediaQueryList = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const handleChange = (e: MediaQueryListEvent) => {
+      const newTheme = e.matches ? "dark" : "light";
+      setThemeName(newTheme);
+    };
+
+    if (theme === "auto") {
+      mediaQueryList.addEventListener("change", handleChange);
+    } else {
+      mediaQueryList.removeEventListener("change", handleChange);
+    }
+    // This is the cleanup function that will be called when the component unmounts
+    return () => {
+      mediaQueryList.removeEventListener("change", handleChange);
+    };
+  }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem("ditto-web-chat-theme", themeName);
+    return () => {
+      localStorage.removeItem("ditto-web-chat-theme");
+    };
+  }, [themeName]);
+
   const handleSelectChat = (chat: Chat) => {
     setSelectedChat(chat);
     setActiveScreen("chat");
@@ -133,9 +190,15 @@ export default function DittoChatUI({
     setActiveScreen("list");
   };
 
+  // Update activeRoomId in store when selectedChat changes
+  const setActiveRoomId = useDittoChatStore((state) => state.setActiveRoomId);
+  useEffect(() => {
+    setActiveRoomId(selectedChat?.id || null);
+  }, [selectedChat, setActiveRoomId]);
+
   const handleNewDMCreate = async (user: ChatUser) => {
     const isExists = chats.find((chat) => {
-      if (chat.participants.length !== 2) return false;
+      if (chat.participants.length !== 2) { return false; }
       const ids = chat.participants.map((p) => p._id);
       return ids.includes(user._id) && ids.includes(currentUser?._id);
     });
@@ -155,64 +218,13 @@ export default function DittoChatUI({
   };
 
   useEffect(() => {
-    if (!newlyCreatedRoom) return;
+    if (!newlyCreatedRoom) { return; }
     const chat = chats.find((chat) => chat.id === newlyCreatedRoom);
     if (chat) {
       handleSelectChat(chat);
       setNewlyCreatedRoom(undefined);
     }
   }, [chats, newlyCreatedRoom]);
-
-  // const handleAddReaction = (
-  //   chatId: number | string,
-  //   messageId: number | string,
-  //   emoji: string,
-  // ) => {
-  //   setChats((prevChats) =>
-  //     prevChats.map((chat) => {
-  //       if (chat.id === chatId) {
-  //         const updatedMessages = chat.messages.map((msg) => {
-  //           if (msg.id === messageId) {
-  //             const newReactions = [...msg.reactions];
-  //             const existingReactionIndex = newReactions.findIndex(
-  //               (r) => r.emoji === emoji,
-  //             );
-
-  //             if (existingReactionIndex > -1) {
-  //               const reaction = newReactions[existingReactionIndex];
-  //               const userReactedIndex =
-  //                 reaction.userIds.indexOf(CURRENT_USER_ID);
-
-  //               if (userReactedIndex > -1) {
-  //                 // User removing their reaction
-  //                 reaction.userIds.splice(userReactedIndex, 1);
-  //                 reaction.count--;
-  //                 if (reaction.count === 0) {
-  //                   newReactions.splice(existingReactionIndex, 1);
-  //                 }
-  //               } else {
-  //                 // User adding reaction to existing emoji
-  //                 reaction.userIds.push(CURRENT_USER_ID);
-  //                 reaction.count++;
-  //               }
-  //             } else {
-  //               // New emoji reaction
-  //               newReactions.push({
-  //                 emoji,
-  //                 userIds: [CURRENT_USER_ID],
-  //                 count: 1,
-  //               });
-  //             }
-  //             return { ...msg, reactions: newReactions };
-  //           }
-  //           return msg;
-  //         });
-  //         return { ...chat, messages: updatedMessages };
-  //       }
-  //       return chat;
-  //     }),
-  //   );
-  // };
 
   // On desktop, default to selecting the first chat
   useEffect(() => {
@@ -222,52 +234,68 @@ export default function DittoChatUI({
   }, []);
 
   return (
-    <ToastProvider>
-      <div className="flex h-screen bg-white font-sans text-(--text-color) overflow-hidden">
-        {/* Chat List */}
-        <aside
-          className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--border-color) flex flex-col ${activeScreen !== "list" && "hidden"} md:flex`}
-        >
-          <ChatList
-            chats={chats}
-            onSelectChat={handleSelectChat}
-            onNewMessage={handleNewMessage}
-            selectedChatId={selectedChat?.id || ""}
-          />
-        </aside>
+    <div className="web-chat-root">
+      <div className={themeName}>
+        <Toaster
+          position="top-right"
+          richColors
+          closeButton
+          toastOptions={{
+            duration: 3000,
+          }}
+        />
+        <div className="flex h-screen bg-(--surface-color) font-sans text-(--text-color) overflow-hidden">
+          {/* Chat List */}
+          <aside
+            className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--border-color) flex flex-col ${activeScreen !== "list" && "hidden"
+              } md:flex`}
+          >
+            {loading ? (
+              <ChatListSkeleton />
+            ) : (
+              <ChatList
+                chats={chats}
+                onSelectChat={handleSelectChat}
+                onNewMessage={handleNewMessage}
+                selectedChatId={selectedChat?.id || ""}
+              />
+            )}
+          </aside>
 
-        {/* Main Content Area */}
-        <main
-          className={`w-full flex-1 flex-col ${activeScreen === "list" && "hidden"} md:flex`}
-        >
-          {activeScreen === "chat" && selectedChat && (
-            <ChatView
-              key={selectedChat.id}
-              chat={selectedChat}
-              onBack={handleBack}
-            />
-          )}
-          {activeScreen === "newMessage" && (
-            <NewMessageModal
-              onClose={handleBack}
-              onNewDMCreate={handleNewDMCreate}
-            />
-          )}
-          {activeScreen === "newRoom" && (
-            <NewRoomModal
-              onClose={handleBack}
-              onCreateRoom={handleNewRoomCreate}
-            />
-          )}
-          {activeScreen === "list" && !selectedChat && (
-            <div className="hidden md:flex flex-col items-center justify-center h-full bg-(--surface-color-light) text-(--text-color-lightest)">
-              <Icons.messageCircle className="w-24 h-24 text-(--text-color-disabled) mb-4" />
-              <p className="text-lg font-medium">Select a conversation</p>
-              <p className="text-sm">or start a new message</p>
-            </div>
-          )}
-        </main>
+          {/* Main Content Area */}
+          <main
+            className={`w-full flex-1 flex-col ${activeScreen === "list" && "hidden"
+              } md:flex`}
+          >
+            {activeScreen === "chat" && selectedChat && (
+              <ChatView
+                key={selectedChat.id}
+                chat={selectedChat}
+                onBack={handleBack}
+              />
+            )}
+            {activeScreen === "newMessage" && (
+              <NewMessageModal
+                onClose={handleBack}
+                onNewDMCreate={handleNewDMCreate}
+              />
+            )}
+            {activeScreen === "newRoom" && (
+              <NewRoomModal
+                onClose={handleBack}
+                onCreateRoom={handleNewRoomCreate}
+              />
+            )}
+            {(!selectedChat && (activeScreen === "list" || activeScreen === "chat")) && (
+              <div className="hidden md:flex flex-col items-center justify-center h-full bg-(--surface-color-light) text-(--text-color-lightest)">
+                <Icons.messageCircle className="w-24 h-24 text-(--text-color-disabled) mb-4" />
+                <p className="text-lg font-medium">Select a conversation</p>
+                <p className="text-sm">or start a new message</p>
+              </div>
+            )}
+          </main>
+        </div>
       </div>
-    </ToastProvider>
+    </div>
   );
 }
