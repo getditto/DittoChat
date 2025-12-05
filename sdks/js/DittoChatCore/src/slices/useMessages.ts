@@ -194,7 +194,6 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
   // Helper: Check if should notify user
   const shouldNotify = (message: Message, room: Room) => {
-    return true;
     const currentState = _get();
     const currentUser = currentState.currentUser;
 
