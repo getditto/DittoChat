@@ -78,7 +78,33 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
   _get,
   { ditto, userId, userCollectionKey, retentionDays: globalRetentionDays, notificationHandler }
 ) => {
-  // Helper: Get room details
+  /**
+   * Retrieves the latest room data from the Ditto database.
+   * 
+   * This helper function fetches fresh room details:
+   * 
+   * 1. **Validation**:
+   *    - Checks if Ditto instance is available
+   *    - Throws error if Ditto is not initialized
+   * 
+   * 2. **Query Execution**:
+   *    - Queries the appropriate collection (rooms or dm_rooms)
+   *    - Uses parameterized query to fetch room by ID
+   *    - Ensures secure database access
+   * 
+   * 3. **Result Validation**:
+   *    - Throws error if room is not found
+   *    - Returns the room value from the query result
+   * 
+   * This approach ensures:
+   * - Always working with fresh room data
+   * - Proper error handling for missing rooms
+   * - Type-safe room retrieval
+   * 
+   * @param room - Room object containing _id and collectionId
+   * @returns Promise resolving to the fresh Room data
+   * @throws Error if Ditto is not initialized or room not found
+   */
   const getRoomDetails = async (room: Room) => {
     if (!ditto) { throw new Error("Ditto not initialized"); }
 
@@ -91,7 +117,32 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     return result.items[0].value;
   };
 
-  // Helper: Get current user details
+  /**
+   * Retrieves the current user's data for message attribution.
+   * 
+   * This helper function fetches user details from the database:
+   * 
+   * 1. **Validation**:
+   *    - Checks if Ditto instance and userId are available
+   *    - Throws error if prerequisites are not met
+   * 
+   * 2. **Query Execution**:
+   *    - Queries the user collection by userId
+   *    - Retrieves user document with name and other properties
+   * 
+   * 3. **Result Formatting**:
+   *    - Returns object with id and name
+   *    - Falls back to userId as name if user document doesn't have a name
+   *    - Ensures consistent user object structure
+   * 
+   * This approach ensures:
+   * - User information is always available for messages
+   * - Graceful fallback for missing user names
+   * - Type-safe user data retrieval
+   * 
+   * @returns Promise resolving to object with id and name properties
+   * @throws Error if Ditto is not initialized or userId is missing
+   */
   const getCurrentUser = async () => {
     if (!ditto || !userId) {
       throw new Error("Ditto not initialized or user not found");
@@ -109,6 +160,28 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     };
   };
 
+  /**
+   * Updates the global messagesLoading state based on room message availability.
+   * 
+   * This helper function manages the loading indicator:
+   * 
+   * 1. **State Check**:
+   *    - Iterates through all rooms in state
+   *    - Checks if each room has messages loaded in messagesByRoom
+   * 
+   * 2. **Loading Determination**:
+   *    - Sets messagesLoading to true if any room is missing messages
+   *    - Sets messagesLoading to false if all rooms have messages loaded
+   * 
+   * 3. **Immutable Update**:
+   *    - Uses Immer's produce for safe state mutation
+   *    - Ensures predictable state updates
+   * 
+   * This approach ensures:
+   * - Loading indicator reflects actual message loading state
+   * - UI shows loading only when necessary
+   * - Accurate feedback for users
+   */
   const updateMessageLoadingState = () => {
     _set((state: ChatStore) => {
       return produce(state, (draft) => {
@@ -354,10 +427,65 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     messageSubscriptionsByRoom: {},
     notificationHandler: null,
 
+    /**
+     * Registers a notification handler for new messages.
+     * 
+     * This function allows the UI layer to provide a custom notification handler
+     * that will be called whenever a new message arrives that meets notification criteria.
+     * 
+     * The handler receives formatted notification data including title and preview text,
+     * enabling the UI to display toast notifications, browser notifications, or other alerts.
+     * 
+     * @param handler - Callback function that receives (title: string, preview: string)
+     */
     registerNotificationHandler(handler) {
       _set({ notificationHandler: handler });
     },
 
+    /**
+     * Sets up real-time message synchronization for a room.
+     * 
+     * This function establishes a Ditto subscription and observer for a specific room's messages.
+     * The workflow includes:
+     * 
+     * 1. **Validation and Deduplication**:
+     *    - Checks if Ditto is initialized
+     *    - Returns early if subscription already exists for this room
+     *    - Prevents duplicate subscriptions
+     * 
+     * 2. **Retention Configuration**:
+     *    - Determines effective retention days from multiple sources:
+     *      - Function parameter (highest priority)
+     *      - Room-specific retention setting
+     *      - Global retention configuration
+     *      - DEFAULT_RETENTION_DAYS (30 days fallback)
+     *    - Calculates retention date for filtering old messages
+     * 
+     * 3. **Query Construction**:
+     *    - Builds query for non-archived messages newer than retention date
+     *    - Includes attachment tokens for image and file attachments
+     *    - Orders messages chronologically
+     * 
+     * 4. **Subscription Registration**:
+     *    - Registers Ditto sync subscription for real-time updates
+     *    - Registers observer to handle incoming message events
+     *    - Stores subscription and observer references in state
+     * 
+     * 5. **Message Processing**:
+     *    - Merges user data with messages (MessageWithUser)
+     *    - Updates state immutably using Immer
+     *    - Triggers loading state update
+     *    - Handles message notifications appropriately
+     * 
+     * This approach ensures:
+     * - Automatic real-time message synchronization
+     * - Configurable message retention policies
+     * - Efficient state management with user attribution
+     * - No duplicate subscriptions
+     * 
+     * @param room - Room to subscribe to for messages
+     * @param retentionDays - Optional override for message retention period
+     */
     async messagesPublisher(room: Room, retentionDays?: number) {
       if (!ditto) { return; }
 
@@ -427,6 +555,34 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       }
     },
 
+    /**
+     * Creates a new text message in a room with optional user mentions.
+     * 
+     * This function creates a new message with mention support:
+     * 
+     * 1. **Validation**:
+     *    - Checks if Ditto and userId are available
+     *    - Returns early if prerequisites are not met
+     * 
+     * 2. **RBAC Permission Check**:
+     *    - Verifies user has "canMentionUsers" permission if mentions provided
+     *    - Filters out mentions if permission is denied
+     *    - Logs warning for permission violations
+     * 
+     * 3. **Message Creation**:
+     *    - Delegates to createMessageDocument helper
+     *    - Includes filtered mentions based on permissions
+     *    - Automatically updates mentioned users' mention records
+     * 
+     * This approach ensures:
+     * - RBAC integration for mention permissions
+     * - Graceful handling of permission denials
+     * - Automatic mention tracking in user documents
+     * 
+     * @param room - Room to create the message in
+     * @param text - Message text content
+     * @param mentions - Optional array of user mentions with positions
+     */
     async createMessage(room: Room, text: string, mentions: Mention[] = []) {
       if (!ditto || !userId) { return; }
 
@@ -450,6 +606,35 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       }
     },
 
+    /**
+     * Saves an edited version of a message using the archive-and-create pattern.
+     * 
+     * This function implements message editing with history preservation:
+     * 
+     * 1. **Permission Check**:
+     *    - Verifies user has "canEditOwnMessage" permission via RBAC
+     *    - Returns early and logs warning if permission denied
+     * 
+     * 2. **Archive and Create Pattern**:
+     *    - Archives the original message (sets isArchived=true)
+     *    - Creates a new message with updated content
+     *    - Links new message to archived original via archivedMessage field
+     *    - Preserves creation timestamp, attachments, mentions, and reactions
+     * 
+     * 3. **Metadata Marking**:
+     *    - Sets isEdited=true on the new message
+     *    - Ensures isDeleted=false
+     *    - Maintains message history for audit purposes
+     * 
+     * This approach ensures:
+     * - RBAC integration for edit permissions
+     * - Complete edit history preservation
+     * - Original messages remain in database for auditing
+     * - UI can show "edited" indicator
+     * 
+     * @param message - Message to edit (with updated text)
+     * @param room - Room containing the message
+     */
     async saveEditedTextMessage(message: Message, room: Room) {
       // Check edit permission
       if (!_get().canPerformAction("canEditOwnMessage")) {
@@ -473,6 +658,43 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       }
     },
 
+    /**
+     * Marks a message as deleted using the archive-and-create pattern.
+     * 
+     * This function implements message deletion with history preservation:
+     * 
+     * 1. **Permission Check**:
+     *    - Verifies user has "canDeleteOwnMessage" permission via RBAC
+     *    - Returns early and logs warning if permission denied
+     * 
+     * 2. **Type-Specific Deletion Text**:
+     *    - Uses "[deleted message]" for text messages
+     *    - Uses "[deleted image]" for image messages
+     *    - Uses "[deleted file]" for file messages
+     *    - Provides clear indication of deleted content type
+     * 
+     * 3. **Archive and Create Pattern**:
+     *    - Archives the original message (sets isArchived=true)
+     *    - Creates a new message with deletion placeholder text
+     *    - Removes all attachments (images, files)
+     *    - Clears all mentions
+     *    - Links to original via archivedMessage field
+     * 
+     * 4. **Metadata Marking**:
+     *    - Sets isDeleted=true on the new message
+     *    - Updates createdOn to deletion timestamp
+     *    - Preserves message history for compliance/auditing
+     * 
+     * This approach ensures:
+     * - RBAC integration for delete permissions
+     * - Soft deletion with history preservation
+     * - Attachment cleanup while maintaining record
+     * - UI shows deletion placeholder
+     * 
+     * @param message - Message to delete
+     * @param room - Room containing the message
+     * @param type - Type of message being deleted ("text", "image", or "file")
+     */
     async saveDeletedMessage(
       message: Message,
       room: Room,
@@ -506,6 +728,35 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       }
     },
 
+    /**
+     * Creates a new message with an image attachment.
+     * 
+     * This function handles image message creation with automatic processing:
+     * 
+     * 1. **Image Processing**:
+     *    - Creates a thumbnail (max 282px) for fast preview loading
+     *    - Stores full-size image for detailed viewing
+     *    - Converts images to JPEG format for consistency
+     * 
+     * 2. **Attachment Storage**:
+     *    - Stores both thumbnail and large image as Ditto attachments
+     *    - Includes metadata (filename, size, timestamp, user info)
+     *    - Uses ATTACHMENT collection specification for proper sync
+     * 
+     * 3. **Message Creation**:
+     *    - Delegates to createAttachmentMessage helper
+     *    - Optional caption text can be included
+     *    - Automatically links attachments to message document
+     * 
+     * This approach ensures:
+     * - Optimized image loading (thumbnail first, then full size)
+     * - Consistent image format across the application
+     * - Proper metadata for attachment management
+     * 
+     * @param room - Room to create the image message in
+     * @param imageFile - Image file to attach
+     * @param text - Optional caption text for the image
+     */
     async createImageMessage(room: Room, imageFile: File, text?: string) {
       try {
         await createAttachmentMessage(room, imageFile, text, "image");
@@ -514,6 +765,35 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       }
     },
 
+    /**
+     * Creates a new message with a file attachment.
+     * 
+     * This function handles file message creation:
+     * 
+     * 1. **File Storage**:
+     *    - Stores file as a Ditto attachment
+     *    - Preserves original file format and name
+     *    - Includes metadata (filename, size, timestamp, user info)
+     * 
+     * 2. **Attachment Storage**:
+     *    - Uses ATTACHMENT collection specification for proper sync
+     *    - Single attachment token (no thumbnails for files)
+     *    - Enables file download functionality in UI
+     * 
+     * 3. **Message Creation**:
+     *    - Delegates to createAttachmentMessage helper
+     *    - Uses filename as fallback text if no caption provided
+     *    - Automatically links attachment to message document
+     * 
+     * This approach ensures:
+     * - Support for any file type
+     * - Preservation of original file metadata
+     * - Consistent attachment handling across the SDK
+     * 
+     * @param room - Room to create the file message in
+     * @param file - File to attach
+     * @param text - Optional caption text (defaults to filename)
+     */
     async createFileMessage(room: Room, file: File, text?: string) {
       try {
         await createAttachmentMessage(room, file, text, "file");
@@ -522,6 +802,40 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       }
     },
 
+    /**
+     * Fetches an attachment from Ditto with progress tracking.
+     * 
+     * This function provides a callback-based API for downloading attachments:
+     * 
+     * 1. **Validation**:
+     *    - Checks if Ditto is initialized
+     *    - Validates attachment token is provided
+     *    - Calls onComplete with error if validation fails
+     * 
+     * 2. **Progress Tracking**:
+     *    - Calls onProgress callback with download progress (0.0 to 1.0)
+     *    - Calculates progress from downloadedBytes / totalBytes
+     *    - Enables UI to show loading indicators
+     * 
+     * 3. **Event Handling**:
+     *    - **Progress**: Reports download progress
+     *    - **Completed**: Extracts attachment data and metadata, calls onComplete with success
+     *    - **Deleted**: Calls onComplete with error if attachment was deleted
+     * 
+     * 4. **Data Extraction**:
+     *    - Handles both Promise and direct data results
+     *    - Returns Uint8Array data suitable for display/download
+     *    - Includes metadata (filename, size, etc.)
+     * 
+     * This approach ensures:
+     * - User feedback during long downloads
+     * - Proper error handling for missing/deleted attachments
+     *    - Type-safe attachment data retrieval
+     * 
+     * @param token - AttachmentToken from the message
+     * @param onProgress - Callback receiving progress (0.0 to 1.0)
+     * @param onComplete - Callback receiving AttachmentResult on completion or error
+     */
     fetchAttachment(token, onProgress, onComplete) {
       if (!ditto) {
         onComplete({
@@ -660,6 +974,38 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       }, 0);
     },
 
+    /**
+     * Adds a reaction to a message with RBAC permission checking.
+     * 
+     * This function implements reaction addition with permission control:
+     * 
+     * 1. **Validation**:
+     *    - Checks if Ditto and userId are available
+     *    - Returns early if prerequisites are not met
+     * 
+     * 2. **Permission Check**:
+     *    - Verifies user has "canAddReaction" permission via RBAC
+     *    - Returns early and logs warning if permission denied
+     *    - Prevents unauthorized reactions
+     * 
+     * 3. **Message Lookup**:
+     *    - Finds the message in the room's message list
+     *    - Throws error if message is not found
+     * 
+     * 4. **Reaction Addition**:
+     *    - Appends new reaction to existing reactions array
+     *    - Delegates to updateMessageReactions for optimistic update
+     *    - Note: Does not check for duplicate reactions (allows multiple reactions per user)
+     * 
+     * This approach ensures:
+     * - RBAC integration for reaction permissions
+     * - Optimistic UI updates via updateMessageReactions
+     * - Consistent reaction handling across the SDK
+     * 
+     * @param message - Message to add reaction to
+     * @param room - Room containing the message
+     * @param reaction - Reaction object with emoji and userId
+     */
     async addReactionToMessage(
       message: Message,
       room: Room,
@@ -682,6 +1028,39 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       await _get().updateMessageReactions(originalMessage, room, reactions);
     },
 
+    /**
+     * Removes a reaction from a message with RBAC permission checking.
+     * 
+     * This function implements reaction removal with permission control:
+     * 
+     * 1. **Validation**:
+     *    - Checks if Ditto and userId are available
+     *    - Returns early if prerequisites are not met
+     * 
+     * 2. **Permission Check**:
+     *    - Verifies user has "canRemoveOwnReaction" permission via RBAC
+     *    - Returns early and logs warning if permission denied
+     *    - Prevents unauthorized reaction removal
+     * 
+     * 3. **Message Lookup**:
+     *    - Finds the message in the room's message list
+     *    - Throws error if message is not found
+     * 
+     * 4. **Reaction Removal**:
+     *    - Filters reactions array to remove matching emoji+userId combination
+     *    - Ensures only the specific user's reaction is removed
+     *    - Delegates to updateMessageReactions for optimistic update
+     * 
+     * This approach ensures:
+     * - RBAC integration for reaction removal permissions
+     * - Users can only remove their own reactions
+     * - Optimistic UI updates via updateMessageReactions
+     * - Consistent reaction handling across the SDK
+     * 
+     * @param message - Message to remove reaction from
+     * @param room - Room containing the message
+     * @param reaction - Reaction object with emoji and userId to remove
+     */
     async removeReactionFromMessage(
       message: Message,
       room: Room,
