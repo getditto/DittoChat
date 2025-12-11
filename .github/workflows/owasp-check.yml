@@ -16,10 +16,15 @@ jobs:
 
     strategy:
       matrix:
-        # Add your specific project paths here
-        project:
-          - "sdks/js/DittoChatCore"
-          - "sdks/js/DittoChatUI"
+        # Workspace package names
+        workspace:
+          - "@dittolive/ditto-chat-core"
+          - "@dittolive/ditto-chat-ui"
+        include:
+          - workspace: "@dittolive/ditto-chat-core"
+            path: "sdks/js/ditto-chat-core"
+          - workspace: "@dittolive/ditto-chat-ui"
+            path: "sdks/js/ditto-chat-ui"
       fail-fast: false
 
     steps:
@@ -31,10 +36,9 @@ jobs:
         with:
           node-version: "24"
           cache: "npm"
-          cache-dependency-path: "${{ matrix.project }}/package-lock.json"
+          cache-dependency-path: "package-lock.json"
 
-      - name: Install dependencies for ${{ matrix.project }}
-        working-directory: ${{ matrix.project }}
+      - name: Install dependencies
         run: npm ci
 
       - name: Create suppression file
@@ -54,12 +58,12 @@ jobs:
         uses: dependency-check/Dependency-Check_Action@main
         id: depcheck
         with:
-          project: "${{ matrix.project }}"
-          path: "${{ matrix.project }}"
+          project: "${{ matrix.workspace }}"
+          path: "${{ matrix.path }}"
           format: "ALL"
           args: >
-            -s "${{ matrix.project }}/package.json"
-            -s "${{ matrix.project }}/package-lock.json"
+            -s "${{ matrix.path }}/package.json"
+            -s "package-lock.json"
             --enableExperimental
             --suppression suppression.xml
             --failOnCVSS 7
@@ -68,7 +72,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: dependency-check-report-${{ hashFiles(format('{0}/package.json', matrix.project)) }}
+          name: dependency-check-report-${{ hashFiles(format('{0}/package.json', matrix.path)) }}
           path: reports/
           retention-days: 15
 
@@ -76,7 +80,7 @@ jobs:
         if: always()
         id: summary
         run: |
-          PROJECT="${{ matrix.project }}"
+          WORKSPACE="${{ matrix.workspace }}"
           REPORT_FILE="reports/dependency-check-report.json"
 
           if [ -f "$REPORT_FILE" ]; then
@@ -113,7 +117,7 @@ jobs:
           VULN_DATA: ${{ steps.summary.outputs.VULNERABILITIES }}
         with:
           script: |
-            const project = '${{ matrix.project }}';
+            const workspace = '${{ matrix.workspace }}';
             const critical = '${{ steps.summary.outputs.critical }}';
             const high = '${{ steps.summary.outputs.high }}';
             const medium = '${{ steps.summary.outputs.medium }}';
@@ -136,7 +140,7 @@ jobs:
               statusMessage = 'Low severity vulnerabilities detected';
             }
 
-            const body = `## ${statusEmoji} OWASP Dependency Check - \`${project}\`
+            const body = `## ${statusEmoji} OWASP Dependency Check - \`${workspace}\`
 
             ### ${statusMessage}
 
@@ -164,7 +168,7 @@ jobs:
             <summary>ℹ️ How to fix vulnerabilities</summary>
 
             1. Update vulnerable dependencies to patched versions
-            2. Run \`npm audit fix\` or \`npm audit fix --force\`
+            2. Run \`npm audit fix\` or \`npm audit fix --force\` in the root directory
             3. Check for alternative packages if updates aren't available
             4. Review and update your \`package.json\` and \`package-lock.json\`
 
@@ -180,7 +184,7 @@ jobs:
 
             const botComment = comments.find(comment =>
               comment.user.type === 'Bot' &&
-              comment.body.includes(`OWASP Dependency Check - \`${project}\``)
+              comment.body.includes(`OWASP Dependency Check - \`${workspace}\``)
             );
 
             // Update or create comment
@@ -202,5 +206,5 @@ jobs:
 
             // Fail the job if critical or high vulnerabilities found
             if (parseInt(critical) > 0 || parseInt(high) > 0) {
-              core.setFailed(`Found ${critical} critical and ${high} high severity vulnerabilities in ${project}`);
+              core.setFailed(`Found ${critical} critical and ${high} high severity vulnerabilities in ${workspace}`);
             }

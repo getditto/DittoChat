@@ -15,10 +15,15 @@ jobs:
 
     strategy:
       matrix:
-        # Add your specific project paths here
-        project:
-          - "sdks/js/DittoChatCore"
-          - "sdks/js/DittoChatUI"
+        # Workspace package names
+        workspace:
+          - "@dittolive/ditto-chat-core"
+          - "@dittolive/ditto-chat-ui"
+        include:
+          - workspace: "@dittolive/ditto-chat-core"
+            path: "sdks/js/ditto-chat-core"
+          - workspace: "@dittolive/ditto-chat-ui"
+            path: "sdks/js/ditto-chat-ui"
       fail-fast: false
 
     steps:
@@ -30,30 +35,17 @@ jobs:
         with:
           node-version: "24"
           cache: "npm"
-          cache-dependency-path: "${{ matrix.project }}/package-lock.json"
+          cache-dependency-path: "package-lock.json"
 
-      - name: Install local dependencies first
-        run: |
-          # Install DittoChatCore dependencies and build it
-          if [ -d "sdks/js/DittoChatCore" ]; then
-            echo "Installing and building DittoChatCore..."
-            cd sdks/js/DittoChatCore
-            npm ci
-            npm run build
-            cd ../../..
-          fi
-
-      - name: Install dependencies for ${{ matrix.project }}
-        working-directory: ${{ matrix.project }}
+      - name: Install dependencies
         run: npm ci
 
       - name: Run tests with coverage
-        working-directory: ${{ matrix.project }}
-        run: npx vitest run --coverage --reporter=github-actions
+        run: npm run test:coverage -w ${{ matrix.workspace }}
         continue-on-error: false
 
       - name: Generate coverage report
-        working-directory: ${{ matrix.project }}
+        working-directory: ${{ matrix.path }}
         run: |
           # Generate coverage summary
           if [ -f "coverage/coverage-summary.json" ]; then
@@ -66,13 +58,13 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report-${{ hashFiles(format('{0}/package.json', matrix.project)) }}
-          path: ${{ matrix.project }}/coverage/
+          name: coverage-report-${{ hashFiles(format('{0}/package.json', matrix.path)) }}
+          path: ${{ matrix.path }}/coverage/
           retention-days: 15
 
       - name: Parse coverage data
         id: coverage
-        working-directory: ${{ matrix.project }}
+        working-directory: ${{ matrix.path }}
         run: |
           if [ -f "coverage/coverage-summary.json" ]; then
             # Extract overall coverage percentages
@@ -98,7 +90,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const project = '${{ matrix.project }}';
+            const workspace = '${{ matrix.workspace }}';
             const lines = parseFloat('${{ steps.coverage.outputs.lines }}');
             const statements = parseFloat('${{ steps.coverage.outputs.statements }}');
             const functions = parseFloat('${{ steps.coverage.outputs.functions }}');
@@ -122,7 +114,7 @@ jobs:
             const overallCoverage = (lines + statements + functions + branches) / 4;
             const statusEmoji = getCoverageEmoji(overallCoverage);
 
-            const body = `## ${statusEmoji} Test Coverage Report - \`${project}\`
+            const body = `## ${statusEmoji} Test Coverage Report - \`${workspace}\`
 
             ### Overall Coverage: ${overallCoverage.toFixed(2)}%
 
@@ -157,7 +149,7 @@ jobs:
 
             const botComment = comments.find(comment =>
               comment.user.type === 'Bot' &&
-              comment.body.includes(`Test Coverage Report - \`${project}\``)
+              comment.body.includes(`Test Coverage Report - \`${workspace}\``)
             );
 
             // Update or create comment
@@ -179,11 +171,11 @@ jobs:
 
             // Set status based on coverage threshold
             if (overallCoverage < 90) {
-              core.setFailed(`Coverage is below 90% for ${project}: ${overallCoverage.toFixed(2)}%`);
+              core.setFailed(`Coverage is below 90% for ${workspace}: ${overallCoverage.toFixed(2)}%`);
             }
 
       - name: Check coverage threshold
-        working-directory: ${{ matrix.project }}
+        working-directory: ${{ matrix.path }}
         run: |
           LINES=${{ steps.coverage.outputs.lines }}
           STATEMENTS=${{ steps.coverage.outputs.statements }}
@@ -206,8 +198,8 @@ jobs:
 
           if [ "$BELOW_THRESHOLD" = "1" ]; then
             echo "::error::Overall coverage is below ${THRESHOLD}% threshold: $OVERALL%"
-            echo "❌ Coverage threshold check failed for ${{ matrix.project }}"
+            echo "❌ Coverage threshold check failed for ${{ matrix.workspace }}"
             exit 1
           else
-            echo "✅ Coverage threshold check passed for ${{ matrix.project }} (${OVERALL}%)"
+            echo "✅ Coverage threshold check passed for ${{ matrix.workspace }} (${OVERALL}%)"
           fi
