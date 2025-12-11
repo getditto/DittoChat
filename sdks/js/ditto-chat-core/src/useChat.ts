@@ -1,12 +1,13 @@
 import { Ditto, StoreObserver, SyncSubscription } from '@dittolive/ditto'
-import { useStore } from 'zustand'
-import { createStore, StoreApi } from 'zustand/vanilla'
-import { useShallow } from 'zustand/react/shallow'
-import { createRoomSlice, RoomSlice } from './slices/useRooms'
 import { useMemo } from 'react'
+import { useStore } from 'zustand'
+import { useShallow } from 'zustand/react/shallow'
+import { createStore, StoreApi } from 'zustand/vanilla'
+
 import { ChatUserSlice, createChatUserSlice } from './slices/useChatUser'
-import { MessageSlice, createMessageSlice } from './slices/useMessages'
-import { RBACSlice, createRBACSlice } from './slices/useRBAC'
+import { createMessageSlice,MessageSlice } from './slices/useMessages'
+import { createRBACSlice,RBACSlice } from './slices/useRBAC'
+import { createRoomSlice, RoomSlice } from './slices/useRooms'
 import { RBACConfig } from './types/RBAC'
 
 export type DittoConfParams = {

@@ -4,12 +4,13 @@ import {
   StoreObserver,
   SyncSubscription,
 } from '@dittolive/ditto'
-import Room from '../types/Room'
-import ChatUser from '../types/ChatUser'
-import { ChatStore, CreateSlice, DittoConfParams } from '../useChat'
 import { produce } from 'immer'
 import { v4 as uuidv4 } from 'uuid'
 import { StoreApi } from 'zustand'
+
+import ChatUser from '../types/ChatUser'
+import Room from '../types/Room'
+import { ChatStore, CreateSlice, DittoConfParams } from '../useChat'
 
 export interface RoomSlice {
   rooms: Room[]

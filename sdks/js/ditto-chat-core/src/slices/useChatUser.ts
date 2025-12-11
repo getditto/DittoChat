@@ -1,4 +1,5 @@
 import { StoreObserver, SyncSubscription } from '@dittolive/ditto'
+
 import ChatUser from '../types/ChatUser'
 import { CreateSlice, DittoConfParams } from '../useChat'
 
