@@ -1,12 +1,12 @@
 import './index.css'
 
 import {
-  type DittoConfParams,
-  useDittoChat,
-  useDittoChatStore,
   type ChatUser,
+  type DittoConfParams,
   type Message,
   type Room,
+  useDittoChat,
+  useDittoChatStore,
 } from '@dittolive/ditto-chat-core'
 import { useEffect, useMemo, useState } from 'react'
 import { toast, Toaster } from 'sonner'

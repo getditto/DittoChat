@@ -1,11 +1,11 @@
 import { AttachmentToken } from '@dittolive/ditto'
 import {
-  useDittoChatStore,
-  type Mention,
-  type Reaction,
   type ChatUser,
+  type Mention,
   type Message,
   type MessageWithUser,
+  type Reaction,
+  useDittoChatStore,
 } from '@dittolive/ditto-chat-core'
 import { EmojiClickData } from 'emoji-picker-react'
 import React, { useEffect, useRef, useState } from 'react'
