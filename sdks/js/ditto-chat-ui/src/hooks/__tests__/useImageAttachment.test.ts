@@ -102,6 +102,11 @@ describe('useImageAttachment', () => {
     await waitFor(() => {
       expect(result.current.progress).toBe(0.5)
     })
+
+    // Wait for the async operation to complete before test ends
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false)
+    })
   })
 
   it('handles missing fetch function', () => {

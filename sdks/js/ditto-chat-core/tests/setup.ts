@@ -78,11 +78,14 @@ export const createTestStore = (mockDitto: MockDitto | null) => {
     userCollectionKey: 'users',
   }
 
-  return createStore<ChatStore>((set, get) => ({
-    ...createRoomSlice(set, get, params),
-    ...createChatUserSlice(set, get, params),
-    ...createMessageSlice(set, get, params),
-    ...createRBACSlice(set, get, params),
-    chatLogout: vi.fn(), // Mock implementation for tests
-  }))
+  return createStore<ChatStore>(
+    (set, get) =>
+      ({
+        ...createRoomSlice(set, get, params),
+        ...createChatUserSlice(set, get, params),
+        ...createMessageSlice(set, get, params),
+        ...createRBACSlice(set, get, params),
+        chatLogout: vi.fn(), // Mock implementation for tests
+      }) as any,
+  )
 }

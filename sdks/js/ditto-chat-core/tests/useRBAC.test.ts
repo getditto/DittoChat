@@ -6,27 +6,33 @@ import {
   PermissionKey,
   DEFAULT_PERMISSIONS,
 } from '../src/types/RBAC'
+import { ChatStore } from '../src'
 
 describe('RBAC Slice', () => {
   let store: RBACSlice
   let setState: StoreApi<RBACSlice>['setState']
-  let getState: StoreApi<RBACSlice>['getState']
+  let getState: StoreApi<ChatStore>['getState']
 
   beforeEach(() => {
     // Create mock set and get functions
     let state: RBACSlice
 
     setState = (partial) => {
-      state =
+      state = (
         typeof partial === 'function'
           ? partial(state)
           : { ...state, ...partial }
+      ) as RBACSlice
     }
 
-    getState = () => state
+    getState = () => state as ChatStore
 
     // Initialize the slice
-    state = createRBACSlice(setState, getState, {})
+    state = createRBACSlice(setState, getState, {
+      ditto: null,
+      userId: 'test-user',
+      userCollectionKey: 'users',
+    })
     store = state
   })
 
@@ -61,16 +67,18 @@ describe('RBAC Slice', () => {
 
       let customState: RBACSlice
       const customSetState: StoreApi<RBACSlice>['setState'] = (partial) => {
-        customState =
+        customState = (
           typeof partial === 'function'
             ? partial(customState)
             : { ...customState, ...partial }
+        ) as RBACSlice
       }
-      const customGetState: StoreApi<RBACSlice>['getState'] = () => customState
+      const customGetState: StoreApi<ChatStore>['getState'] = () =>
+        customState as ChatStore
 
       customState = createRBACSlice(customSetState, customGetState, {
         rbacConfig: customConfig,
-      })
+      } as any)
 
       expect(customState.canPerformAction('canCreateRoom')).toBe(false)
       expect(customState.canPerformAction('canEditOwnMessage')).toBe(false)
@@ -94,18 +102,19 @@ describe('RBAC Slice', () => {
       const restrictiveSetState: StoreApi<RBACSlice>['setState'] = (
         partial,
       ) => {
-        restrictiveState =
+        restrictiveState = (
           typeof partial === 'function'
             ? partial(restrictiveState)
             : { ...restrictiveState, ...partial }
+        ) as RBACSlice
       }
-      const restrictiveGetState: StoreApi<RBACSlice>['getState'] = () =>
-        restrictiveState
+      const restrictiveGetState: StoreApi<ChatStore>['getState'] = () =>
+        restrictiveState as ChatStore
 
       restrictiveState = createRBACSlice(
         restrictiveSetState,
         restrictiveGetState,
-        { rbacConfig: restrictiveConfig },
+        { rbacConfig: restrictiveConfig } as any,
       )
 
       expect(restrictiveState.canPerformAction('canCreateRoom')).toBe(false)
@@ -134,16 +143,18 @@ describe('RBAC Slice', () => {
 
       let mixedState: RBACSlice
       const mixedSetState: StoreApi<RBACSlice>['setState'] = (partial) => {
-        mixedState =
+        mixedState = (
           typeof partial === 'function'
             ? partial(mixedState)
             : { ...mixedState, ...partial }
+        ) as RBACSlice
       }
-      const mixedGetState: StoreApi<RBACSlice>['getState'] = () => mixedState
+      const mixedGetState: StoreApi<ChatStore>['getState'] = () =>
+        mixedState as ChatStore
 
       mixedState = createRBACSlice(mixedSetState, mixedGetState, {
         rbacConfig: mixedConfig,
-      })
+      } as any)
 
       expect(mixedState.canPerformAction('canCreateRoom')).toBe(false)
       expect(mixedState.canPerformAction('canEditOwnMessage')).toBe(true)
@@ -256,16 +267,18 @@ describe('RBAC Slice', () => {
 
       let customState: RBACSlice
       const customSetState: StoreApi<RBACSlice>['setState'] = (partial) => {
-        customState =
+        customState = (
           typeof partial === 'function'
             ? partial(customState)
             : { ...customState, ...partial }
+        ) as RBACSlice
       }
-      const customGetState: StoreApi<RBACSlice>['getState'] = () => customState
+      const customGetState: StoreApi<ChatStore>['getState'] = () =>
+        customState as ChatStore
 
       customState = createRBACSlice(customSetState, customGetState, {
         rbacConfig: customConfig,
-      })
+      } as any)
 
       expect(customState.rbacConfig).toEqual(customConfig)
     })
@@ -275,17 +288,18 @@ describe('RBAC Slice', () => {
     it('should handle undefined rbacConfig parameter', () => {
       let undefinedState: RBACSlice
       const undefinedSetState: StoreApi<RBACSlice>['setState'] = (partial) => {
-        undefinedState =
+        undefinedState = (
           typeof partial === 'function'
             ? partial(undefinedState)
             : { ...undefinedState, ...partial }
+        ) as RBACSlice
       }
-      const undefinedGetState: StoreApi<RBACSlice>['getState'] = () =>
-        undefinedState
+      const undefinedGetState: StoreApi<ChatStore>['getState'] = () =>
+        undefinedState as ChatStore
 
       undefinedState = createRBACSlice(undefinedSetState, undefinedGetState, {
         rbacConfig: undefined,
-      })
+      } as any)
 
       expect(undefinedState.canPerformAction('canCreateRoom')).toBe(true)
     })
@@ -298,17 +312,18 @@ describe('RBAC Slice', () => {
 
       let explicitState: RBACSlice
       const explicitSetState: StoreApi<RBACSlice>['setState'] = (partial) => {
-        explicitState =
+        explicitState = (
           typeof partial === 'function'
             ? partial(explicitState)
             : { ...explicitState, ...partial }
+        ) as RBACSlice
       }
-      const explicitGetState: StoreApi<RBACSlice>['getState'] = () =>
-        explicitState
+      const explicitGetState: StoreApi<ChatStore>['getState'] = () =>
+        explicitState as ChatStore
 
       explicitState = createRBACSlice(explicitSetState, explicitGetState, {
         rbacConfig: explicitConfig,
-      })
+      } as any)
 
       expect(explicitState.canPerformAction('canCreateRoom')).toBe(true)
       expect(explicitState.canPerformAction('canEditOwnMessage')).toBe(true)
