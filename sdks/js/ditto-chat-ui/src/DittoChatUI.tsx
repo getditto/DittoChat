@@ -4,10 +4,10 @@ import {
   type DittoConfParams,
   useDittoChat,
   useDittoChatStore,
+  type ChatUser,
+  type Message,
+  type Room,
 } from '@dittolive/ditto-chat-core'
-import ChatUser from '@dittolive/ditto-chat-core/dist/types/ChatUser'
-import Message from '@dittolive/ditto-chat-core/dist/types/Message'
-import Room from '@dittolive/ditto-chat-core/dist/types/Room'
 import { useEffect, useMemo, useState } from 'react'
 import { toast, Toaster } from 'sonner'
 

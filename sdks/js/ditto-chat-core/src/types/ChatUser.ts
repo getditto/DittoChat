@@ -1,6 +1,6 @@
 import { Attachment } from '@dittolive/ditto'
 
-export default interface ChatUser {
+interface ChatUser {
   _id?: string
   name: string
   subscriptions: Record<string, string | null>
@@ -8,3 +8,6 @@ export default interface ChatUser {
   profilePicture?: Attachment | null
   profilePictureThumbnail?: Attachment | null
 }
+
+export default ChatUser
+export type { ChatUser }

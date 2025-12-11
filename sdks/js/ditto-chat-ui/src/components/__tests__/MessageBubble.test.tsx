@@ -1,9 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import MessageBubble from '../MessageBubble'
-import type Message from '@dittolive/ditto-chat-core/dist/types/Message'
-import type ChatUser from '@dittolive/ditto-chat-core/dist/types/ChatUser'
-import type { Reaction } from '@dittolive/ditto-chat-core/dist/types/Message'
+import type { Message, ChatUser, Reaction } from '@dittolive/ditto-chat-core'
 import type { Attachment } from '@dittolive/ditto'
 
 vi.mock('../Icons', () => ({

@@ -1,8 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import MessageInput from '../MessageInput'
-import type { ChatStore } from '@dittolive/ditto-chat-core'
-import type Message from '@dittolive/ditto-chat-core/dist/types/Message'
+import type { ChatStore, Message } from '@dittolive/ditto-chat-core'
 
 // Mock dependencies
 vi.mock('../Icons', () => ({

@@ -1,4 +1,4 @@
-export default interface Room {
+interface Room {
   _id: string
   name: string
   messagesId: string
@@ -9,3 +9,6 @@ export default interface Room {
   participants?: string[]
   retentionDays?: number
 }
+
+export default Room
+export type { Room }

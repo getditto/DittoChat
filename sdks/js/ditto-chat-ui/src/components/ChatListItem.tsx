@@ -1,7 +1,9 @@
 import { AttachmentToken } from '@dittolive/ditto'
-import { useDittoChatStore } from '@dittolive/ditto-chat-core'
-import type ChatUser from '@dittolive/ditto-chat-core/dist/types/ChatUser'
-import type MessageWithUser from '@dittolive/ditto-chat-core/dist/types/MessageWithUser'
+import {
+  useDittoChatStore,
+  type ChatUser,
+  type MessageWithUser,
+} from '@dittolive/ditto-chat-core'
 import clsx from 'clsx'
 import React, { useEffect } from 'react'
 

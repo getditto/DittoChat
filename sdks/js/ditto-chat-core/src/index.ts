@@ -1,3 +1,7 @@
 export * from './slices/useRBAC'
 export * from './types/RBAC'
+export * from './types/ChatUser'
+export * from './types/Message'
+export * from './types/MessageWithUser'
+export * from './types/Room'
 export * from './useChat'

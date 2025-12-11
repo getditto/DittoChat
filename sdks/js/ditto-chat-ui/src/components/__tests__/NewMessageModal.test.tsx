@@ -1,8 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import NewMessageModal from '../NewMessageModal'
-import type { ChatStore } from '@dittolive/ditto-chat-core'
-import type ChatUser from '@dittolive/ditto-chat-core/dist/types/ChatUser'
+import type { ChatStore, ChatUser } from '@dittolive/ditto-chat-core'
 import type { Attachment } from '@dittolive/ditto'
 
 // Mock dependencies

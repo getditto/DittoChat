@@ -2,9 +2,12 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import '@testing-library/jest-dom'
 import DittoChatUI from '../DittoChatUI'
-import type { ChatStore, DittoConfParams } from '@dittolive/ditto-chat-core'
-import type Room from '@dittolive/ditto-chat-core/dist/types/Room'
-import type MessageWithUser from '@dittolive/ditto-chat-core/dist/types/MessageWithUser'
+import type {
+  ChatStore,
+  DittoConfParams,
+  Room,
+  MessageWithUser,
+} from '@dittolive/ditto-chat-core'
 
 // Mock dependencies
 vi.mock('../components/ChatList', () => ({

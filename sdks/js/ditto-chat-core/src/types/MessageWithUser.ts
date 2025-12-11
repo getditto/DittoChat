@@ -1,8 +1,11 @@
 import ChatUser from './ChatUser'
 import Message from './Message'
 
-export default interface MessageWithUser {
+interface MessageWithUser {
   message: Message
   user?: ChatUser | null
   id: string
 }
+
+export default MessageWithUser
+export type { MessageWithUser }

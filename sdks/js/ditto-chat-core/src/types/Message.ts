@@ -12,7 +12,7 @@ export interface Mention {
   endIndex: number
 }
 
-export default interface Message {
+interface Message {
   _id: string
   createdOn: string
   roomId: string
@@ -29,3 +29,6 @@ export default interface Message {
   reactions?: Reaction[]
   mentions?: Mention[]
 }
+
+export default Message
+export type { Message }

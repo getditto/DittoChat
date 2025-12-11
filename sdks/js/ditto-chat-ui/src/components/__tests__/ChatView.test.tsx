@@ -2,11 +2,13 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import ChatView from '../ChatView'
 import type { Chat } from '../../types'
-import type MessageWithUser from '@dittolive/ditto-chat-core/dist/types/MessageWithUser'
+import type {
+  MessageWithUser,
+  ChatStore,
+} from '@dittolive/ditto-chat-core'
 import type { MessageBubbleProps } from '../MessageBubble'
 import type { MessageInputProps } from '../MessageInput'
 import { EmojiClickData } from 'emoji-picker-react'
-import type { ChatStore } from '@dittolive/ditto-chat-core'
 import type { Attachment } from '@dittolive/ditto'
 
 // Mock dependencies

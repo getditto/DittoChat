@@ -1,6 +1,5 @@
 import { AttachmentToken } from '@dittolive/ditto'
-import type ChatUser from '@dittolive/ditto-chat-core/dist/types/ChatUser'
-import type Message from '@dittolive/ditto-chat-core/dist/types/Message'
+import { type ChatUser, type Message } from '@dittolive/ditto-chat-core'
 import { EmojiClickData } from 'emoji-picker-react'
 import React, { useEffect, useMemo, useState } from 'react'
 
