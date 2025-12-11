@@ -41,9 +41,14 @@ export default defineConfig([
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
+      parserOptions: {
+        project: './tsconfig.json',
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
     rules: {
       curly: ['error', 'all'],
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
   // Source files - lint with type checking

@@ -13,12 +13,6 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "include": ["src", "src/test/setup.d.ts"],
-  "exclude": [
-    "**/__tests__",
-    "**/*.test.ts",
-    "**/*.test.tsx",
-    "node_modules",
-    "dist"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

@@ -36,9 +36,14 @@ export default defineConfig([
     extends: [js.configs.recommended, tseslint.configs.recommended],
     languageOptions: {
       ecmaVersion: 2020,
+      parserOptions: {
+        project: './tsconfig.json',
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
     rules: {
       curly: ['error', 'all'],
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
   // Source files - lint with type checking
