@@ -1,0 +1,30 @@
+{
+  "name": "@dittolive/ditto-chat-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ditto Chat JavaScript SDKs monorepo",
+  "workspaces": [
+    "sdks/js/DittoChatCore",
+    "sdks/js/DittoChatUI",
+    "apps/web/DittoChatDemo"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:coverage": "npm run test:coverage --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present && rm -rf node_modules"
+  },
+  "keywords": [
+    "ditto",
+    "chat",
+    "monorepo"
+  ],
+  "author": "Ditto",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/getditto/DittoChat.git"
+  }
+}
