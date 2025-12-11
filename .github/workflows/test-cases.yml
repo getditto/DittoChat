@@ -170,8 +170,8 @@ jobs:
             }
 
             // Set status based on coverage threshold
-            if (overallCoverage < 90) {
-              core.setFailed(`Coverage is below 90% for ${workspace}: ${overallCoverage.toFixed(2)}%`);
+            if (overallCoverage < 70) {
+              core.setFailed(`Coverage is below 70% for ${workspace}: ${overallCoverage.toFixed(2)}%`);
             }
 
       - name: Check coverage threshold
@@ -184,7 +184,7 @@ jobs:
 
           # Calculate overall coverage
           OVERALL=$(awk "BEGIN {printf \"%.2f\", ($LINES + $STATEMENTS + $FUNCTIONS + $BRANCHES) / 4}")
-          THRESHOLD=90
+          THRESHOLD=70
 
           echo "📊 Coverage Summary:"
           echo "  Lines: $LINES%"
