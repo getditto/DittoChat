@@ -17,6 +17,7 @@ Before you begin, ensure you have the following installed:
 ### Installation
 
 1.  **Clone the repository:**
+
     ```bash
     git clone <repository-url>
     cd DittoChatDemo
@@ -40,9 +41,11 @@ Before you begin, ensure you have the following installed:
     VITE_DITTO_AUTH_URL="YOUR_DITTO_AUTH_URL"
     VITE_DITTO_WEB_SOCKET="YOUR_DITTO_WEB_SOCKET"
     ```
+
     Replace the placeholder values with your actual Ditto application credentials from the Ditto Portal.
 
 2.  **Start the development server:**
+
     ```bash
     npm run dev
     # or
@@ -51,11 +54,10 @@ Before you begin, ensure you have the following installed:
 
     The application will typically be available at `http://localhost:5173` (or another port if 5173 is in use). Open this URL in your browser to start chatting.
 
-
-
 ## How it Works
 
 This demo application uses Ditto to manage and synchronize chat messages.
+
 - When the application starts, it initializes a Ditto instance.
 - Messages are stored as documents in a Ditto Collection.
 - Ditto's real-time capabilities ensure that any changes (new messages) in the collection are instantly pushed to all connected devices.

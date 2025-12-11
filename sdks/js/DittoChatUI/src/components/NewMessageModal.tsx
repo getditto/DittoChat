@@ -1,25 +1,25 @@
-import React, { useState } from "react";
-import { Icons } from "./Icons";
-import { useDittoChatStore } from "@dittolive/ditto-chat-core";
-import ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
-import Avatar from "./Avatar";
-import { useImageAttachment } from "../hooks/useImageAttachment";
-import { AttachmentToken } from "@dittolive/ditto";
+import React, { useState } from 'react'
+import { Icons } from './Icons'
+import { useDittoChatStore } from '@dittolive/ditto-chat-core'
+import ChatUser from '@dittolive/ditto-chat-core/dist/types/ChatUser'
+import Avatar from './Avatar'
+import { useImageAttachment } from '../hooks/useImageAttachment'
+import { AttachmentToken } from '@dittolive/ditto'
 
 interface NewMessageModalProps {
-  onNewDMCreate: (user: ChatUser) => void;
-  onClose: () => void;
+  onNewDMCreate: (user: ChatUser) => void
+  onClose: () => void
 }
 
 const UserListItem = ({
   user,
   onSelect,
 }: {
-  user: ChatUser;
-  onSelect: (user: ChatUser) => void;
+  user: ChatUser
+  onSelect: (user: ChatUser) => void
 }) => {
-  const fetchAttachment = useDittoChatStore((state) => state.fetchAttachment);
-  const profilePictureThumbnail = user.profilePictureThumbnail;
+  const fetchAttachment = useDittoChatStore((state) => state.fetchAttachment)
+  const profilePictureThumbnail = user.profilePictureThumbnail
 
   const { imageUrl } = useImageAttachment({
     token: profilePictureThumbnail
@@ -27,7 +27,7 @@ const UserListItem = ({
       : null,
     fetchAttachment,
     autoFetch: true,
-  });
+  })
 
   return (
     <li onClick={() => onSelect(user)}>
@@ -42,19 +42,19 @@ const UserListItem = ({
         <span className="font-semibold">{user.name}</span>
       </button>
     </li>
-  );
-};
+  )
+}
 
 function NewMessageModal({ onClose, onNewDMCreate }: NewMessageModalProps) {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('')
 
   const users: ChatUser[] = useDittoChatStore((state) =>
-    state.allUsers.filter((user) => user._id !== state.currentUser?._id)
-  );
+    state.allUsers.filter((user) => user._id !== state.currentUser?._id),
+  )
 
   const filteredUsers = users.filter((user) =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    user.name.toLowerCase().includes(searchTerm.toLowerCase()),
+  )
 
   return (
     <div className="flex flex-col h-full bg-(--surface-color)">
@@ -82,16 +82,12 @@ function NewMessageModal({ onClose, onNewDMCreate }: NewMessageModalProps) {
       <div className="flex-1 overflow-y-auto">
         <ul>
           {filteredUsers.map((user) => (
-            <UserListItem
-              key={user._id}
-              user={user}
-              onSelect={onNewDMCreate}
-            />
+            <UserListItem key={user._id} user={user} onSelect={onNewDMCreate} />
           ))}
         </ul>
       </div>
     </div>
-  );
+  )
 }
 
-export default NewMessageModal;
+export default NewMessageModal

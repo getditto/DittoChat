@@ -1,25 +1,25 @@
-import "@dittolive/ditto-chat-ui/dist/ditto-chat-ui.css";
+import '@dittolive/ditto-chat-ui/dist/ditto-chat-ui.css'
 
-import { Ditto } from "@dittolive/ditto";
+import { Ditto } from '@dittolive/ditto'
 import {
   DittoProvider,
   useDitto,
   useOnlinePlaygroundIdentity,
   usePendingCursorOperation,
-} from "@dittolive/react-ditto";
-import DittoChatUI from "@dittolive/ditto-chat-ui";
-import { useEffect, useState } from "react";
+} from '@dittolive/react-ditto'
+import DittoChatUI from '@dittolive/ditto-chat-ui'
+import { useEffect, useState } from 'react'
 
 const DittoChatUIWrapper = () => {
-  const ditto = useDitto("testing");
-  const [userId, setUserId] = useState("");
+  const ditto = useDitto('testing')
+  const [userId, setUserId] = useState('')
   const { documents: users } = usePendingCursorOperation({
-    collection: "users",
-  });
+    collection: 'users',
+  })
 
   useEffect(() => {
-    console.log({ userId });
-  }, [userId]);
+    console.log({ userId })
+  }, [userId])
 
   return userId ? (
     <DittoChatUI
@@ -31,30 +31,30 @@ const DittoChatUIWrapper = () => {
     />
   ) : (
     <div>
-      <p style={{ textAlign: "center", fontSize: "24px", margin: "1rem" }}>
+      <p style={{ textAlign: 'center', fontSize: '24px', margin: '1rem' }}>
         Login User
       </p>
       <div
         style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "1rem",
-          alignItems: "center",
-          minWidth: "100%",
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1rem',
+          alignItems: 'center',
+          minWidth: '100%',
         }}
       >
         {users.map((user) => (
           <button
             key={user.value._id}
             style={{
-              background: "#ff4d00",
-              color: "#fff",
-              width: "200px",
-              height: "50px",
-              padding: "10px",
-              borderRadius: "20px",
-              border: "none",
-              cursor: "pointer",
+              background: '#ff4d00',
+              color: '#fff',
+              width: '200px',
+              height: '50px',
+              padding: '10px',
+              borderRadius: '20px',
+              border: 'none',
+              cursor: 'pointer',
             }}
             onClick={() => setUserId(user.value._id)}
           >
@@ -63,11 +63,11 @@ const DittoChatUIWrapper = () => {
         ))}
       </div>
     </div>
-  );
-};
+  )
+}
 
 function App() {
-  const { create } = useOnlinePlaygroundIdentity();
+  const { create } = useOnlinePlaygroundIdentity()
   return (
     <DittoProvider
       setup={async () => {
@@ -78,26 +78,26 @@ function App() {
             enableDittoCloudSync: false,
             customAuthURL: String(import.meta.env.VITE_APP_DITTO_AUTH_URL),
           }),
-          "testing",
-        );
+          'testing',
+        )
         ditto.updateTransportConfig((config) => {
           config.connect.websocketURLs.push(
             String(import.meta.env.VITE_APP_DITTO_WEB_SOCKET),
-          );
-        });
-        await ditto.store.execute("ALTER SYSTEM SET DQL_STRICT_MODE = false");
-        await ditto.disableSyncWithV3();
-        ditto.startSync();
-        return ditto;
+          )
+        })
+        await ditto.store.execute('ALTER SYSTEM SET DQL_STRICT_MODE = false')
+        await ditto.disableSyncWithV3()
+        ditto.startSync()
+        return ditto
       }}
     >
       {({ loading, error }) => {
-        if (loading) return <p>Loading</p>;
-        if (error) return <p>{error.message}</p>;
-        return <DittoChatUIWrapper />;
+        if (loading) return <p>Loading</p>
+        if (error) return <p>{error.message}</p>
+        return <DittoChatUIWrapper />
       }}
     </DittoProvider>
-  );
+  )
 }
 
-export default App;
+export default App

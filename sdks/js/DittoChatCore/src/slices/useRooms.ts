@@ -3,47 +3,49 @@ import {
   QueryResult,
   StoreObserver,
   SyncSubscription,
-} from "@dittolive/ditto";
-import Room from "../types/Room";
-import ChatUser from "../types/ChatUser";
-import { ChatStore, CreateSlice, DittoConfParams } from "../useChat";
-import { produce } from "immer";
-import { v4 as uuidv4 } from "uuid";
-import { StoreApi } from "zustand";
+} from '@dittolive/ditto'
+import Room from '../types/Room'
+import ChatUser from '../types/ChatUser'
+import { ChatStore, CreateSlice, DittoConfParams } from '../useChat'
+import { produce } from 'immer'
+import { v4 as uuidv4 } from 'uuid'
+import { StoreApi } from 'zustand'
 
 export interface RoomSlice {
-  rooms: Room[];
-  dmRooms: Room[];
-  roomsLoading: boolean;
-  roomsObserver: StoreObserver | null;
-  roomsSubscription: SyncSubscription | null;
-  dmRoomsObserver: StoreObserver | null;
-  dmRoomsSubscription: SyncSubscription | null;
-  createRoom: (name: string, retentionDays?: number) => Promise<void | Room>;
-  createDMRoom: (user: ChatUser) => Promise<void | Room>;
+  rooms: Room[]
+  dmRooms: Room[]
+  roomsLoading: boolean
+  roomsObserver: StoreObserver | null
+  roomsSubscription: SyncSubscription | null
+  dmRoomsObserver: StoreObserver | null
+  dmRoomsSubscription: SyncSubscription | null
+  createRoom: (name: string, retentionDays?: number) => Promise<void | Room>
+  createDMRoom: (user: ChatUser) => Promise<void | Room>
 }
 
 function handleRoomsObserverResult(
-  _set: StoreApi<ChatStore>["setState"],
-  _get: StoreApi<ChatStore>["getState"],
+  _set: StoreApi<ChatStore>['setState'],
+  _get: StoreApi<ChatStore>['getState'],
   observerResult: QueryResult<Room>,
 ) {
-  if (observerResult.items.length === 0) {return;}
+  if (observerResult.items.length === 0) {
+    return
+  }
   const rooms = observerResult.items.map((doc) => {
-    const messagePublisher = _get().messagesPublisher;
-    messagePublisher(doc.value);
-    return doc.value;
-  });
+    const messagePublisher = _get().messagesPublisher
+    messagePublisher(doc.value)
+    return doc.value
+  })
   _set((state: ChatStore) => {
     return produce(state, (draft) => {
       const otherRooms = state.rooms.filter(
         (room) => room.collectionId !== rooms[0].collectionId,
-      );
-      draft.rooms = otherRooms.concat(rooms);
-      draft.roomsLoading = false;
-      return draft;
-    });
-  });
+      )
+      draft.rooms = otherRooms.concat(rooms)
+      draft.roomsLoading = false
+      return draft
+    })
+  })
 }
 
 async function createRoomBase({
@@ -55,18 +57,20 @@ async function createRoomBase({
   participants = [],
   retentionDays,
 }: {
-  ditto: Ditto | null;
-  currentUserId: string;
-  name: string;
-  collectionId: "rooms" | "dm_rooms";
-  messagesId: "messages" | "dm_messages";
-  participants?: string[];
-  retentionDays?: number;
+  ditto: Ditto | null
+  currentUserId: string
+  name: string
+  collectionId: 'rooms' | 'dm_rooms'
+  messagesId: 'messages' | 'dm_messages'
+  participants?: string[]
+  retentionDays?: number
 }) {
-  if (!ditto) {return;}
+  if (!ditto) {
+    return
+  }
 
   try {
-    const id = uuidv4();
+    const id = uuidv4()
 
     const room = {
       _id: id,
@@ -78,17 +82,16 @@ async function createRoomBase({
       createdOn: new Date().toISOString(),
       participants: participants || undefined,
       ...(retentionDays !== undefined && { retentionDays }),
-    };
+    }
 
-    const query = `INSERT INTO \`${collectionId}\` DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE`;
-    await ditto.store.execute(query, { newDoc: room });
+    const query = `INSERT INTO \`${collectionId}\` DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE`
+    await ditto.store.execute(query, { newDoc: room })
 
-    return room;
+    return room
   } catch (error) {
-    console.error(`Error creating ${collectionId}:`, error);
+    console.error(`Error creating ${collectionId}:`, error)
   }
 }
-
 
 export const createRoomSlice: CreateSlice<RoomSlice> = (
   _set,
@@ -106,58 +109,60 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
 
     createRoom(name: string, retentionDays?: number) {
       // Check create room permission
-      if (!_get().canPerformAction("canCreateRoom")) {
-        console.warn("Permission denied: canCreateRoom is false");
-        return Promise.resolve(undefined);
+      if (!_get().canPerformAction('canCreateRoom')) {
+        console.warn('Permission denied: canCreateRoom is false')
+        return Promise.resolve(undefined)
       }
 
-      const currentUser = _get().currentUser;
+      const currentUser = _get().currentUser
       return createRoomBase({
         ditto,
         currentUserId: currentUser?._id || userId,
         name,
-        collectionId: "rooms",
-        messagesId: "messages",
+        collectionId: 'rooms',
+        messagesId: 'messages',
         retentionDays,
-      });
+      })
     },
 
     createDMRoom(dmUser: ChatUser) {
-      const currentUser = _get().currentUser;
-      if (!currentUser?._id || !dmUser?._id) {throw Error("Invalid users");}
+      const currentUser = _get().currentUser
+      if (!currentUser?._id || !dmUser?._id) {
+        throw Error('Invalid users')
+      }
       return createRoomBase({
         ditto,
         currentUserId: currentUser?._id || userId,
         name: `${currentUser?.name} & ${dmUser.name}`,
-        collectionId: "dm_rooms",
-        messagesId: "dm_messages",
+        collectionId: 'dm_rooms',
+        messagesId: 'dm_messages',
         participants: [currentUser?._id, dmUser._id],
-      });
+      })
     },
-  };
+  }
 
   if (ditto) {
-    const roomsQuery = `SELECT * from rooms`;
-    const dmRoomsQuery = `SELECT * from dm_rooms where (array_contains(participants, :userId))`;
-    store.roomsSubscription = ditto.sync.registerSubscription(roomsQuery);
+    const roomsQuery = `SELECT * from rooms`
+    const dmRoomsQuery = `SELECT * from dm_rooms where (array_contains(participants, :userId))`
+    store.roomsSubscription = ditto.sync.registerSubscription(roomsQuery)
     store.dmRoomsSubscription = ditto.sync.registerSubscription(dmRoomsQuery, {
       userId,
-    });
+    })
     store.roomsObserver = ditto.store.registerObserver<Room>(
       roomsQuery,
       (result) => {
-        handleRoomsObserverResult(_set, _get, result);
+        handleRoomsObserverResult(_set, _get, result)
       },
-    );
+    )
     store.dmRoomsObserver = ditto.store.registerObserver<Room>(
       dmRoomsQuery,
       (result) => {
-        handleRoomsObserverResult(_set, _get, result);
+        handleRoomsObserverResult(_set, _get, result)
       },
       {
         userId,
       },
-    );
+    )
   }
-  return store;
-};
+  return store
+}

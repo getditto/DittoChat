@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react'
 
 function SkeletonListItem() {
   return (
@@ -9,7 +9,7 @@ function SkeletonListItem() {
         <div className="h-3 w-1/2 rounded bg-(--secondary-bg-hover)"></div>
       </div>
     </div>
-  );
+  )
 }
 
 function ChatListSkeleton() {
@@ -32,7 +32,7 @@ function ChatListSkeleton() {
         <SkeletonListItem />
       </div>
     </div>
-  );
+  )
 }
 
-export default ChatListSkeleton;
+export default ChatListSkeleton

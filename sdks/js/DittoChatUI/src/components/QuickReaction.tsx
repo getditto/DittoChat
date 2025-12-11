@@ -1,11 +1,11 @@
-import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
-import { useEffect, useRef, useState } from "react";
-import { Icons } from "./Icons";
+import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react'
+import { useEffect, useRef, useState } from 'react'
+import { Icons } from './Icons'
 
 interface QuickReactionProps {
-  onSelect: (reaction: EmojiClickData) => void;
-  disabled?: boolean;
-  isOwnMessage: boolean;
+  onSelect: (reaction: EmojiClickData) => void
+  disabled?: boolean
+  isOwnMessage: boolean
 }
 
 function EmojiPickerComponent({
@@ -14,26 +14,26 @@ function EmojiPickerComponent({
   closePicker,
   triggerRef,
 }: {
-  isOwnMessage: boolean;
-  onSelect: (emoji: EmojiClickData) => void;
-  closePicker: () => void;
-  triggerRef: React.RefObject<HTMLButtonElement | null>;
+  isOwnMessage: boolean
+  onSelect: (emoji: EmojiClickData) => void
+  closePicker: () => void
+  triggerRef: React.RefObject<HTMLButtonElement | null>
 }) {
-  const pickerRef = useRef<HTMLDivElement>(null);
-  const [positionY, setPositionY] = useState<"top" | "bottom">("top");
+  const pickerRef = useRef<HTMLDivElement>(null)
+  const [positionY, setPositionY] = useState<'top' | 'bottom'>('top')
 
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(false)
 
   // Animate on mount
   useEffect(() => {
-    requestAnimationFrame(() => setIsVisible(true));
-  }, []);
+    requestAnimationFrame(() => setIsVisible(true))
+  }, [])
 
   // Close with animation
   const closeWithAnimation = () => {
-    setIsVisible(false);
-    setTimeout(closePicker, 150);
-  };
+    setIsVisible(false)
+    setTimeout(closePicker, 150)
+  }
 
   // Click outside to close
   useEffect(() => {
@@ -43,35 +43,37 @@ function EmojiPickerComponent({
         !pickerRef.current.contains(event.target as Node) &&
         !triggerRef.current?.contains(event.target as Node)
       ) {
-        closeWithAnimation();
+        closeWithAnimation()
       }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   // Smart positioning: top/bottom + left/right/center
   useEffect(() => {
-    if (!triggerRef.current) {return;}
+    if (!triggerRef.current) {
+      return
+    }
 
-    const triggerRect = triggerRef.current.getBoundingClientRect();
-    const pickerHeight = 459;
-    const vh = window.innerHeight;
+    const triggerRect = triggerRef.current.getBoundingClientRect()
+    const pickerHeight = 459
+    const vh = window.innerHeight
 
     // Vertical
-    const spaceBelow = vh - triggerRect.bottom;
-    const spaceAbove = triggerRect.top;
+    const spaceBelow = vh - triggerRect.bottom
+    const spaceAbove = triggerRect.top
 
     setPositionY(
-      spaceBelow < pickerHeight && spaceAbove > pickerHeight ? "top" : "bottom",
-    );
-  }, []);
+      spaceBelow < pickerHeight && spaceAbove > pickerHeight ? 'top' : 'bottom',
+    )
+  }, [])
 
   // Tailwind positioning classes
-  const yClass = positionY === "top" ? "bottom-full mb-2" : "top-full mt-2";
-  const xClass = isOwnMessage ? "right-0" : "left-0";
+  const yClass = positionY === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'
+  const xClass = isOwnMessage ? 'right-0' : 'left-0'
 
-  const [themeName] = useState(localStorage.getItem("ditto-web-chat-theme"));
+  const [themeName] = useState(localStorage.getItem('ditto-web-chat-theme'))
 
   return (
     <div
@@ -84,24 +86,24 @@ function EmojiPickerComponent({
         origin-top
         ${
           isVisible
-            ? "opacity-100 scale-100 translate-y-0"
-            : "opacity-0 scale-95 " +
-              (positionY === "top" ? "translate-y-2" : "-translate-y-2")
+            ? 'opacity-100 scale-100 translate-y-0'
+            : 'opacity-0 scale-95 ' +
+              (positionY === 'top' ? 'translate-y-2' : '-translate-y-2')
         }
         p-1
       `}
     >
       <EmojiPicker
         onEmojiClick={(emoji) => {
-          setIsVisible(false);
-          setTimeout(() => onSelect(emoji), 120);
+          setIsVisible(false)
+          setTimeout(() => onSelect(emoji), 120)
         }}
-        theme={themeName === "dark" ? Theme.DARK : Theme.LIGHT}
+        theme={themeName === 'dark' ? Theme.DARK : Theme.LIGHT}
         skinTonesDisabled={false}
         reactionsDefaultOpen={true}
       />
     </div>
-  );
+  )
 }
 
 export default function QuickReaction({
@@ -109,14 +111,14 @@ export default function QuickReaction({
   disabled,
   isOwnMessage,
 }: QuickReactionProps) {
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false)
 
   const handleAddReactionClick = (emoji: EmojiClickData) => {
-    console.log({ emoji });
-    onSelect(emoji);
-    setIsEmojiPickerOpen(false);
-  };
+    console.log({ emoji })
+    onSelect(emoji)
+    setIsEmojiPickerOpen(false)
+  }
 
   return (
     <div className="relative">
@@ -138,5 +140,5 @@ export default function QuickReaction({
         <Icons.smile className="w-5 h-5" />
       </button>
     </div>
-  );
+  )
 }

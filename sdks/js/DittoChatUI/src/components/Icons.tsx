@@ -1,6 +1,6 @@
-import React from "react";
+import React from 'react'
 
-type IconProps = React.SVGProps<SVGSVGElement>;
+type IconProps = React.SVGProps<SVGSVGElement>
 
 export const Icons = {
   search: (props: IconProps) => (
@@ -332,4 +332,4 @@ export const Icons = {
       <line x1="5" y1="12" x2="19" y2="12"></line>
     </svg>
   ),
-};
+}

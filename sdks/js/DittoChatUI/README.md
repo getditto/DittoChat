@@ -17,10 +17,10 @@ yarn add @dittolive/ditto-chat-ui
 Here's a basic example of how to use the `DittoChatUI` component:
 
 ```javascript
-import React from 'react';
-import { DittoChatUI } from '@dittolive/ditto-chat-ui';
-import { Ditto } from '@dittolive/ditto';
-import { toast } from 'sonner';
+import React from 'react'
+import { DittoChatUI } from '@dittolive/ditto-chat-ui'
+import { Ditto } from '@dittolive/ditto'
+import { toast } from 'sonner'
 
 const MyChatApp = () => {
   // Initialize Ditto instance and authentication here
@@ -28,7 +28,7 @@ const MyChatApp = () => {
   const ditto = new Ditto({
     persistenceDirectory: './ditto',
     // ... other Ditto configuration
-  });
+  })
   // You would typically handle Ditto authentication (e.g., anonymous, JWT) here
   // ditto.auth.loginWithToken('YOUR_TOKEN', 'YOUR_PROVIDER');
 
@@ -51,14 +51,14 @@ const MyChatApp = () => {
         notificationHandler={(title, description) => {
           toast.info(title, {
             description,
-          });
+          })
         }}
       />
     </div>
-  );
-};
+  )
+}
 
-export default MyChatApp;
+export default MyChatApp
 ```
 
 ### Props
@@ -85,16 +85,16 @@ If no `notificationHandler` is provided, the component uses Sonner's `toast.info
 You can provide a custom handler to integrate with your preferred toast/notification library:
 
 ```javascript
-import { toast } from 'sonner';
+import { toast } from 'sonner'
 
-<DittoChatUI
+;<DittoChatUI
   ditto={ditto}
   userCollectionKey="my-users"
   userId="user123"
   notificationHandler={(title, description) => {
     toast.info(title, {
       description,
-    });
+    })
   }}
 />
 ```
@@ -107,15 +107,15 @@ The `DittoChatUI` component includes a built-in RBAC system that allows you to c
 
 ### Available Permissions
 
-| Permission | Description | Default | UI Impact |
-|------------|-------------|---------|-----------|
-| `canCreateRoom` | Create new chat rooms | `true` | Shows/hides "New Room" button in chat list |
-| `canEditOwnMessage` | Edit own messages | `true` | Shows/hides edit button on user's messages |
-| `canDeleteOwnMessage` | Delete own messages | `true` | Shows/hides delete button on user's messages |
-| `canAddReaction` | Add reactions to messages | `true` | Enables/disables reaction picker on messages |
-| `canRemoveOwnReaction` | Remove own reactions | `true` | Enables/disables removing user's reactions |
-| `canMentionUsers` | Mention users in messages | `true` | Enables/disables @ mentions in message input |
-| `canSubscribeToRoom` | Subscribe to chat rooms | `true` | Controls room subscription functionality |
+| Permission             | Description               | Default | UI Impact                                    |
+| ---------------------- | ------------------------- | ------- | -------------------------------------------- |
+| `canCreateRoom`        | Create new chat rooms     | `true`  | Shows/hides "New Room" button in chat list   |
+| `canEditOwnMessage`    | Edit own messages         | `true`  | Shows/hides edit button on user's messages   |
+| `canDeleteOwnMessage`  | Delete own messages       | `true`  | Shows/hides delete button on user's messages |
+| `canAddReaction`       | Add reactions to messages | `true`  | Enables/disables reaction picker on messages |
+| `canRemoveOwnReaction` | Remove own reactions      | `true`  | Enables/disables removing user's reactions   |
+| `canMentionUsers`      | Mention users in messages | `true`  | Enables/disables @ mentions in message input |
+| `canSubscribeToRoom`   | Subscribe to chat rooms   | `true`  | Controls room subscription functionality     |
 
 ### Default Behavior
 
@@ -131,7 +131,7 @@ If no `rbacConfig` is provided, all permissions default to `true`, giving users 
   userCollectionKey="my-users"
   userId="user123"
   rbacConfig={{
-    canCreateRoom: false,  // Users cannot create new rooms
+    canCreateRoom: false, // Users cannot create new rooms
   }}
 />
 ```

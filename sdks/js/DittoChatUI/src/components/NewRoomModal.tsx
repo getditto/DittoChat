@@ -1,20 +1,20 @@
-import React, { useState } from "react";
-import { Icons } from "./Icons";
+import React, { useState } from 'react'
+import { Icons } from './Icons'
 
 interface NewRoomModalProps {
-  onClose: () => void;
-  onCreateRoom: (roomName: string) => void;
+  onClose: () => void
+  onCreateRoom: (roomName: string) => void
 }
 
 function NewRoomModal({ onClose, onCreateRoom }: NewRoomModalProps) {
-  const [roomName, setRoomName] = useState("");
+  const [roomName, setRoomName] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     if (roomName.trim()) {
-      onCreateRoom(roomName.trim());
+      onCreateRoom(roomName.trim())
     }
-  };
+  }
 
   return (
     <div className="flex flex-col h-full bg-(--surface-color)">
@@ -63,7 +63,7 @@ function NewRoomModal({ onClose, onCreateRoom }: NewRoomModalProps) {
         </div>
       </form>
     </div>
-  );
+  )
 }
 
-export default NewRoomModal;
+export default NewRoomModal

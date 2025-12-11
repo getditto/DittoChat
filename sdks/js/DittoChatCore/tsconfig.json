@@ -12,9 +12,7 @@
     "allowSyntheticDefaultImports": true,
     "noImplicitAny": true
   },
-  "include": [
-    "src"
-  ],
+  "include": ["src"],
   "exclude": [
     "**/__tests__",
     "**/*.test.ts",

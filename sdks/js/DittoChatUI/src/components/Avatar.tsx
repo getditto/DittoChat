@@ -1,13 +1,13 @@
-import { Icons } from "./Icons";
+import { Icons } from './Icons'
 
 export default function Avatar({
   imageUrl,
   isUser = false,
-  className = "",
+  className = '',
 }: {
-  imageUrl?: string;
-  isUser?: boolean;
-  className?: string;
+  imageUrl?: string
+  isUser?: boolean
+  className?: string
 }) {
   return (
     <div
@@ -16,7 +16,7 @@ export default function Avatar({
       {imageUrl ? (
         <img
           src={imageUrl}
-          alt={"avathar"}
+          alt={'avathar'}
           className="w-full h-full rounded-full object-cover"
         />
       ) : isUser ? (
@@ -25,5 +25,5 @@ export default function Avatar({
         <Icons.hashtag className="w-5 h-5 text-(--text-color)" />
       )}
     </div>
-  );
+  )
 }

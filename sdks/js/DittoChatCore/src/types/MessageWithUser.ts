@@ -1,8 +1,8 @@
-import ChatUser from "./ChatUser";
-import Message from "./Message";
+import ChatUser from './ChatUser'
+import Message from './Message'
 
 export default interface MessageWithUser {
-  message: Message;
-  user?: ChatUser | null;
-  id: string;
+  message: Message
+  user?: ChatUser | null
+  id: string
 }

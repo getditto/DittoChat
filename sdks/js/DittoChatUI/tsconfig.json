@@ -11,10 +11,7 @@
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true
   },
-  "include": [
-    "src",
-    "src/test/setup.d.ts"
-  ],
+  "include": ["src", "src/test/setup.d.ts"],
   "exclude": [
     "**/__tests__",
     "**/*.test.ts",

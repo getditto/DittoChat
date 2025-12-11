@@ -93,22 +93,22 @@ DittoChatCore includes a built-in RBAC system that allows you to control user pe
 
 ### Available Permissions
 
-| Permission | Description | Default |
-|------------|-------------|---------|
-| `canCreateRoom` | Create new chat rooms | `true` |
-| `canEditOwnMessage` | Edit own messages | `true` |
-| `canDeleteOwnMessage` | Delete own messages | `true` |
-| `canAddReaction` | Add reactions to messages | `true` |
-| `canRemoveOwnReaction` | Remove own reactions | `true` |
-| `canMentionUsers` | Mention users in messages | `true` |
-| `canSubscribeToRoom` | Subscribe to chat rooms | `true` |
+| Permission             | Description               | Default |
+| ---------------------- | ------------------------- | ------- |
+| `canCreateRoom`        | Create new chat rooms     | `true`  |
+| `canEditOwnMessage`    | Edit own messages         | `true`  |
+| `canDeleteOwnMessage`  | Delete own messages       | `true`  |
+| `canAddReaction`       | Add reactions to messages | `true`  |
+| `canRemoveOwnReaction` | Remove own reactions      | `true`  |
+| `canMentionUsers`      | Mention users in messages | `true`  |
+| `canSubscribeToRoom`   | Subscribe to chat rooms   | `true`  |
 
 ### Configuring Permissions
 
 You can configure permissions when initializing the chat or update them dynamically:
 
 ```typescript
-import { useDittoChat, useDittoChatStore } from '@dittolive/ditto-chat-core';
+import { useDittoChat, useDittoChatStore } from '@dittolive/ditto-chat-core'
 
 // Configure permissions during initialization
 const chat = useDittoChat({
@@ -116,18 +116,18 @@ const chat = useDittoChat({
   userId: currentUserId,
   userCollectionKey: userCollectionKey,
   rbacConfig: {
-    canCreateRoom: false,        // Disable room creation
-    canMentionUsers: false,       // Disable user mentions
-    canDeleteOwnMessage: true,    // Allow deleting own messages
-  }
-});
+    canCreateRoom: false, // Disable room creation
+    canMentionUsers: false, // Disable user mentions
+    canDeleteOwnMessage: true, // Allow deleting own messages
+  },
+})
 
 // Or update permissions dynamically
-const updateRBACConfig = useDittoChatStore(state => state.updateRBACConfig);
+const updateRBACConfig = useDittoChatStore((state) => state.updateRBACConfig)
 
 updateRBACConfig({
-  canEditOwnMessage: false,  // Disable message editing
-});
+  canEditOwnMessage: false, // Disable message editing
+})
 ```
 
 ### Checking Permissions
@@ -135,7 +135,7 @@ updateRBACConfig({
 You can check if a user has permission to perform an action:
 
 ```typescript
-const canPerformAction = useDittoChatStore(state => state.canPerformAction);
+const canPerformAction = useDittoChatStore((state) => state.canPerformAction)
 
 if (canPerformAction('canCreateRoom')) {
   // Show create room button
@@ -153,11 +153,13 @@ DittoChatCore provides a customizable notification system through the `notificat
 The `notificationHandler` is an optional callback function that receives notification events from the chat system.
 
 **Signature:**
+
 ```typescript
 notificationHandler?: (title: string, description: string) => void
 ```
 
 **Parameters:**
+
 - `title` - The notification title (e.g., "New Message", "Room Created")
 - `description` - Additional details about the notification
 
@@ -172,8 +174,8 @@ You can provide a custom handler to integrate with any toast/notification librar
 #### Example with Sonner
 
 ```typescript
-import { toast } from 'sonner';
-import { useDittoChat } from '@dittolive/ditto-chat-core';
+import { toast } from 'sonner'
+import { useDittoChat } from '@dittolive/ditto-chat-core'
 
 useDittoChat({
   ditto: dittoInstance,
@@ -182,31 +184,31 @@ useDittoChat({
   notificationHandler: (title, description) => {
     toast.info(title, {
       description,
-    });
+    })
   },
-});
+})
 ```
 
 #### Example with React-Toastify
 
 ```typescript
-import { toast } from 'react-toastify';
-import { useDittoChat } from '@dittolive/ditto-chat-core';
+import { toast } from 'react-toastify'
+import { useDittoChat } from '@dittolive/ditto-chat-core'
 
 useDittoChat({
   ditto: dittoInstance,
   userId: currentUserId,
   userCollectionKey: userCollectionKey,
   notificationHandler: (title, description) => {
-    toast.info(`${title}: ${description}`);
+    toast.info(`${title}: ${description}`)
   },
-});
+})
 ```
 
 #### Example with Custom Notification System
 
 ```typescript
-import { useDittoChat } from '@dittolive/ditto-chat-core';
+import { useDittoChat } from '@dittolive/ditto-chat-core'
 
 useDittoChat({
   ditto: dittoInstance,
@@ -219,14 +221,15 @@ useDittoChat({
       title,
       message: description,
       duration: 3000,
-    });
+    })
   },
-});
+})
 ```
 
 ### Common Notification Events
 
 The chat system triggers notifications for various events:
+
 - New messages in subscribed rooms
 - User mentions
 
@@ -237,6 +240,7 @@ The chat system triggers notifications for various events:
 DittoChatCore uses an **optimistic update pattern** for message reactions to provide instant UI feedback.
 
 **How it works:**
+
 1. **Immediate UI Update** - Reaction appears instantly in the UI before any database operations
 2. **Async Persistence** - Change persists to Ditto database in the background
 3. **Auto Rollback** - If database update fails, the reaction is automatically removed from the UI

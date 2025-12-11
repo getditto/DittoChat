@@ -1,21 +1,21 @@
-import React, { useEffect } from "react";
-import { useImageAttachment } from "../hooks/useImageAttachment";
-import { AttachmentToken } from "@dittolive/ditto";
-import type { Chat } from "../types";
-import type ChatUser from "@dittolive/ditto-chat-core/dist/types/ChatUser";
-import { formatDate } from "../utils";
-import clsx from "clsx";
-import Avatar from "./Avatar";
-import { useDittoChatStore } from "@dittolive/ditto-chat-core";
-import type MessageWithUser from "@dittolive/ditto-chat-core/dist/types/MessageWithUser";
-import { EMPTY_MESSAGES } from "../constants";
+import React, { useEffect } from 'react'
+import { useImageAttachment } from '../hooks/useImageAttachment'
+import { AttachmentToken } from '@dittolive/ditto'
+import type { Chat } from '../types'
+import type ChatUser from '@dittolive/ditto-chat-core/dist/types/ChatUser'
+import { formatDate } from '../utils'
+import clsx from 'clsx'
+import Avatar from './Avatar'
+import { useDittoChatStore } from '@dittolive/ditto-chat-core'
+import type MessageWithUser from '@dittolive/ditto-chat-core/dist/types/MessageWithUser'
+import { EMPTY_MESSAGES } from '../constants'
 
 interface ChatListItemProps {
-  chat: Chat;
-  users: ChatUser[];
-  currentUserId: string;
-  isSelected: boolean;
-  onSelect: () => void;
+  chat: Chat
+  users: ChatUser[]
+  currentUserId: string
+  isSelected: boolean
+  onSelect: () => void
 }
 
 function ChatListItem({
@@ -25,32 +25,32 @@ function ChatListItem({
   isSelected,
   onSelect,
 }: ChatListItemProps) {
-  const lastMessage = chat.messages[chat.messages.length - 1];
-  const [unreadCount, setUnreadCount] = React.useState(0);
+  const lastMessage = chat.messages[chat.messages.length - 1]
+  const [unreadCount, setUnreadCount] = React.useState(0)
 
-  const fetchAttachment = useDittoChatStore((state) => state.fetchAttachment);
+  const fetchAttachment = useDittoChatStore((state) => state.fetchAttachment)
 
-  let chatName = chat.name;
-  let otherUserIsActive = false;
-  let otherUserId: string | undefined;
+  let chatName = chat.name
+  let otherUserIsActive = false
+  let otherUserId: string | undefined
 
-  if (chat.type === "dm") {
+  if (chat.type === 'dm') {
     const otherUser = chat.participants.find(
-      (user) => user._id !== currentUserId
-    );
-    otherUserId = otherUser?._id;
+      (user) => user._id !== currentUserId,
+    )
+    otherUserId = otherUser?._id
 
-    chatName = otherUser?.name || "Unknown User";
+    chatName = otherUser?.name || 'Unknown User'
     //TODO: Implement user status
-    otherUserIsActive = false;
+    otherUserIsActive = false
   }
 
   // Only lookup user and profile picture for DM chats
   const otherChatUser =
-    chat.type === "dm" && otherUserId
+    chat.type === 'dm' && otherUserId
       ? users.find((u) => u._id === otherUserId)
-      : undefined;
-  const profilePictureThumbnail = otherChatUser?.profilePictureThumbnail;
+      : undefined
+  const profilePictureThumbnail = otherChatUser?.profilePictureThumbnail
 
   const { imageUrl: avatarUrl } = useImageAttachment({
     token: profilePictureThumbnail
@@ -58,26 +58,26 @@ function ChatListItem({
       : null,
     fetchAttachment,
     autoFetch: true,
-  });
+  })
 
-  const lastMessageSender = users.find((u) => u._id === lastMessage?.userId);
+  const lastMessageSender = users.find((u) => u._id === lastMessage?.userId)
   const senderName =
     lastMessage?.userId === currentUserId
-      ? "You"
-      : lastMessageSender?.name.split(" ")[0];
+      ? 'You'
+      : lastMessageSender?.name.split(' ')[0]
 
   const currentUser: ChatUser | null = useDittoChatStore(
-    (state) => state.currentUser
-  );
+    (state) => state.currentUser,
+  )
   const messages: MessageWithUser[] = useDittoChatStore(
-    (state) => state.messagesByRoom[chat.id] || EMPTY_MESSAGES
-  );
+    (state) => state.messagesByRoom[chat.id] || EMPTY_MESSAGES,
+  )
 
   const mentionedMsgIds = useDittoChatStore<string[]>(
-    (state) => state.currentUser?.mentions?.[chat.id] || []
-  );
+    (state) => state.currentUser?.mentions?.[chat.id] || [],
+  )
 
-  const subscribedAt = currentUser?.subscriptions?.[chat.id];
+  const subscribedAt = currentUser?.subscriptions?.[chat.id]
 
   useEffect(() => {
     const unreadMessages = messages.filter(
@@ -85,26 +85,26 @@ function ChatListItem({
         message.message.userId !== currentUserId &&
         (mentionedMsgIds.includes(message.id) ||
           new Date(message.message.createdOn).getTime() >
-          new Date(subscribedAt || new Date()).getTime())
-    );
+            new Date(subscribedAt || new Date()).getTime()),
+    )
 
-    setUnreadCount(unreadMessages.length);
-  }, [subscribedAt, mentionedMsgIds, currentUserId, messages]);
+    setUnreadCount(unreadMessages.length)
+  }, [subscribedAt, mentionedMsgIds, currentUserId, messages])
 
   return (
     <button
       onClick={onSelect}
       className={clsx(
-        "w-full text-left px-3 py-3 flex items-center space-x-3 transition-colors border-b",
+        'w-full text-left px-3 py-3 flex items-center space-x-3 transition-colors border-b',
         isSelected
-          ? "bg-(--primary-color-light) rounded-xl border-b-(--surface-color)"
-          : "hover:bg-(--surface-color-light) border-b-(--border-color)"
+          ? 'bg-(--primary-color-light) rounded-xl border-b-(--surface-color)'
+          : 'hover:bg-(--surface-color-light) border-b-(--border-color)',
       )}
     >
       <div className="relative -top-4">
         <Avatar
-          isUser={chat.type === "dm"}
-          imageUrl={chat.type === "dm" ? avatarUrl || undefined : undefined}
+          isUser={chat.type === 'dm'}
+          imageUrl={chat.type === 'dm' ? avatarUrl || undefined : undefined}
         />
         {otherUserIsActive && (
           <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-(--active-status-bg) border-2 border-white"></span>
@@ -121,18 +121,18 @@ function ChatListItem({
           <p className="text-(--text-color-lighter) font-normal line-clamp-2 pr-2">
             {senderName && <span className="font-medium">{senderName}: </span>}
             {lastMessage && lastMessage?.thumbnailImageToken
-              ? "Image"
+              ? 'Image'
               : lastMessage?.text}
           </p>
           {unreadCount > 0 && !isSelected && (
             <span className="flex-shrink-0 min-w-[1.25rem] h-5 px-1.5 text-xs flex items-center justify-center rounded-full bg-(--notification-badge-bg) text-white font-medium">
-              {unreadCount > 99 ? "99+" : unreadCount}
+              {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
         </div>
       </div>
     </button>
-  );
+  )
 }
 
-export default ChatListItem;
+export default ChatListItem
