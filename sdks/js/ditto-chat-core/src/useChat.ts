@@ -5,8 +5,8 @@ import { useShallow } from 'zustand/react/shallow'
 import { createStore, StoreApi } from 'zustand/vanilla'
 
 import { ChatUserSlice, createChatUserSlice } from './slices/useChatUser'
-import { createMessageSlice,MessageSlice } from './slices/useMessages'
-import { createRBACSlice,RBACSlice } from './slices/useRBAC'
+import { createMessageSlice, MessageSlice } from './slices/useMessages'
+import { createRBACSlice, RBACSlice } from './slices/useRBAC'
 import { createRoomSlice, RoomSlice } from './slices/useRooms'
 import { RBACConfig } from './types/RBAC'
 
@@ -75,7 +75,7 @@ export function useDittoChat(params: DittoConfParams) {
       }))
     }
     return chatStore
-  }, [params.ditto])
+  }, [params])
 
   return useStore(store!)
 }
@@ -88,8 +88,11 @@ export function useDittoChatStore<T = Partial<ChatStore>>(
       'chatStore must be initialized before useDittoChatStore. use useDittoChat for initialization',
     )
   }
-  if (selector) {
-    return useStore(chatStore, useShallow(selector))
-  }
-  return useStore(chatStore) as T
+
+  const shallowSelector = useShallow(
+    selector || ((state: ChatStore) => state as T),
+  )
+  const storeValue = useStore(chatStore, shallowSelector)
+
+  return storeValue
 }
