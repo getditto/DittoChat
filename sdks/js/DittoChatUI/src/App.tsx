@@ -1,4 +1,3 @@
-import React from "react";
 import { Ditto } from "@dittolive/ditto";
 import {
   DittoProvider,
@@ -6,16 +5,27 @@ import {
   useOnlinePlaygroundIdentity,
 } from "@dittolive/react-ditto";
 import DittoChatUI from "./DittoChatUI";
+import { toast } from "sonner";
 
 const DittoChatUIWrapper = () => {
   const ditto = useDitto("testing");
   return (
-    <DittoChatUI
-      // @ts-expect-error
-      ditto={ditto?.ditto as Ditto}
-      userId="690342270008f55100255f92" // update actual user id
-      userCollectionKey="users"
-    />
+    <div>
+      <DittoChatUI
+        // @ts-expect-error - theme prop not yet implemented in DittoChatUI component
+        theme="light"
+        ditto={ditto?.ditto as Ditto}
+        // userId="690342270008f55100255f92" // update actual user id
+        userId="6903511900bd187500bb5c12" // update actual user id
+        userCollectionKey="users"
+        rbacConfig={{ canMentionUsers: true, canSubscribeToRoom: true, canCreateRoom: true }}
+        notificationHandler={(title, description) => {
+          toast.info(title, {
+            description,
+          });
+        }}
+      />
+    </div>
   );
 };
 
@@ -43,11 +53,11 @@ function App() {
         ditto.startSync();
         return ditto;
       }}
-      /* initOptions={initOptions} */
+    /* initOptions={initOptions} */
     >
       {({ loading, error }) => {
-        if (loading) return <p>Loading</p>;
-        if (error) return <p>{error.message}</p>;
+        if (loading) { return <p>Loading</p>; }
+        if (error) { return <p>{error.message}</p>; }
         return <DittoChatUIWrapper />;
       }}
     </DittoProvider>
