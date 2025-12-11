@@ -120,7 +120,7 @@ function MessageBubble({
       message.thumbnailImageToken
         ? (message.thumbnailImageToken as unknown as AttachmentToken)
         : null,
-    [message.thumbnailImageToken?.id],
+    [message.thumbnailImageToken],
   )
 
   const largeToken = useMemo(
@@ -128,7 +128,7 @@ function MessageBubble({
       message.largeImageToken
         ? (message.largeImageToken as unknown as AttachmentToken)
         : null,
-    [message.largeImageToken?.id],
+    [message.largeImageToken],
   )
 
   const {

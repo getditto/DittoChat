@@ -1,5 +1,5 @@
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Icons } from './Icons'
 
@@ -31,10 +31,10 @@ function EmojiPickerComponent({
   }, [])
 
   // Close with animation
-  const closeWithAnimation = () => {
+  const closeWithAnimation = useCallback(() => {
     setIsVisible(false)
     setTimeout(closePicker, 150)
-  }
+  }, [closePicker])
 
   // Click outside to close
   useEffect(() => {
@@ -49,7 +49,7 @@ function EmojiPickerComponent({
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+  }, [closeWithAnimation, triggerRef])
 
   // Smart positioning: top/bottom + left/right/center
   useEffect(() => {
@@ -68,7 +68,7 @@ function EmojiPickerComponent({
     setPositionY(
       spaceBelow < pickerHeight && spaceAbove > pickerHeight ? 'top' : 'bottom',
     )
-  }, [])
+  }, [triggerRef])
 
   // Tailwind positioning classes
   const yClass = positionY === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'

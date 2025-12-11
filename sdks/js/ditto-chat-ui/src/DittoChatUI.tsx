@@ -238,11 +238,15 @@ export default function DittoChatUI({
   }, [chats, newlyCreatedRoom])
 
   // On desktop, default to selecting the first chat
-  useEffect(() => {
-    if (window.innerWidth >= 768 && !selectedChat) {
-      setActiveScreen('chat')
-    }
-  }, [])
+  useEffect(
+    () => {
+      if (window.innerWidth >= 768 && !selectedChat) {
+        setActiveScreen('chat')
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  )
 
   return (
     <div className="web-chat-root">
