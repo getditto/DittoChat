@@ -1,5 +1,10 @@
 import js from '@eslint/js'
 import tseslint from 'typescript-eslint'
+import pluginReact from 'eslint-plugin-react'
+import pluginReactHooks from 'eslint-plugin-react-hooks'
+import simpleImportSort from 'eslint-plugin-simple-import-sort'
+import keySort from 'eslint-plugin-sort-keys-fix'
+
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
@@ -23,7 +28,11 @@ export default defineConfig([
   },
   // Test files - lint without type checking
   {
-    files: ['tests/**/*.{ts,tsx}', '**/*.test.{ts,tsx}', '**/__tests__/**/*.{ts,tsx}'],
+    files: [
+      'tests/**/*.{ts,tsx}',
+      '**/*.test.{ts,tsx}',
+      '**/__tests__/**/*.{ts,tsx}',
+    ],
     extends: [js.configs.recommended, tseslint.configs.recommended],
     languageOptions: {
       ecmaVersion: 2020,
@@ -44,8 +53,19 @@ export default defineConfig([
         tsconfigRootDir: import.meta.dirname,
       },
     },
+    plugins: {
+      'simple-import-sort': simpleImportSort,
+      react: pluginReact,
+      'react-hooks': pluginReactHooks,
+      'sort-keys-fix': keySort,
+    },
     rules: {
       curly: ['error', 'all'],
+      'simple-import-sort/imports': 'error',
+      'simple-import-sort/exports': 'error',
+      'sort-imports': 'off',
+      semi: 0,
+      ...pluginReactHooks.configs.recommended.rules,
     },
   },
 ])

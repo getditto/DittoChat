@@ -3,6 +3,11 @@ import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
+import pluginReact from 'eslint-plugin-react'
+import pluginReactHooks from 'eslint-plugin-react-hooks'
+import simpleImportSort from 'eslint-plugin-simple-import-sort'
+import keySort from 'eslint-plugin-sort-keys-fix'
+
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
@@ -59,8 +64,18 @@ export default defineConfig([
         tsconfigRootDir: import.meta.dirname,
       },
     },
+    plugins: {
+      'simple-import-sort': simpleImportSort,
+      react: pluginReact,
+      'sort-keys-fix': keySort,
+    },
     rules: {
       curly: ['error', 'all'],
+      'simple-import-sort/imports': 'error',
+      'simple-import-sort/exports': 'error',
+      'sort-imports': 'off',
+      semi: 0,
+      ...pluginReactHooks.configs.recommended.rules,
     },
   },
 ])
