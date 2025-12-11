@@ -2,10 +2,17 @@
   "name": "@dittolive/ditto-chat-ui",
   "private": true,
   "version": "1.0.0",
-  "main": "dist/index.umd.js",
-  "module": "dist/index.es.js",
-  "types": "dist/index.d.ts",
+  "main": "src/index.tsx",
+  "module": "src/index.tsx",
+  "types": "src/index.tsx",
   "type": "module",
+  "exports": {
+    ".": {
+      "development": "./src/index.tsx",
+      "default": "./dist/index.es.js"
+    },
+    "./styles": "./src/index.css"
+  },
   "files": [
     "dist"
   ],
