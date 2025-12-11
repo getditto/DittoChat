@@ -23,10 +23,11 @@
 
 </div>
 
-A suite of SDKs that provides UI components and data models to quickly build a 
+A suite of SDKs that provides UI components and data models to quickly build a
 peer-to-peer chat application using the Ditto Platform.
 
 ## Features
+
 - Real-time, peer-to-peer chat
 
 - Group chat and private messaging
@@ -62,6 +63,7 @@ peer-to-peer chat application using the Ditto Platform.
 The JavaScript implementation consists of two packages:
 
 **[@dittolive/ditto-chat-core](./sdks/js/DittoChatCore/README.md)** - Core data models and React hooks for real-time chat functionalities
+
 ```bash
 npm install @dittolive/ditto-chat-core
 # or
@@ -69,6 +71,7 @@ yarn add @dittolive/ditto-chat-core
 ```
 
 **[@dittolive/ditto-chat-ui](./sdks/js/DittoChatUI/README.md)** - Ready-to-use React components for building chat UIs
+
 ```bash
 npm install @dittolive/ditto-chat-ui
 # or

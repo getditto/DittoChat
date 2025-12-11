@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+**/dist/
+build/
+**/build/
+*.tsbuildinfo
+
+# Coverage reports
+coverage/
+**/coverage/
+
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# OS files
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Generated files
+*.log
+
+# Android/iOS/Native
+sdks/android/
+sdks/ios/
+sdks/swift/
+sdks/kotlin/
+apps/android/
+apps/ios/
