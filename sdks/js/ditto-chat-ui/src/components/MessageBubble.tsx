@@ -1,13 +1,14 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { Icons } from './Icons'
-import type Message from '@dittolive/ditto-chat-core/dist/types/Message'
-import type ChatUser from '@dittolive/ditto-chat-core/dist/types/ChatUser'
-import { formatDate } from '../utils'
-import { useImageAttachment } from '../hooks/useImageAttachment'
 import { AttachmentToken } from '@dittolive/ditto'
+import type ChatUser from '@dittolive/ditto-chat-core/dist/types/ChatUser'
+import type Message from '@dittolive/ditto-chat-core/dist/types/Message'
 import { EmojiClickData } from 'emoji-picker-react'
-import QuickReaction from './QuickReaction'
+import React, { useEffect, useMemo, useState } from 'react'
+
+import { useImageAttachment } from '../hooks/useImageAttachment'
+import { formatDate } from '../utils'
 import { usePermissions } from '../utils/usePermissions'
+import { Icons } from './Icons'
+import QuickReaction from './QuickReaction'
 
 type MessageReaction = {
   id: number

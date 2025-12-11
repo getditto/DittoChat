@@ -1,22 +1,23 @@
-import React, { useRef, useEffect, useState } from 'react'
-import type { Chat } from '../types'
+import { AttachmentToken } from '@dittolive/ditto'
+import { useDittoChatStore } from '@dittolive/ditto-chat-core'
+import type ChatUser from '@dittolive/ditto-chat-core/dist/types/ChatUser'
+import type Message from '@dittolive/ditto-chat-core/dist/types/Message'
+import {
+  Mention,
+  Reaction,
+} from '@dittolive/ditto-chat-core/dist/types/Message'
+import type MessageWithUser from '@dittolive/ditto-chat-core/dist/types/MessageWithUser'
+import { EmojiClickData } from 'emoji-picker-react'
+import React, { useEffect, useRef, useState } from 'react'
+
 import { EMPTY_MESSAGES, EMPTY_ROOMS } from '../constants'
+import { useImageAttachment } from '../hooks/useImageAttachment'
+import type { Chat } from '../types'
+import { usePermissions } from '../utils/usePermissions'
+import Avatar from './Avatar'
+import { Icons } from './Icons'
 import MessageBubble from './MessageBubble'
 import MessageInput from './MessageInput'
-import { Icons } from './Icons'
-import { useDittoChatStore } from '@dittolive/ditto-chat-core'
-import type MessageWithUser from '@dittolive/ditto-chat-core/dist/types/MessageWithUser'
-import type Message from '@dittolive/ditto-chat-core/dist/types/Message'
-import type ChatUser from '@dittolive/ditto-chat-core/dist/types/ChatUser'
-import Avatar from './Avatar'
-import { EmojiClickData } from 'emoji-picker-react'
-import {
-  Reaction,
-  Mention,
-} from '@dittolive/ditto-chat-core/dist/types/Message'
-import { useImageAttachment } from '../hooks/useImageAttachment'
-import { AttachmentToken } from '@dittolive/ditto'
-import { usePermissions } from '../utils/usePermissions'
 
 interface ChatViewProps {
   chat: Chat

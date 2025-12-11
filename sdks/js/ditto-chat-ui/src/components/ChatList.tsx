@@ -1,17 +1,18 @@
+import { useDittoChatStore } from '@dittolive/ditto-chat-core'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  List,
   AutoSizer,
-  CellMeasurerCache,
   CellMeasurer,
+  CellMeasurerCache,
+  List,
 } from 'react-virtualized'
+import { MeasuredCellParent } from 'react-virtualized/dist/es/CellMeasurer'
+import { GridCoreProps } from 'react-virtualized/dist/es/Grid'
+
 import type { Chat } from '../types'
+import { usePermissions } from '../utils/usePermissions'
 import ChatListItem from './ChatListItem'
 import { Icons } from './Icons'
-import { useDittoChatStore } from '@dittolive/ditto-chat-core'
-import { GridCoreProps } from 'react-virtualized/dist/es/Grid'
-import { MeasuredCellParent } from 'react-virtualized/dist/es/CellMeasurer'
-import { usePermissions } from '../utils/usePermissions'
 
 interface ChatListProps {
   chats: Chat[]

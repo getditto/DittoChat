@@ -1,14 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { Icons } from './Icons'
-import type Message from '@dittolive/ditto-chat-core/dist/types/Message'
+import { AttachmentToken } from '@dittolive/ditto'
 import { useDittoChatStore } from '@dittolive/ditto-chat-core'
 import ChatUser from '@dittolive/ditto-chat-core/dist/types/ChatUser'
-import Avatar from './Avatar'
+import type Message from '@dittolive/ditto-chat-core/dist/types/Message'
 import { Mention } from '@dittolive/ditto-chat-core/dist/types/Message'
 import { clsx } from 'clsx'
+import React, { useEffect,useRef, useState } from 'react'
+
 import { useImageAttachment } from '../hooks/useImageAttachment'
-import { AttachmentToken } from '@dittolive/ditto'
 import { usePermissions } from '../utils/usePermissions'
+import Avatar from './Avatar'
+import { Icons } from './Icons'
 
 interface UserMentionItemProps {
   user: ChatUser

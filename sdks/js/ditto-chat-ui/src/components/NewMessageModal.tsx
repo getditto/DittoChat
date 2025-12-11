@@ -1,10 +1,11 @@
-import React, { useState } from 'react'
-import { Icons } from './Icons'
+import { AttachmentToken } from '@dittolive/ditto'
 import { useDittoChatStore } from '@dittolive/ditto-chat-core'
 import ChatUser from '@dittolive/ditto-chat-core/dist/types/ChatUser'
-import Avatar from './Avatar'
+import React, { useState } from 'react'
+
 import { useImageAttachment } from '../hooks/useImageAttachment'
-import { AttachmentToken } from '@dittolive/ditto'
+import Avatar from './Avatar'
+import { Icons } from './Icons'
 
 interface NewMessageModalProps {
   onNewDMCreate: (user: ChatUser) => void

@@ -4,15 +4,15 @@ import {
   useDitto,
   useOnlinePlaygroundIdentity,
 } from '@dittolive/react-ditto'
-import DittoChatUI from './DittoChatUI'
 import { toast } from 'sonner'
+
+import DittoChatUI from './DittoChatUI'
 
 const DittoChatUIWrapper = () => {
   const ditto = useDitto('testing')
   return (
     <div>
       <DittoChatUI
-        // @ts-expect-error - theme prop not yet implemented in DittoChatUI component
         theme="light"
         ditto={ditto?.ditto as Ditto}
         // userId="690342270008f55100255f92" // update actual user id

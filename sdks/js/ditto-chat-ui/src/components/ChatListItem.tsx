@@ -1,14 +1,15 @@
-import React, { useEffect } from 'react'
-import { useImageAttachment } from '../hooks/useImageAttachment'
 import { AttachmentToken } from '@dittolive/ditto'
-import type { Chat } from '../types'
-import type ChatUser from '@dittolive/ditto-chat-core/dist/types/ChatUser'
-import { formatDate } from '../utils'
-import clsx from 'clsx'
-import Avatar from './Avatar'
 import { useDittoChatStore } from '@dittolive/ditto-chat-core'
+import type ChatUser from '@dittolive/ditto-chat-core/dist/types/ChatUser'
 import type MessageWithUser from '@dittolive/ditto-chat-core/dist/types/MessageWithUser'
+import clsx from 'clsx'
+import React, { useEffect } from 'react'
+
 import { EMPTY_MESSAGES } from '../constants'
+import { useImageAttachment } from '../hooks/useImageAttachment'
+import type { Chat } from '../types'
+import { formatDate } from '../utils'
+import Avatar from './Avatar'
 
 interface ChatListItemProps {
   chat: Chat

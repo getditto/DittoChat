@@ -1,5 +1,6 @@
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react'
 import { useEffect, useRef, useState } from 'react'
+
 import { Icons } from './Icons'
 
 interface QuickReactionProps {

@@ -1,22 +1,23 @@
 import './index.css'
-import { useState, useEffect, useMemo } from 'react'
-import ChatList from './components/ChatList'
-import ChatView from './components/ChatView'
-import NewMessageModal from './components/NewMessageModal'
-import { Icons } from './components/Icons'
+
 import {
+  type DittoConfParams,
   useDittoChat,
   useDittoChatStore,
-  type DittoConfParams,
 } from '@dittolive/ditto-chat-core'
-import type { Chat } from './types'
-
 import ChatUser from '@dittolive/ditto-chat-core/dist/types/ChatUser'
-import Room from '@dittolive/ditto-chat-core/dist/types/Room'
 import Message from '@dittolive/ditto-chat-core/dist/types/Message'
-import NewRoomModal from './components/NewRoomModal'
+import Room from '@dittolive/ditto-chat-core/dist/types/Room'
+import { useEffect, useMemo, useState } from 'react'
+import { toast, Toaster } from 'sonner'
+
+import ChatList from './components/ChatList'
 import ChatListSkeleton from './components/ChatListSkeleton'
-import { Toaster, toast } from 'sonner'
+import ChatView from './components/ChatView'
+import { Icons } from './components/Icons'
+import NewMessageModal from './components/NewMessageModal'
+import NewRoomModal from './components/NewRoomModal'
+import type { Chat } from './types'
 
 const getSystemTheme = () => {
   if (
