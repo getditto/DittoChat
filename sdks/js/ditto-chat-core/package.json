@@ -8,7 +8,13 @@
   "exports": {
     ".": {
       "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
       "default": "./dist/index.es.js"
+    },
+    "./dist/types/*": {
+      "development": "./src/types/*.ts",
+      "types": "./dist/types/*.d.ts",
+      "default": "./dist/types/*.js"
     }
   },
   "files": [
@@ -28,6 +34,7 @@
     "test": "vitest",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit --skipLibCheck",
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
