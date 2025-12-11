@@ -193,3 +193,6 @@ lint/tmp/
 # web lib and builds
 node_modules/
 dist/
+
+# coverage
+coverage/

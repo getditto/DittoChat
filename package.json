@@ -4,9 +4,9 @@
   "private": true,
   "description": "Ditto Chat JavaScript SDKs monorepo",
   "workspaces": [
-    "sdks/js/DittoChatCore",
-    "sdks/js/DittoChatUI",
-    "apps/web/DittoChatDemo"
+    "sdks/js/ditto-chat-core",
+    "sdks/js/ditto-chat-ui",
+    "apps/web"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
