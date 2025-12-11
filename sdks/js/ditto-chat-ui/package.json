@@ -9,8 +9,10 @@
   "exports": {
     ".": {
       "development": "./src/index.tsx",
+      "types": "./dist/index.d.ts",
       "default": "./dist/index.es.js"
     },
+    "./dist/ditto-chat-ui.css": "./dist/ditto-chat-ui.css",
     "./styles": "./src/index.css"
   },
   "files": [

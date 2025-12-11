@@ -23,7 +23,6 @@ const DittoChatUIWrapper = () => {
 
   return userId ? (
     <DittoChatUI
-      // @ts-expect-error
       ditto={ditto?.ditto as Ditto}
       theme="auto"
       userId={userId}

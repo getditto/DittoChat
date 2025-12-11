@@ -1,8 +1,12 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-import path from 'node:path'
+import { fileURLToPath } from 'url'
+import { dirname, resolve } from 'path'
 import dts from 'vite-plugin-dts'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -15,7 +19,7 @@ export default defineConfig({
   ],
   build: {
     lib: {
-      entry: path.resolve(__dirname, 'src/index.tsx'),
+      entry: resolve(__dirname, 'src/index.tsx'),
       name: 'DittoChatUI',
       fileName: (format) => `index.${format}.js`,
     },
