@@ -12,9 +12,9 @@ import javax.inject.Inject
 class DittoDataImpl(
     private val privateStore: LocalData,
     override val ditto: Ditto,
-    private val gson: Gson,
-    private val usersCollection: String,
-    private val chatRetentionPolicy: ChatRetentionPolicy
+    private val gson: Gson = Gson(),
+    private val usersCollection: String = "users",
+    private val chatRetentionPolicy: ChatRetentionPolicy = ChatRetentionPolicy(10)
 ) : DittoData {
 
     private val _publicRoomsFlow = MutableStateFlow<List<Room>>(emptyList())
