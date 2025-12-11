@@ -19,5 +19,9 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // Enforce curly braces for all control statements
+      curly: ['error', 'all'],
+    },
   },
 ])

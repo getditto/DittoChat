@@ -30,7 +30,8 @@ fun DittoChatNavigation(
             dittoChatUI.ChatRoomView(
                 chatScreenViewModel,
                 roomId = roomId,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                chatScreenViewModel = chatScreenViewModel
             )
         }
     }
