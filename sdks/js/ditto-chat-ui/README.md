@@ -86,7 +86,6 @@ You can provide a custom handler to integrate with your preferred toast/notifica
 
 ```javascript
 import { toast } from 'sonner'
-
 ;<DittoChatUI
   ditto={ditto}
   userCollectionKey="my-users"

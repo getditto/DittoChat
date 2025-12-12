@@ -22,15 +22,31 @@ import MessageInput from './MessageInput'
 interface ChatViewProps {
   chat: Chat
   onBack: () => void
+  /**
+   * Optional room ID - when provided, enables dynamic subscription for generated rooms.
+   * If not provided, uses chat.id (default behavior for regular rooms).
+   */
+  roomId?: string
+  /**
+   * Optional messages collection ID - required when using dynamic subscriptions.
+   * Defaults to "messages" if not provided.
+   */
+  messagesId?: string
 }
-
-function ChatView({ chat, onBack }: ChatViewProps) {
+function ChatView({
+  chat,
+  onBack,
+  roomId,
+  messagesId = 'messages',
+}: ChatViewProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [editingMessage, setEditingMessage] = useState<Message | null>(null)
   const { canSubscribeToRoom } = usePermissions()
 
+  const effectiveRoomId = roomId || chat.id
+
   const messages: MessageWithUser[] = useDittoChatStore(
-    (state) => state.messagesByRoom[chat.id] || EMPTY_MESSAGES,
+    (state) => state.messagesByRoom[effectiveRoomId] || EMPTY_MESSAGES,
   )
   const currentUser: ChatUser | null = useDittoChatStore(
     (state) => state.currentUser,
@@ -64,8 +80,46 @@ function ChatView({ chat, onBack }: ChatViewProps) {
   )
   const markRoomAsRead = useDittoChatStore((state) => state.markRoomAsRead)
 
+  // Dynamic subscription methods for generated rooms
+  const subscribeToRoomMessages = useDittoChatStore(
+    (state) => state.subscribeToRoomMessages,
+  )
+  const unsubscribeFromRoomMessages = useDittoChatStore(
+    (state) => state.unsubscribeFromRoomMessages,
+  )
+
   const rooms = useDittoChatStore((state) => state.rooms || EMPTY_ROOMS)
-  const room = rooms.find((room) => room._id === chat.id)
+  const room = rooms.find((room) => room._id === effectiveRoomId)
+
+  // Dynamic subscription lifecycle for generated rooms
+  // When roomId is explicitly provided, we subscribe on mount and unsubscribe on unmount
+  useEffect(() => {
+    if (roomId) {
+      // Capture roomId in closure to ensure cleanup has correct value
+      const currentRoomId = roomId
+      console.log(`[ChatView] Subscribing to room messages: ${currentRoomId}`)
+      subscribeToRoomMessages(currentRoomId, messagesId).catch((err) => {
+        console.error(`[ChatView] Error subscribing to ${currentRoomId}:`, err)
+      })
+
+      return () => {
+        console.log(
+          `[ChatView] CLEANUP: Unsubscribing from room messages: ${currentRoomId}`,
+        )
+        try {
+          unsubscribeFromRoomMessages(currentRoomId)
+          console.log(
+            `[ChatView] CLEANUP: Successfully unsubscribed from ${currentRoomId}`,
+          )
+        } catch (err) {
+          console.error(
+            `[ChatView] CLEANUP: Error unsubscribing from ${currentRoomId}:`,
+            err,
+          )
+        }
+      }
+    }
+  }, [roomId, messagesId])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })

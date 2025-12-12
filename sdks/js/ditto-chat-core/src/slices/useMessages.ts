@@ -4,11 +4,11 @@ import {
   StoreObserver,
   SyncSubscription,
 } from '@dittolive/ditto'
-import { castDraft,produce, WritableDraft } from 'immer'
+import { castDraft, produce, WritableDraft } from 'immer'
 import { v4 as uuidv4 } from 'uuid'
 
 import ChatUser from '../types/ChatUser'
-import Message, { Mention,Reaction } from '../types/Message'
+import Message, { Mention, Reaction } from '../types/Message'
 import MessageWithUser from '../types/MessageWithUser'
 import Room from '../types/Room'
 import { ChatStore, CreateSlice } from '../useChat'
@@ -19,6 +19,20 @@ export interface MessageSlice {
   messageSubscriptionsByRoom: Record<string, SyncSubscription | null>
   messagesLoading: boolean
   messagesPublisher: (room: Room, retentionDays?: number) => Promise<void>
+  /**
+   * Subscribe to messages for a specific room on-demand.
+   * Used for generated rooms (comment rooms) that need dynamic subscriptions.
+   */
+  subscribeToRoomMessages: (
+    roomId: string,
+    messagesId: string,
+    retentionDays?: number,
+  ) => Promise<void>
+  /**
+   * Unsubscribe from messages for a specific room.
+   * Cleans up subscription, observer, and messages from state.
+   */
+  unsubscribeFromRoomMessages: (roomId: string) => void
   createMessage: (
     room: Room,
     text: string,
@@ -445,6 +459,159 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       } catch (err) {
         console.error('Error in messagesPublisher:', err)
       }
+    },
+
+    /**
+     * Subscribe to messages for a specific room on-demand.
+     *
+     * This method enables dynamic subscription management for generated rooms.
+     * Unlike messagesPublisher which is called automatically for all rooms,
+     * this method is explicitly called when a component mounts to view a room.
+     *
+     * Workflow:
+     * 1. Validates Ditto is initialized
+     * 2. Checks for existing subscription (prevents duplicates)
+     * 3. Creates subscription and observer using same logic as messagesPublisher
+     * 4. Stores subscription/observer references in state
+     *
+     * Use case: ChatView component mounting to display a generated room
+     *
+     * @param roomId - Room ID to subscribe to
+     * @param messagesId - Collection ID for messages ("messages" or "dm_messages")
+     * @param retentionDays - Optional message retention override
+     */
+    async subscribeToRoomMessages(
+      roomId: string,
+      messagesId: string,
+      retentionDays?: number,
+    ) {
+      if (!ditto) {
+        return
+      }
+
+      // Check if already subscribed
+      if (_get().messageSubscriptionsByRoom[roomId]) {
+        return
+      }
+
+      const effectiveRetentionDays =
+        retentionDays ?? globalRetentionDays ?? DEFAULT_RETENTION_DAYS
+
+      const retentionDate = new Date(
+        Date.now() - effectiveRetentionDays * 24 * 60 * 60 * 1000,
+      )
+
+      const query = `SELECT * FROM COLLECTION ${messagesId} (thumbnailImageToken ATTACHMENT, largeImageToken ATTACHMENT, fileAttachmentToken ATTACHMENT)
+        WHERE roomId = :roomId AND createdOn >= :date AND isArchived = false
+        ORDER BY createdOn ASC`
+
+      const args = {
+        roomId,
+        date: retentionDate.toISOString(),
+      }
+
+      try {
+        const subscription = ditto.sync.registerSubscription(query, args)
+        const allUsers = _get().allUsers
+
+        const observer = ditto.store.registerObserver<Message>(
+          query,
+          async (result) => {
+            // Create a minimal room object for message processing
+            const room: Room = {
+              _id: roomId,
+              name: '',
+              messagesId,
+              collectionId: 'rooms',
+              createdBy: '',
+              createdOn: '',
+              isGenerated: true,
+            }
+
+            _set((state: ChatStore) => {
+              return produce(state, (draft) => {
+                if (!draft.messagesByRoom[roomId]) {
+                  draft.messagesByRoom[roomId] = []
+                }
+                if (result.items.length === 0) {
+                  return draft
+                }
+
+                for (const item of result.items) {
+                  const message = item.value
+                  const messagesByRoom = draft.messagesByRoom[roomId]
+                  const user = allUsers.find((u) => u._id === message.userId)
+                  handleMessageUpdate(messagesByRoom, room, message, user)
+                }
+                return draft
+              })
+            })
+            updateMessageLoadingState()
+          },
+          args,
+        )
+
+        _set({
+          messageSubscriptionsByRoom: {
+            ..._get().messageSubscriptionsByRoom,
+            [roomId]: subscription,
+          },
+          messageObserversByRoom: {
+            ..._get().messageObserversByRoom,
+            [roomId]: observer,
+          },
+        })
+      } catch (err) {
+        console.error('Error in subscribeToRoomMessages:', err)
+      }
+    },
+
+    /**
+     * Unsubscribe from messages for a specific room.
+     *
+     * This method cleans up subscriptions when a component unmounts.
+     * Essential for preventing memory leaks with dynamic subscriptions.
+     *
+     * Workflow:
+     * 1. Retrieves subscription and observer from state
+     * 2. Cancels subscription (stops sync)
+     * 3. Cancels observer (stops state updates)
+     * 4. Removes messages from state
+     * 5. Removes subscription/observer references from state
+     *
+     * Use case: ChatView component unmounting after viewing a generated room
+     *
+     * @param roomId - Room ID to unsubscribe from
+     */
+    unsubscribeFromRoomMessages(roomId: string) {
+      const subscription = _get().messageSubscriptionsByRoom[roomId]
+      const observer = _get().messageObserversByRoom[roomId]
+
+      // Cancel subscription - check if not already cancelled
+      if (subscription && !subscription.isCancelled) {
+        subscription.cancel()
+      }
+
+      // Cancel observer - check if not already cancelled
+      if (observer && !observer.isCancelled) {
+        observer.cancel()
+      }
+
+      // Remove from state
+      _set((state: ChatStore) => {
+        return produce(state, (draft) => {
+          // Remove messages
+          delete draft.messagesByRoom[roomId]
+
+          // Remove subscription reference
+          delete draft.messageSubscriptionsByRoom[roomId]
+
+          // Remove observer reference
+          delete draft.messageObserversByRoom[roomId]
+
+          return draft
+        })
+      })
     },
 
     async createMessage(room: Room, text: string, mentions: Mention[] = []) {

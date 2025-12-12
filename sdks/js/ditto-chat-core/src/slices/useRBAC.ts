@@ -1,6 +1,6 @@
 import { StoreApi } from 'zustand'
 
-import { DEFAULT_PERMISSIONS,PermissionKey, RBACConfig } from '../types/RBAC'
+import { DEFAULT_PERMISSIONS, PermissionKey, RBACConfig } from '../types/RBAC'
 import { ChatStore, CreateSlice } from '../useChat'
 
 export interface RBACSlice {

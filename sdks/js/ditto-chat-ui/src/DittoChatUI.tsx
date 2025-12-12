@@ -105,6 +105,7 @@ export default function DittoChatUI({
     if (!rooms.length || !users.length) {
       return
     }
+    const visibleRooms = rooms.filter((room) => !room.isGenerated)
     const userMap = new Map(users.map((u) => [u._id, u]))
     const messageMap = new Map<string, Message>()
     for (const msg of latestMessages) {
@@ -114,7 +115,7 @@ export default function DittoChatUI({
     // Rooms that have latest messages (keep order of latestMessages)
     const chatsWithMessages: Chat[] = latestMessages
       .map((message: Message) => {
-        const room = rooms.find((r) => r._id === message.roomId)
+        const room = visibleRooms.find((r) => r._id === message.roomId)
         if (!room) {
           return null
         }
@@ -135,8 +136,9 @@ export default function DittoChatUI({
       .filter(Boolean) as Chat[]
 
     // Remaining rooms (no messages)
-    const emptyRooms = rooms.filter((r) => !messageRoomIds.includes(r._id))
-
+    const emptyRooms = visibleRooms.filter(
+      (r) => !messageRoomIds.includes(r._id),
+    )
     const chatsWithoutMessages: Chat[] = emptyRooms.map((room) => {
       const participants: ChatUser[] = (room.participants || [])
         .map((userId) => userMap.get(userId))

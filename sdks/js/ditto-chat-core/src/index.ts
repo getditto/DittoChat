@@ -1,4 +1,5 @@
 export * from './slices/useRBAC'
+export * from './slices/useRooms'
 export * from './types/ChatUser'
 export * from './types/Message'
 export * from './types/MessageWithUser'
