@@ -1,12 +1,9 @@
 package com.ditto.dittochat.ui
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.*
-import javax.inject.Inject
 import android.net.Uri
 import com.ditto.dittochat.ChatUser
 import com.ditto.dittochat.DittoChat
@@ -21,7 +18,7 @@ import kotlinx.coroutines.withContext
 class ChatScreenViewModel(
     private val dittoData: DittoData,
     private val dittoChat: DittoChat
-) : ViewModel() {
+) {
 
     private val _room = MutableStateFlow<Room?>(null)
     val room: StateFlow<Room?> = _room.asStateFlow()
@@ -54,7 +51,7 @@ class ChatScreenViewModel(
     val deleteMessage: StateFlow<Message?> = _deleteMessage.asStateFlow()
 
     fun initialize(roomId: String, retentionDays: Int? = null) {
-        viewModelScope.launch {
+        CoroutineScope(Dispatchers.Main).launch {
             try {
                 val loadedRoom = dittoChat.readRoomById(roomId)
                 _room.value = loadedRoom
@@ -74,7 +71,7 @@ class ChatScreenViewModel(
             }
         }
 
-        viewModelScope.launch {
+        CoroutineScope(Dispatchers.Main).launch {
             dittoData.currentUserFlow().collect {
                 _currentUser.emit((it))
             }
@@ -89,7 +86,7 @@ class ChatScreenViewModel(
         val text = _inputText.value.trim()
         if (text.isEmpty()) return
 
-        viewModelScope.launch {
+        CoroutineScope(Dispatchers.Main).launch {
             _room.value?.let { room ->
                 dittoData.createMessage(room, text)
                 _inputText.value = ""
@@ -98,7 +95,7 @@ class ChatScreenViewModel(
     }
 
     fun sendImageMessage(imageUri: Uri) {
-        viewModelScope.launch {
+        CoroutineScope(Dispatchers.Main).launch {
             _room.value?.let { room ->
                 // Convert URI to byte array
                 val imageData = loadImageData(imageUri)
@@ -138,7 +135,7 @@ class ChatScreenViewModel(
         val messageId = _editMessageId.value ?: return
         val editedText = _inputText.value.trim()
 
-        viewModelScope.launch {
+        CoroutineScope(Dispatchers.Main).launch {
             _room.value?.let { room ->
                 val message = _messagesWithUsers.value
                     .find { it.message.id == messageId }
@@ -159,7 +156,7 @@ class ChatScreenViewModel(
     }
 
     fun confirmDelete() {
-        viewModelScope.launch {
+        CoroutineScope(Dispatchers.Main).launch {
             _room.value?.let { room ->
                 _deleteMessage.value?.let { message ->
                     if (message.isImageMessage) {
@@ -191,7 +188,7 @@ class ChatScreenViewModel(
     }
 
     fun clearUnreadsAndMentions() {
-        viewModelScope.launch {
+        CoroutineScope(Dispatchers.Main).launch {
             _currentUser.value?.let { user ->
                 _room.value?.let { room ->
                     val subscriptions = user.subscriptions?.toMutableMap() ?: mutableMapOf()
