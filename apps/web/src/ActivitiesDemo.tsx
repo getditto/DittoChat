@@ -1,4 +1,4 @@
-import { useDittoChatStore, chatStore } from '@dittolive/ditto-chat-core'
+import { useDittoChatStore } from '@dittolive/ditto-chat-core'
 import type { ChatStore } from '@dittolive/ditto-chat-core'
 import { useState } from 'react'
 import { ChatView } from '@dittolive/ditto-chat-ui'
@@ -48,28 +48,6 @@ export default function ActivitiesDemo() {
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(
     null,
   )
-
-  // Check if store is initialized
-  if (!chatStore) {
-    return (
-      <div
-        style={{
-          padding: '40px',
-          textAlign: 'center',
-          fontFamily: 'sans-serif',
-        }}
-      >
-        <h2 style={{ color: '#ff4d00' }}>⚠️ Store Not Initialized</h2>
-        <p>
-          Please click on <strong>"Chat UI"</strong> tab first to initialize the
-          chat store,
-        </p>
-        <p>
-          then switch back to <strong>"Activities Demo"</strong>.
-        </p>
-      </div>
-    )
-  }
 
   // Access store method to create generated rooms
   const createGeneratedRoom = useDittoChatStore(

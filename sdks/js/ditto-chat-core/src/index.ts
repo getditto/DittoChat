@@ -6,3 +6,5 @@ export * from './types/MessageWithUser'
 export * from './types/RBAC'
 export * from './types/Room'
 export * from './useChat'
+export { getChatStore, resetChatStore } from './useChat'
+

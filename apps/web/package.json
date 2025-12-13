@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@dittolive/ditto": "^4.12.4",
+    "@dittolive/ditto-chat-core": "*",
     "@dittolive/ditto-chat-ui": "*",
     "@dittolive/react-ditto": "^0.11.2",
     "react": "^19.1.1",

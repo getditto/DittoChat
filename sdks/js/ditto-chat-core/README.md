@@ -2,6 +2,33 @@
 
 `@dittolive/ditto-chat-core` is a React and TypeScript-based library leveraging Ditto for real-time chat functionalities.
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Peer Dependencies](#peer-dependencies)
+- [Usage](#usage)
+- [Role-Based Access Control (RBAC)](#role-based-access-control-rbac)
+  - [Available Permissions](#available-permissions)
+  - [Configuring Permissions](#configuring-permissions)
+  - [Checking Permissions](#checking-permissions)
+- [Notifications](#notifications)
+  - [Notification Handler](#notification-handler)
+  - [Default Behavior](#default-behavior)
+  - [Custom Notification Handler](#custom-notification-handler)
+  - [Common Notification Events](#common-notification-events)
+- [Singleton Store Pattern](#singleton-store-pattern)
+  - [Why This Matters](#why-this-matters)
+  - [What This Means for You](#what-this-means-for-you)
+  - [Example](#example)
+  - [Ensuring Single Zustand Installation](#ensuring-single-zustand-installation)
+  - [Detailed Documentation](#detailed-documentation)
+- [Architecture & Performance](#architecture--performance)
+  - [Optimistic UI Updates](#optimistic-ui-updates)
+- [Available Scripts](#available-scripts)
+- [Keywords](#keywords)
+- [License](#license)
+- [Repository](#repository)
+
 ## Installation
 
 You can install `@dittolive/ditto-chat-core` using npm or yarn:
@@ -232,6 +259,65 @@ The chat system triggers notifications for various events:
 
 - New messages in subscribed rooms
 - User mentions
+
+## Singleton Store Pattern
+
+**Important:** DittoChatCore uses a **global singleton pattern** to ensure that all npm packages share the same Zustand store instance.
+
+### Why This Matters
+
+When `@dittolive/ditto-chat-core` is installed in multiple packages (e.g., in your main app and in `@dittolive/ditto-chat-ui`), each package could potentially get its own copy of the module. To prevent multiple independent store instances, we use `globalThis` to maintain a single shared store.
+
+### What This Means for You
+
+1.  **Initialize once** - Call `useDittoChat()` in your root component
+2.  **Use anywhere** - Call `useDittoChatStore()` in any component from any package
+3.  **Shared state** - All packages automatically share the same state
+
+### Example
+
+```typescript
+// In your main app (initialize once)
+function App() {
+  useDittoChat({
+    ditto: dittoInstance,
+    userId: currentUserId,
+    userCollectionKey: userCollectionKey,
+  })
+
+  return <YourApp />
+}
+
+// In any component, from any package (use the shared store)
+function ChatComponent() {
+  const messages = useDittoChatStore((state) => state.messagesByRoom)
+  // All components see the same state
+}
+```
+
+### Ensuring Single Zustand Installation
+
+To prevent multiple copies of Zustand, add this to your **main application's** `package.json`:
+
+```json
+{
+  "overrides": {
+    "zustand": "^5.0.8"
+  }
+}
+```
+
+Then verify with:
+
+```bash
+npm ls zustand
+```
+
+### Detailed Documentation
+
+For complete details about the singleton pattern implementation, troubleshooting, and advanced usage, see:
+
+📖 **[SINGLETON_STORE_PATTERN.md](./SINGLETON_STORE_PATTERN.md)**
 
 ## Architecture & Performance
 
