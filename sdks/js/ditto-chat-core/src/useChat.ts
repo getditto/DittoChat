@@ -57,31 +57,33 @@ export function useDittoChat(params: DittoConfParams) {
     // Check global instance first
     if (!globalThis.__DITTO_CHAT_STORE__) {
       console.log('Creating NEW global chatStore instance')
-      globalThis.__DITTO_CHAT_STORE__ = createStore<ChatStore>()((set, get) => ({
-        ...createRoomSlice(set, get, params),
-        ...createChatUserSlice(set, get, params),
-        ...createMessageSlice(set, get, params),
-        ...createRBACSlice(set, get, params),
-        activeRoomId: null,
-        setActiveRoomId: (roomId) => set({ activeRoomId: roomId }),
-        chatLogout: () => {
-          const state = get()
-          cancelSubscriptionOrObserver(state.roomsSubscription)
-          cancelSubscriptionOrObserver(state.roomsObserver)
-          cancelSubscriptionOrObserver(state.dmRoomsSubscription)
-          cancelSubscriptionOrObserver(state.dmRoomsObserver)
-          Object.values(state.messageSubscriptionsByRoom || {}).map((sub) =>
-            cancelSubscriptionOrObserver(sub),
-          )
-          Object.values(state.messageObserversByRoom || {}).map((sub) =>
-            cancelSubscriptionOrObserver(sub),
-          )
-          cancelSubscriptionOrObserver(state.userObserver)
-          cancelSubscriptionOrObserver(state.userSubscription)
-          cancelSubscriptionOrObserver(state.allUsersObserver)
-          cancelSubscriptionOrObserver(state.allUsersSubscription)
-        },
-      }))
+      globalThis.__DITTO_CHAT_STORE__ = createStore<ChatStore>()(
+        (set, get) => ({
+          ...createRoomSlice(set, get, params),
+          ...createChatUserSlice(set, get, params),
+          ...createMessageSlice(set, get, params),
+          ...createRBACSlice(set, get, params),
+          activeRoomId: null,
+          setActiveRoomId: (roomId) => set({ activeRoomId: roomId }),
+          chatLogout: () => {
+            const state = get()
+            cancelSubscriptionOrObserver(state.roomsSubscription)
+            cancelSubscriptionOrObserver(state.roomsObserver)
+            cancelSubscriptionOrObserver(state.dmRoomsSubscription)
+            cancelSubscriptionOrObserver(state.dmRoomsObserver)
+            Object.values(state.messageSubscriptionsByRoom || {}).map((sub) =>
+              cancelSubscriptionOrObserver(sub),
+            )
+            Object.values(state.messageObserversByRoom || {}).map((sub) =>
+              cancelSubscriptionOrObserver(sub),
+            )
+            cancelSubscriptionOrObserver(state.userObserver)
+            cancelSubscriptionOrObserver(state.userSubscription)
+            cancelSubscriptionOrObserver(state.allUsersObserver)
+            cancelSubscriptionOrObserver(state.allUsersSubscription)
+          },
+        }),
+      )
     } else {
       console.log('Reusing EXISTING global chatStore instance')
     }
@@ -123,4 +125,3 @@ export function getChatStore() {
 export function resetChatStore() {
   globalThis.__DITTO_CHAT_STORE__ = undefined
 }
-

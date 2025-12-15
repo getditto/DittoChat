@@ -43,8 +43,8 @@ global.FileReader = class {
     // @ts-expect-error - Mock onload without proper event type
     this.onload({ target: { result: 'data:image/png;base64,fake-data' } })
   }
-  onload() { }
-  onerror() { }
+  onload() {}
+  onerror() {}
 } as unknown as typeof FileReader
 
 // Mock Image
@@ -56,8 +56,8 @@ global.Image = class {
       this.onload()
     }, 10)
   }
-  onload() { }
-  onerror() { }
+  onload() {}
+  onerror() {}
 } as unknown as typeof Image
 
 export const createMockDitto = () => ({
@@ -91,9 +91,9 @@ export const createTestStore = (mockDitto: MockDitto | null) => {
         ...createMessageSlice(set, get, params),
         ...createRBACSlice(set, get, params),
         activeRoomId: null,
-        setActiveRoomId: (roomId: string | number | null) => set({ activeRoomId: roomId }),
+        setActiveRoomId: (roomId: string | number | null) =>
+          set({ activeRoomId: roomId }),
         chatLogout: vi.fn(), // Mock implementation for tests
       }) as any,
   )
 }
-

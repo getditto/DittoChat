@@ -382,10 +382,36 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     messageSubscriptionsByRoom: {},
     notificationHandler: null,
 
+    /**
+     * Register a notification handler for new messages.
+     *
+     * This method sets up a callback to be invoked when new messages
+     * arrive and meet notification criteria (subscribed rooms, mentions, DMs).
+     *
+     * Use case: Displaying toast notifications or browser notifications
+     *
+     * @param handler - Callback function receiving (title, preview) parameters
+     */
     registerNotificationHandler(handler) {
       _set({ notificationHandler: handler })
     },
 
+    /**
+     * Subscribe to and observe messages for a room.
+     *
+     * This method sets up real-time sync and observation for messages in a room.
+     * It's automatically called for each room when the chat store initializes.
+     *
+     * Workflow:
+     * 1. Validates Ditto is initialized and no existing subscription
+     * 2. Calculates retention date based on room/global settings
+     * 3. Creates sync subscription for message documents
+     * 4. Sets up store observer to update state on changes
+     * 5. Triggers notifications for new messages from other users
+     *
+     * @param room - Room to subscribe to messages for
+     * @param retentionDays - Optional override for message retention period
+     */
     async messagesPublisher(room: Room, retentionDays?: number) {
       if (!ditto) {
         return
@@ -614,6 +640,22 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       })
     },
 
+    /**
+     * Create a new text message in a room.
+     *
+     * This method creates and persists a new message document with optional mentions.
+     * Mention permission is checked before including mentions in the message.
+     *
+     * Workflow:
+     * 1. Validates Ditto connection and user
+     * 2. Checks mention permission if mentions provided
+     * 3. Creates message document with text and filtered mentions
+     * 4. Updates mentioned users' mention records
+     *
+     * @param room - Room to create message in
+     * @param text - Message text content
+     * @param mentions - Optional array of user mentions
+     */
     async createMessage(room: Room, text: string, mentions: Mention[] = []) {
       if (!ditto || !userId) {
         return
@@ -638,6 +680,21 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       }
     },
 
+    /**
+     * Save edits to an existing message.
+     *
+     * This method archives the original message and creates a new version
+     * with updated content while preserving attachments and reactions.
+     *
+     * Workflow:
+     * 1. Checks canEditOwnMessage permission
+     * 2. Archives original message (sets isArchived = true)
+     * 3. Creates new message with archivedMessage reference
+     * 4. Preserves attachments, mentions, and reactions
+     *
+     * @param message - Message with updated text content
+     * @param room - Room containing the message
+     */
     async saveEditedTextMessage(message: Message, room: Room) {
       // Check edit permission
       if (!_get().canPerformAction('canEditOwnMessage')) {
@@ -661,6 +718,22 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       }
     },
 
+    /**
+     * Soft-delete a message by replacing its content.
+     *
+     * This method archives the original message and creates a placeholder
+     * indicating deletion. Attachments are removed and content is replaced.
+     *
+     * Workflow:
+     * 1. Checks canDeleteOwnMessage permission
+     * 2. Archives original message
+     * 3. Creates replacement with "[deleted ...]" text
+     * 4. Removes all attachments and mentions
+     *
+     * @param message - Message to delete
+     * @param room - Room containing the message
+     * @param type - Type of content: 'text', 'image', or 'file'
+     */
     async saveDeletedMessage(
       message: Message,
       room: Room,
@@ -694,6 +767,21 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       }
     },
 
+    /**
+     * Create a message with an image attachment.
+     *
+     * This method creates a message with both thumbnail and full-size
+     * image attachments for efficient loading in the UI.
+     *
+     * Workflow:
+     * 1. Creates thumbnail version of image
+     * 2. Uploads both thumbnail and large image as attachments
+     * 3. Creates message document with attachment tokens
+     *
+     * @param room - Room to create message in
+     * @param imageFile - Image file to attach
+     * @param text - Optional caption text
+     */
     async createImageMessage(room: Room, imageFile: File, text?: string) {
       try {
         await createAttachmentMessage(room, imageFile, text, 'image')
@@ -702,6 +790,21 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       }
     },
 
+    /**
+     * Create a message with a file attachment.
+     *
+     * This method uploads a file and creates a message with the
+     * file attachment token. The filename is used as default text.
+     *
+     * Workflow:
+     * 1. Uploads file as attachment with metadata
+     * 2. Creates message document with file attachment token
+     * 3. Uses filename as message text if not provided
+     *
+     * @param room - Room to create message in
+     * @param file - File to attach
+     * @param text - Optional text (defaults to filename)
+     */
     async createFileMessage(room: Room, file: File, text?: string) {
       try {
         await createAttachmentMessage(room, file, text, 'file')
@@ -710,6 +813,23 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       }
     },
 
+    /**
+     * Fetch attachment data with progress tracking.
+     *
+     * This method downloads attachment data from Ditto's attachment store,
+     * providing progress updates during download and handling various states.
+     *
+     * Workflow:
+     * 1. Validates Ditto and token are available
+     * 2. Initiates attachment fetch with event handler
+     * 3. Reports progress via onProgress callback
+     * 4. Returns data and metadata on completion
+     * 5. Handles deletion and error states
+     *
+     * @param token - Attachment token from message
+     * @param onProgress - Callback receiving progress (0-1)
+     * @param onComplete - Callback receiving AttachmentResult
+     */
     fetchAttachment(token, onProgress, onComplete) {
       if (!ditto) {
         onComplete({
@@ -852,6 +972,22 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       }, 0)
     },
 
+    /**
+     * Add a reaction to a message.
+     *
+     * This method adds a new reaction to a message's reactions array
+     * using optimistic updates for instant UI feedback.
+     *
+     * Workflow:
+     * 1. Checks canAddReaction permission
+     * 2. Finds message in state
+     * 3. Appends reaction to existing reactions
+     * 4. Calls updateMessageReactions for optimistic update
+     *
+     * @param message - Message to add reaction to
+     * @param room - Room containing the message
+     * @param reaction - Reaction object with emoji and userId
+     */
     async addReactionToMessage(
       message: Message,
       room: Room,
@@ -878,6 +1014,22 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       await _get().updateMessageReactions(originalMessage, room, reactions)
     },
 
+    /**
+     * Remove a reaction from a message.
+     *
+     * This method removes a user's reaction from a message using
+     * optimistic updates for instant UI feedback.
+     *
+     * Workflow:
+     * 1. Checks canRemoveOwnReaction permission
+     * 2. Finds message in state
+     * 3. Filters out matching reaction (emoji + userId)
+     * 4. Calls updateMessageReactions for optimistic update
+     *
+     * @param message - Message to remove reaction from
+     * @param room - Room containing the message
+     * @param reaction - Reaction to remove (matched by emoji and userId)
+     */
     async removeReactionFromMessage(
       message: Message,
       room: Room,

@@ -55,38 +55,40 @@ We use `globalThis` to ensure a single store instance is shared across all npm p
 ### Implementation
 
 #### Before (Module-Level Singleton)
+
 ```typescript
 // ❌ Each bundled copy has its own chatStore variable
-export let chatStore: StoreApi<ChatStore> | null = null;
+export let chatStore: StoreApi<ChatStore> | null = null
 
 export function useDittoChat(params: DittoConfParams) {
   const store = useMemo(() => {
     if (!chatStore) {
-      chatStore = createStore<ChatStore>()(/* ... */);
+      chatStore = createStore<ChatStore>()(/* ... */)
     }
-    return chatStore;
-  }, [params.ditto]);
-  
-  return useStore(store);
+    return chatStore
+  }, [params.ditto])
+
+  return useStore(store)
 }
 ```
 
 #### After (Global Singleton)
+
 ```typescript
 // ✅ All packages share the same global reference
 declare global {
-  var __DITTO_CHAT_STORE__: StoreApi<ChatStore> | undefined;
+  var __DITTO_CHAT_STORE__: StoreApi<ChatStore> | undefined
 }
 
 export function useDittoChat(params: DittoConfParams) {
   const store = useMemo(() => {
     if (!globalThis.__DITTO_CHAT_STORE__) {
-      globalThis.__DITTO_CHAT_STORE__ = createStore<ChatStore>()(/* ... */);
+      globalThis.__DITTO_CHAT_STORE__ = createStore<ChatStore>()(/* ... */)
     }
-    return globalThis.__DITTO_CHAT_STORE__;
-  }, [params.ditto]);
-  
-  return useStore(store);
+    return globalThis.__DITTO_CHAT_STORE__
+  }, [params.ditto])
+
+  return useStore(store)
 }
 ```
 
@@ -101,7 +103,7 @@ import { useDittoChat } from "@dittolive/ditto-chat-core";
 
 function App() {
   const ditto = useDitto(); // Your Ditto instance
-  
+
   // Initialize the global store
   useDittoChat({
     ditto,
@@ -124,7 +126,7 @@ function ChatView() {
   // Uses the SAME global store instance
   const messages = useDittoChatStore((state) => state.messagesByRoom);
   const rooms = useDittoChatStore((state) => state.rooms);
-  
+
   return <div>{/* ... */}</div>;
 }
 ```
@@ -132,14 +134,14 @@ function ChatView() {
 ### 3. Helper Functions
 
 ```typescript
-import { getChatStore, resetChatStore } from "@dittolive/ditto-chat-core";
+import { getChatStore, resetChatStore } from '@dittolive/ditto-chat-core'
 
 // Get the global store instance (for debugging)
-const store = getChatStore();
-console.log(store?.getState());
+const store = getChatStore()
+console.log(store?.getState())
 
 // Reset the store (useful for testing)
-resetChatStore();
+resetChatStore()
 ```
 
 ## Verification
@@ -213,6 +215,7 @@ yarn why zustand
 ```
 
 Expected output:
+
 ```
 your-app@1.0.0
 └── zustand@5.0.8
@@ -224,12 +227,12 @@ your-app@1.0.0
 When writing tests, reset the global store between test cases:
 
 ```typescript
-import { resetChatStore } from "@dittolive/ditto-chat-core";
-import { afterEach } from "vitest"; // or your test framework
+import { resetChatStore } from '@dittolive/ditto-chat-core'
+import { afterEach } from 'vitest' // or your test framework
 
 afterEach(() => {
-  resetChatStore();
-});
+  resetChatStore()
+})
 ```
 
 ## Important Notes
@@ -253,7 +256,7 @@ The global declaration ensures TypeScript knows about the global variable:
 
 ```typescript
 declare global {
-  var __DITTO_CHAT_STORE__: StoreApi<ChatStore> | undefined;
+  var __DITTO_CHAT_STORE__: StoreApi<ChatStore> | undefined
 }
 ```
 

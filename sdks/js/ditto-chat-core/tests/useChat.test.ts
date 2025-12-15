@@ -130,10 +130,10 @@ describe('useDittoChat', () => {
 
     // Manually set isCancelled to true on some subscriptions to simulate already cancelled state
     if (state.roomsSubscription) {
-      (state.roomsSubscription as any).isCancelled = true
+      ;(state.roomsSubscription as any).isCancelled = true
     }
     if (state.dmRoomsObserver) {
-      (state.dmRoomsObserver as any).isCancelled = true
+      ;(state.dmRoomsObserver as any).isCancelled = true
     }
 
     // chatLogout should handle already cancelled subscriptions without throwing

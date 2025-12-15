@@ -119,7 +119,7 @@ function ChatView({
         }
       }
     }
-  }, [roomId, messagesId,subscribeToRoomMessages, unsubscribeFromRoomMessages])
+  }, [roomId, messagesId, subscribeToRoomMessages, unsubscribeFromRoomMessages])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -233,57 +233,63 @@ function ChatView({
 
   return (
     <div className="flex flex-col h-full">
-      <header className="flex items-center px-4 min-h-12 border-b border-(--border-color) flex-shrink-0">
-        <button
-          onClick={onBack}
-          className="md:hidden mr-4 text-(--text-color-lighter)"
-        >
-          <Icons.arrowLeft className="w-6 h-6" />
-        </button>
-        <div className="flex items-center space-x-3">
-          <div className="relative">
-            <Avatar
-              isUser={chat.type === 'dm'}
-              imageUrl={avatarUrl || undefined}
-            />
-            {otherUserIsActive && (
-              <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-(--active-status-bg) border-2 border-white"></span>
-            )}
-          </div>
-          <h2 className="text-xl font-semibold">{chatName}</h2>
-        </div>
-
-        {room && currentUser && chat.type === 'group' && canSubscribeToRoom && (
+      {/* Hide header for generated/comment rooms (when roomId is explicitly provided) */}
+      {!roomId && (
+        <header className="flex items-center px-4 min-h-12 border-b border-(--border-color) flex-shrink-0">
           <button
-            onClick={() => {
-              if (toggleRoomSubscription) {
-                toggleRoomSubscription(room._id).catch(console.error)
-              }
-            }}
-            className="ml-auto flex items-center space-x-2 px-3 py-1.5 rounded-full bg-(--secondary-bg) hover:bg-(--secondary-bg-hover) text-(--text-color-lighter) font-medium"
+            onClick={onBack}
+            className="md:hidden mr-4 text-(--text-color-lighter)"
           >
-            {(() => {
-              const hasKey =
-                currentUser?.subscriptions &&
-                room._id in currentUser.subscriptions
-              const subValue = currentUser?.subscriptions?.[room._id]
-              const isSubscribed = hasKey && subValue !== null
-
-              return isSubscribed ? (
-                <>
-                  <Icons.x className="w-5 h-5" />
-                  <span>Unsubscribe</span>
-                </>
-              ) : (
-                <>
-                  <Icons.plus className="w-5 h-5" />
-                  <span>Subscribe</span>
-                </>
-              )
-            })()}
+            <Icons.arrowLeft className="w-6 h-6" />
           </button>
-        )}
-      </header>
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <Avatar
+                isUser={chat.type === 'dm'}
+                imageUrl={avatarUrl || undefined}
+              />
+              {otherUserIsActive && (
+                <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-(--active-status-bg) border-2 border-white"></span>
+              )}
+            </div>
+            <h2 className="text-xl font-semibold">{chatName}</h2>
+          </div>
+
+          {room &&
+            currentUser &&
+            chat.type === 'group' &&
+            canSubscribeToRoom && (
+              <button
+                onClick={() => {
+                  if (toggleRoomSubscription) {
+                    toggleRoomSubscription(room._id).catch(console.error)
+                  }
+                }}
+                className="ml-auto flex items-center space-x-2 px-3 py-1.5 rounded-full bg-(--secondary-bg) hover:bg-(--secondary-bg-hover) text-(--text-color-lighter) font-medium"
+              >
+                {(() => {
+                  const hasKey =
+                    currentUser?.subscriptions &&
+                    room._id in currentUser.subscriptions
+                  const subValue = currentUser?.subscriptions?.[room._id]
+                  const isSubscribed = hasKey && subValue !== null
+
+                  return isSubscribed ? (
+                    <>
+                      <Icons.x className="w-5 h-5" />
+                      <span>Unsubscribe</span>
+                    </>
+                  ) : (
+                    <>
+                      <Icons.plus className="w-5 h-5" />
+                      <span>Subscribe</span>
+                    </>
+                  )
+                })()}
+              </button>
+            )}
+        </header>
+      )}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => {
           const sender = allUsers.find(
