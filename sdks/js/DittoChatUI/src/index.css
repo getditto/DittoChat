@@ -1,5 +1,6 @@
 @import "tailwindcss";
-:root {
+.web-chat-root {
+    --theme-name: light;
     /* Primary color scheme */
     --primary-color: rgba(255, 77, 0, 1); /* #ff4d00 */
     --primary-color-hover: rgb(194 65 12); /* orange-700 */
@@ -43,4 +44,34 @@
     --danger-bg: rgb(254 242 242); /* red-50 */
     --success-bg: rgb(240 253 244); /* green-50 */
     --success-text: rgb(21 128 61); /* green-700 */
+
+    .dark {
+        --theme-name: dark;
+        /* Surface & Background colors */
+        --surface-color: rgb(0 0 0); /* black */
+        --surface-color-light: rgb(17 24 39); /* gray-900 */
+        --secondary-bg: rgb(31 41 55); /* gray-800 */
+        --secondary-bg-hover: rgb(55 65 81); /* gray-700 */
+        --disabled-bg: rgb(55 65 81); /* gray-700 */
+
+        /* Text colors */
+        --text-color: rgb(249 250 251); /* gray-50 */
+        --text-color-medium: rgb(229 231 235); /* gray-200 */
+        --text-color-light: rgb(209 213 219); /* gray-300 */
+        --text-color-lighter: rgb(156 163 175); /* gray-400 */
+        --text-color-lightest: rgb(107 114 128); /* gray-500 */
+        --text-color-faint: rgb(156 163 175); /* gray-600 */
+        --text-color-disabled: rgb(55 65 81); /* gray-700 */
+
+        /* Border color */
+        --border-color: rgb(55 65 81); /* gray-700 */
+
+        /* Semantic/Status colors */
+        --edit-bg: rgb(30 58 138); /* blue-900 */
+        --edit-text: rgb(191 219 254); /* blue-200 */
+        --danger-text: rgb(248 113 113); /* red-400 */
+        --danger-bg: rgb(127 29 29); /* red-900 */
+        --success-bg: rgb(20 83 45); /* green-900 */
+        --success-text: rgb(134 239 172); /* green-300 */
+    }
 }

@@ -52,4 +52,25 @@ peer-to-peer chat application using the Ditto Platform.
 
 ### Web
 
-- TBD
+- Node.js 18.0+
+- React 18.0+ or 19.0+
+- TypeScript 4.5+
+- A Ditto Account, AppId, and baseline knowledge of the [Ditto JavaScript SDK](https://docs.ditto.live/sdk/latest/install-guides/js)
+
+#### Packages
+
+The JavaScript implementation consists of two packages:
+
+**[@dittolive/ditto-chat-core](./sdks/js/DittoChatCore/README.md)** - Core data models and React hooks for real-time chat functionalities
+```bash
+npm install @dittolive/ditto-chat-core
+# or
+yarn add @dittolive/ditto-chat-core
+```
+
+**[@dittolive/ditto-chat-ui](./sdks/js/DittoChatUI/README.md)** - Ready-to-use React components for building chat UIs
+```bash
+npm install @dittolive/ditto-chat-ui
+# or
+yarn add @dittolive/ditto-chat-ui
+```

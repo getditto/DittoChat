@@ -7,4 +7,5 @@ export default interface Room {
   createdOn: string;
   isGenerated: boolean;
   participants?: string[];
+  retentionDays?: number;
 }
