@@ -6,6 +6,7 @@ import kotlinx.coroutines.launch
 import java.util.*
 import android.net.Uri
 import com.ditto.dittochat.ChatUser
+import com.ditto.dittochat.DateUtils
 import com.ditto.dittochat.DittoChat
 import com.ditto.dittochat.DittoData
 import com.ditto.dittochat.Message
@@ -213,7 +214,7 @@ class ChatScreenViewModel(
         val lastReadDate = user.subscriptions?.get(room.id) ?: return null
 
         return _messagesWithUsers.value
-            .firstOrNull { it.message.createdOn > lastReadDate }
+            .firstOrNull { DateUtils.fromISOString(it.message.createdOn)!! > lastReadDate }
             ?.message?.id
     }
 }

@@ -33,7 +33,7 @@ class DittoDataImpl(
             createDefaultPublicRoom()
 
             try {
-                ditto.sync.registerSubscription("SELECT * FROM `${Constants.PUBLIC_ROOMS_COLLECTION_ID}`")
+                ditto.sync.registerSubscription("SELECT * FROM `${Constants.PUBLIC_ROOMS_COLLECTION_ID}` ORDER BY createdOn ASC")
             } catch (e: Exception) {
                 Log.d("DITTODATA","Error subscribing to public rooms: $e")
             }
@@ -133,11 +133,14 @@ class DittoDataImpl(
         val message = Message(
             roomId = actualRoom.id,
             text = text,
+            createdOn = DateUtils.toISOString(Date()),
             userId = userId
         )
 
         val query = "INSERT INTO `${actualRoom.messagesId}` DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE"
         val args = mapOf("newDoc" to message.toDocument())
+
+        Log.d("DITTOCHAT","createMessage ATTEMPT: $query $args")
 
         try {
             ditto.store.execute(query, args)
@@ -199,6 +202,7 @@ class DittoDataImpl(
                 "roomId" to room.id,
                 "date" to DateUtils.toISOString(retentionDate)
             )
+            Log.i("DITTOCHAT", "TRYING TO GET MESSAGES: $query $args")
 
             ditto.store.registerObserver(query, args) { result ->
                 val messages = result.items.map { item ->
@@ -224,6 +228,7 @@ class DittoDataImpl(
                 val message = result.items.firstOrNull()?.let { item ->
                     gson.fromJson(gson.toJson(item.value), Message::class.java)
                 }
+                Log.i("DITTOCHAT", "TRYING TO SEND MESSAGE: $message")
                 trySend(message)
             }
             awaitClose()
