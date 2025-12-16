@@ -1,0 +1,194 @@
+name: Publish NPM Packages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'sdks/**'
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Package to publish (e.g., sdks/js/ditto-chat-core)'
+        required: true
+        type: string
+      dry_run:
+        description: 'Dry run (test without publishing)'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.filter.outputs.packages }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed packages
+        id: filter
+        run: |
+          # Define your package paths
+          PACKAGES=(
+            "sdks/js/ditto-chat-core",
+            "sdks/js/ditto-chat-ui"
+          )
+
+          CHANGED_PACKAGES=()
+
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            # Manual trigger with specific package
+            CHANGED_PACKAGES+=("${{ github.event.inputs.package }}")
+          else
+            # Detect changed packages based on git diff
+            for package in "${PACKAGES[@]}"; do
+              CHANGED_PACKAGES+=("$package")
+              # Check if package.json version changed in this package
+              if git diff --name-only HEAD~1 HEAD | grep -q "^${package}/package.json"; then
+                # Check if version field was actually modified
+                VERSION_CHANGED=$(git diff HEAD~1 HEAD -- "${package}/package.json" | grep -E '^\+.*"version":' || echo "")
+                if [ -n "$VERSION_CHANGED" ]; then
+                  echo "Version changed in ${package}"
+                  CHANGED_PACKAGES+=("$package")
+                fi
+              fi
+            done
+          fi
+
+          # Convert array to JSON, filtering out empty strings
+          if [ ${#CHANGED_PACKAGES[@]} -eq 0 ]; then
+            PACKAGES_JSON='[]'
+          else
+            PACKAGES_JSON=$(printf '%s\n' "${CHANGED_PACKAGES[@]}" | grep -v '^$' | jq -R . | jq -s -c .)
+          fi
+
+          echo "packages=$PACKAGES_JSON" >> $GITHUB_OUTPUT
+          echo "Packages to publish: $PACKAGES_JSON"
+
+  publish:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.packages != '[]' && needs.detect-changes.outputs.packages != '[""]'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: ${{ fromJson(needs.detect-changes.outputs.packages) }}
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+          cache-dependency-path: '${{ matrix.package }}/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.package }}
+        run: npm ci
+
+      - name: Run tests
+        working-directory: ${{ matrix.package }}
+        run: npm test
+        continue-on-error: false
+
+      - name: Run linting
+        working-directory: ${{ matrix.package }}
+        run: npm run lint
+        continue-on-error: false
+
+      - name: Build package
+        working-directory: ${{ matrix.package }}
+        run: npm run build
+
+      - name: Get package info
+        id: package_info
+        working-directory: ${{ matrix.package }}
+        run: |
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          echo "name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+          echo "version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+          echo "Publishing: $PACKAGE_NAME@$PACKAGE_VERSION"
+
+      - name: Check if version exists on NPM
+        id: check_version
+        working-directory: ${{ matrix.package }}
+        run: |
+          PACKAGE_NAME="${{ steps.package_info.outputs.name }}"
+          PACKAGE_VERSION="${{ steps.package_info.outputs.version }}"
+
+          # Check if this version already exists on NPM
+          if npm view "$PACKAGE_NAME@$PACKAGE_VERSION" version 2>/dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Version $PACKAGE_VERSION already exists on NPM"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "✅ Version $PACKAGE_VERSION is new"
+          fi
+
+      - name: Publish to NPM (Dry Run)
+        if: github.event.inputs.dry_run == 'true'
+        working-directory: ${{ matrix.package }}
+        run: |
+          echo "🔍 Dry run - would publish:"
+          npm publish --dry-run
+
+      - name: Publish to NPM
+        if: github.event.inputs.dry_run != 'true' && steps.check_version.outputs.exists == 'false'
+        working-directory: ${{ matrix.package }}
+        run: |
+          echo "📦 Publishing to NPM..."
+          npm publish
+
+      - name: Skip publishing (version exists)
+        if: steps.check_version.outputs.exists == 'true'
+        run: |
+          echo "Skipping publish - version ${{ steps.package_info.outputs.version }} already exists on NPM"
+
+      - name: Create Git Tag
+        if: github.event.inputs.dry_run != 'true' && steps.check_version.outputs.exists == 'false'
+        run: |
+          PACKAGE_NAME="${{ steps.package_info.outputs.name }}"
+          PACKAGE_VERSION="${{ steps.package_info.outputs.version }}"
+          TAG_NAME="${PACKAGE_NAME}@${PACKAGE_VERSION}"
+
+          # Check if tag exists
+          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Tag $TAG_NAME already exists"
+          else
+            git config --global user.name 'github-actions[bot]'
+            git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+            git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
+            git push origin "$TAG_NAME" || echo "Could not push tag"
+          fi
+
+  summary:
+    needs: publish
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish Summary
+        run: |
+          echo "## 📦 NPM Publish Summary" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.publish.result }}" == "success" ]; then
+            echo "✅ All packages processed successfully!" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.publish.result }}" == "skipped" ]; then
+            echo "⏭️ No packages to publish (no version changes detected)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Some packages failed to publish" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
