@@ -20,6 +20,7 @@ export interface CreateRoomOptions {
 export interface RoomSlice {
   rooms: Room[]
   dmRooms: Room[]
+  generatedRooms: Room[]
   roomsLoading: boolean
   roomsObserver: StoreObserver | null
   roomsSubscription: SyncSubscription | null
@@ -166,6 +167,7 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
   const store: RoomSlice = {
     rooms: [],
     dmRooms: [],
+    generatedRooms: [],
     roomsLoading: true,
     roomsObserver: null,
     roomsSubscription: null,
@@ -281,9 +283,9 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
      * @param name - Display name for the room
      * @returns Promise resolving to the created Room object
      */
-    createGeneratedRoom(id: string, name: string) {
+    async createGeneratedRoom(id: string, name: string) {
       const currentUser = _get().currentUser
-      return createRoomBase({
+      const newRoom = await createRoomBase({
         ditto,
         currentUserId: currentUser?._id || userId,
         name,
@@ -292,6 +294,23 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
         isGenerated: true,
         id,
       })
+
+      if (newRoom) {
+        _set((state: ChatStore) => {
+          const exists = state.generatedRooms.some(
+            (r) => r._id === newRoom._id,
+          )
+          if (exists) {
+            return state
+          }
+          return {
+            ...state,
+            generatedRooms: [...state.generatedRooms, newRoom],
+          }
+        })
+      }
+
+      return newRoom
     },
 
     /**
@@ -308,7 +327,7 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
   }
 
   if (ditto) {
-    const roomsQuery = `SELECT * from rooms`
+    const roomsQuery = `SELECT * from rooms WHERE isGenerated = false OR isGenerated IS NULL`
     const dmRoomsQuery = `SELECT * from dm_rooms where (array_contains(participants, :userId))`
     store.roomsSubscription = ditto.sync.registerSubscription(roomsQuery)
     store.dmRoomsSubscription = ditto.sync.registerSubscription(dmRoomsQuery, {

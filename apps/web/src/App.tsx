@@ -15,8 +15,6 @@ import { useDittoChat } from '@dittolive/ditto-chat-core'
 
 type ViewMode = 'chat' | 'activities'
 
-// Helper component to initialize store without triggering parent re-renders
-// Helper component to initialize store without triggering parent re-renders
 const StoreInitializer = ({
   ditto,
   userId,

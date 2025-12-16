@@ -114,6 +114,47 @@ export default ChatApp;
 
 **Note:** The `dittoInstance`, `currentUserId`, and `userCollectionKey` should be provided from your application's context or configuration. You will need to replace `null` with a properly initialized Ditto instance.
 
+## Comment Rooms (Generated Rooms)
+
+DittoChatCore supports "Generated Rooms" which behave differently from standard chat rooms:
+1.  They are **excluded** from the main room list found in `state.rooms`.
+2.  They are stored separately in `state.generatedRooms`.
+3.  They must be subscribed to explicitly.
+
+### Creating a Comment Room
+
+Use `createGeneratedRoom` to create a room that won't pollute the main chat list:
+
+```typescript
+const { createGeneratedRoom } = useDittoChatStore(state => state)
+
+const handleOpenComments = async (entityId: string) => {
+  // Creates a room with ID `comments-${entityId}` if it doesn't exist
+  // and adds it to state.generatedRooms
+  await createGeneratedRoom(`comments-${entityId}`, 'Comments Thread')
+}
+```
+
+### Subscribing to Messages
+
+For generated rooms, you often want to subscribe to messages only when viewing that specific thread. Use the `subscribeToRoomMessages` helper:
+
+```typescript
+const { subscribeToRoomMessages, unsubscribeFromRoomMessages } = useDittoChatStore(state => state)
+
+useEffect(() => {
+  if (isCommentsOpen) {
+    // Subscribe to messages for this specific room
+    subscribeToRoomMessages(commentRoomId, 'messages')
+  }
+
+  return () => {
+    // Clean up subscription when closing/unmounting
+    unsubscribeFromRoomMessages(commentRoomId)
+  }
+}, [isCommentsOpen, commentRoomId])
+```
+
 ## Role-Based Access Control (RBAC)
 
 DittoChatCore includes a built-in RBAC system that allows you to control user permissions for various chat actions. By default, all permissions are enabled.

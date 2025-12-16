@@ -186,7 +186,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
         const preview = message.text
           ? message.text.substring(0, 30) +
-            (message.text.length > 30 ? '...' : '')
+          (message.text.length > 30 ? '...' : '')
           : 'Sent an attachment'
 
         notificationHandler(title, preview)

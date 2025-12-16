@@ -75,8 +75,8 @@ function ChatView({
   const toggleRoomSubscription = useDittoChatStore(
     (state) =>
       state.toggleRoomSubscription as
-        | ((roomId: string) => Promise<void>)
-        | undefined,
+      | ((roomId: string) => Promise<void>)
+      | undefined,
   )
   const markRoomAsRead = useDittoChatStore((state) => state.markRoomAsRead)
 
@@ -89,7 +89,12 @@ function ChatView({
   )
 
   const rooms = useDittoChatStore((state) => state.rooms || EMPTY_ROOMS)
-  const room = rooms.find((room) => room._id === effectiveRoomId)
+  const generatedRooms = useDittoChatStore(
+    (state) => state.generatedRooms || EMPTY_ROOMS,
+  )
+  const room =
+    rooms.find((room) => room._id === effectiveRoomId) ||
+    generatedRooms.find((room) => room._id === effectiveRoomId)
 
   // Dynamic subscription lifecycle for generated rooms
   // When roomId is explicitly provided, we subscribe on mount and unsubscribe on unmount
@@ -97,23 +102,16 @@ function ChatView({
     if (roomId) {
       // Capture roomId in closure to ensure cleanup has correct value
       const currentRoomId = roomId
-      console.log(`[ChatView] Subscribing to room messages: ${currentRoomId}`)
       subscribeToRoomMessages(currentRoomId, messagesId).catch((err) => {
         console.error(`[ChatView] Error subscribing to ${currentRoomId}:`, err)
       })
 
       return () => {
-        console.log(
-          `[ChatView] CLEANUP: Unsubscribing from room messages: ${currentRoomId}`,
-        )
         try {
           unsubscribeFromRoomMessages(currentRoomId)
-          console.log(
-            `[ChatView] CLEANUP: Successfully unsubscribed from ${currentRoomId}`,
-          )
         } catch (err) {
           console.error(
-            `[ChatView] CLEANUP: Error unsubscribing from ${currentRoomId}:`,
+            `[ChatView] Error unsubscribing from ${currentRoomId}:`,
             err,
           )
         }
