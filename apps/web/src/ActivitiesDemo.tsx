@@ -172,7 +172,6 @@ export default function ActivitiesDemo() {
           <li>Each activity has a generated room (comment room)</li>
           <li>Messages are subscribed when you view an activity</li>
           <li>When you go back, the subscription is cleaned up</li>
-          <li>This scales well with hundreds of activities</li>
         </ul>
       </div>
     </div>

@@ -297,9 +297,7 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
 
       if (newRoom) {
         _set((state: ChatStore) => {
-          const exists = state.generatedRooms.some(
-            (r) => r._id === newRoom._id,
-          )
+          const exists = state.generatedRooms.some((r) => r._id === newRoom._id)
           if (exists) {
             return state
           }

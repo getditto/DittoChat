@@ -120,6 +120,7 @@ export default ChatApp;
 ## Comment Rooms (Generated Rooms)
 
 DittoChatCore supports "Generated Rooms" which behave differently from standard chat rooms:
+
 1.  They are **excluded** from the main room list found in `state.rooms`.
 2.  They are stored separately in `state.generatedRooms`.
 3.  They must be subscribed to explicitly.
@@ -129,7 +130,7 @@ DittoChatCore supports "Generated Rooms" which behave differently from standard 
 Use `createGeneratedRoom` to create a room that won't pollute the main chat list:
 
 ```typescript
-const { createGeneratedRoom } = useDittoChatStore(state => state)
+const { createGeneratedRoom } = useDittoChatStore((state) => state)
 
 const handleOpenComments = async (entityId: string) => {
   // Creates a room with ID `comments-${entityId}` if it doesn't exist
@@ -143,7 +144,8 @@ const handleOpenComments = async (entityId: string) => {
 For generated rooms, you often want to subscribe to messages only when viewing that specific thread. Use the `subscribeToRoomMessages` helper:
 
 ```typescript
-const { subscribeToRoomMessages, unsubscribeFromRoomMessages } = useDittoChatStore(state => state)
+const { subscribeToRoomMessages, unsubscribeFromRoomMessages } =
+  useDittoChatStore((state) => state)
 
 useEffect(() => {
   if (isCommentsOpen) {
