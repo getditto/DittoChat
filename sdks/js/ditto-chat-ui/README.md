@@ -108,7 +108,7 @@ To render a specific comment thread (generated room) separately from the main ch
 import { ChatView } from '@dittolive/ditto-chat-ui'
 
 // ...
-;<ChatView
+<ChatView
   roomId={commentRoomId} // ID of the generated room (e.g., "comments-doc-123")
   messagesId="messages" // Collection ID to store messages
   onBack={() => console.log('Back clicked')} // Optional back button handler
