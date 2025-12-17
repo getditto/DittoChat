@@ -339,12 +339,6 @@ function ChatComponent() {
 }
 ```
 
-### Detailed Documentation
-
-For complete details about the singleton pattern implementation, troubleshooting, and advanced usage, see:
-
-📖 **[SINGLETON_STORE_PATTERN.md](./SINGLETON_STORE_PATTERN.md)**
-
 ## Architecture & Performance
 
 ### Optimistic UI Updates
