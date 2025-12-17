@@ -5,7 +5,6 @@
 ## Table of Contents
 
 - [Installation](#installation)
-- [Peer Dependencies](#peer-dependencies)
 - [Usage](#usage)
 - [Comment Rooms (Generated Rooms)](#comment-rooms-generated-rooms)
   - [Creating a Comment Room](#creating-a-comment-room)
@@ -42,21 +41,12 @@ npm install @dittolive/ditto-chat-core
 yarn add @dittolive/ditto-chat-core
 ```
 
-## Peer Dependencies
-
-This library requires the following peer dependencies:
-
-- `@dittolive/ditto`: `^4.12.3`
-- `react`: `^18 || ^19`
-
-Make sure you have these installed in your project.
-
 ## Usage
 
 Here's a basic example of how to use `@dittolive/ditto-chat-core` in your React application:
 
 ```typescript
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Ditto } from '@dittolive/ditto';
 import { useDittoChat, useDittoChatStore } from '@dittolive/ditto-chat-core';
 
@@ -66,24 +56,28 @@ const currentUserId = 'your-user-id';
 const userCollectionKey = 'your-user-collection-key';
 
 function ChatApp() {
-  // 1. Initialize the chat store with your Ditto instance and user details
-  const { rooms, activeRoomId, setActiveRoomId } = useDittoChat({
+  // 1. Initialize the chat store with useDittoChat
+  useDittoChat({
     ditto: dittoInstance,
     userId: currentUserId,
     userCollectionKey: userCollectionKey,
   });
 
-  // 2. Access parts of the store using useDittoChatStore
-  const messages = useDittoChatStore(state => state.messages);
-  const sendMessage = useDittoChatStore(state => state.sendMessage);
+  // 2. Access parts of the store using useDittoChatStore selectors
+  const rooms = useDittoChatStore(state => state.rooms);
+  const activeRoomId = useDittoChatStore(state => state.activeRoomId);
+  const setActiveRoomId = useDittoChatStore(state => state.setActiveRoomId);
+  const messagesByRoom = useDittoChatStore(state => state.messagesByRoom);
+  const createMessage = useDittoChatStore(state => state.createMessage);
+
+  // 3. Derived state
+  const activeRoom = rooms.find(r => r._id === activeRoomId);
+  const messages = activeRoomId ? (messagesByRoom[activeRoomId] || []) : [];
 
   // Example usage:
   const handleSendMessage = (text: string) => {
-    if (activeRoomId) {
-      sendMessage(activeRoomId, {
-        text: text,
-        // other message properties
-      });
+    if (activeRoom) {
+      createMessage(activeRoom, text);
     }
   };
 
@@ -94,16 +88,20 @@ function ChatApp() {
       <h2>Rooms:</h2>
       <ul>
         {rooms.map(room => (
-          <li key={room._id} onClick={() => setActiveRoomId(room._id)}>
-            {room.name} {room._id === activeRoomId ? '(Active)' : ''}
+          <li
+            key={room._id}
+            onClick={() => setActiveRoomId(room._id)}
+            style={{ fontWeight: room._id === activeRoomId ? 'bold' : 'normal' }}
+          >
+            {room.name}
           </li>
         ))}
       </ul>
       <h2>Messages in Active Room:</h2>
       <ul>
-        {messages.filter(msg => msg.roomId === activeRoomId).map(msg => (
-          <li key={msg._id}>
-            <strong>{msg.senderId}:</strong> {msg.text}
+        {messages.map(wrapper => (
+          <li key={wrapper.id}>
+            <strong>{wrapper.user?.name || wrapper.message.userId}:</strong> {wrapper.message.text}
           </li>
         ))}
       </ul>
@@ -339,24 +337,6 @@ function ChatComponent() {
   const messages = useDittoChatStore((state) => state.messagesByRoom)
   // All components see the same state
 }
-```
-
-### Ensuring Single Zustand Installation
-
-To prevent multiple copies of Zustand, add this to your **main application's** `package.json`:
-
-```json
-{
-  "overrides": {
-    "zustand": "^5.0.8"
-  }
-}
-```
-
-Then verify with:
-
-```bash
-npm ls zustand
 ```
 
 ### Detailed Documentation

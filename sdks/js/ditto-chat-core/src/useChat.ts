@@ -40,13 +40,12 @@ declare global {
   var __DITTO_CHAT_STORE__: StoreApi<ChatStore> | undefined
 }
 
-function cancelSubscriptionOrObserver(
+export function cancelSubscriptionOrObserver(
   subscription: SyncSubscription | StoreObserver | null,
 ) {
   if (
     subscription &&
-    !subscription.isCancelled &&
-    typeof subscription.cancel === 'function'
+    !subscription.isCancelled
   ) {
     subscription.cancel()
   }

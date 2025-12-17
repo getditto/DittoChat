@@ -96,6 +96,12 @@ function ChatView({
     rooms.find((room) => room._id === effectiveRoomId) ||
     generatedRooms.find((room) => room._id === effectiveRoomId)
 
+  const isSubscribed =
+    currentUser?.subscriptions &&
+    room &&
+    room._id in currentUser.subscriptions &&
+    currentUser.subscriptions[room._id] !== null
+
   // Dynamic subscription lifecycle for generated rooms
   // When roomId is explicitly provided, we subscribe on mount and unsubscribe on unmount
   useEffect(() => {
@@ -265,25 +271,17 @@ function ChatView({
                 }}
                 className="ml-auto flex items-center space-x-2 px-3 py-1.5 rounded-full bg-(--secondary-bg) hover:bg-(--secondary-bg-hover) text-(--text-color-lighter) font-medium"
               >
-                {(() => {
-                  const hasKey =
-                    currentUser?.subscriptions &&
-                    room._id in currentUser.subscriptions
-                  const subValue = currentUser?.subscriptions?.[room._id]
-                  const isSubscribed = hasKey && subValue !== null
-
-                  return isSubscribed ? (
-                    <>
-                      <Icons.x className="w-5 h-5" />
-                      <span>Unsubscribe</span>
-                    </>
-                  ) : (
-                    <>
-                      <Icons.plus className="w-5 h-5" />
-                      <span>Subscribe</span>
-                    </>
-                  )
-                })()}
+                {isSubscribed ? (
+                  <>
+                    <Icons.x className="w-5 h-5" />
+                    <span>Unsubscribe</span>
+                  </>
+                ) : (
+                  <>
+                    <Icons.plus className="w-5 h-5" />
+                    <span>Subscribe</span>
+                  </>
+                )}
               </button>
             )}
         </header>
