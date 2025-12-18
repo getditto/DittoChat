@@ -77,3 +77,23 @@ npm install @dittolive/ditto-chat-ui
 # or
 yarn add @dittolive/ditto-chat-ui
 ```
+
+## Publishing
+
+This monorepo uses [Changesets](https://github.com/changesets/changesets) for version management and publishing.
+
+### For Contributors
+
+When making changes to the packages, please create a changeset to document your changes:
+
+```bash
+npm run changeset
+```
+
+This will prompt you to select which packages are affected and describe your changes.
+
+### Release Process
+
+Releases are automated via GitHub Actions:
+1. When changesets are merged to `main`, a "Version Packages" PR is automatically created
+2. Merging the "Version Packages" PR publishes the packages to NPM

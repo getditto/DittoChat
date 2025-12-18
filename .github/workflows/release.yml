@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (test without publishing)'
+        required: false
+        type: boolean
+        default: false
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Tests
+        run: npm run test
+
+      - name: Run Linting
+        run: npm run lint
+
+      - name: Build Packages
+        run: npm run build
+
+      - name: Publish Dry Run
+        if: github.event.inputs.dry_run == 'true'
+        run: |
+          echo "🔍 DRY RUN MODE - No packages will be published"
+          echo "The following packages would be published:"
+          npm run release --dry-run || true
+
+      - name: Create Release Pull Request or Publish to NPM
+        if: github.event.inputs.dry_run != 'true'
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          publish: npm run release
+          version: npm run version-packages
+          commit: 'chore: version packages'
+          title: 'chore: version packages'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Summary
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          echo "## 📦 Published Packages" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r '.[] | "- **\(.name)@\(.version)**"' >> $GITHUB_STEP_SUMMARY

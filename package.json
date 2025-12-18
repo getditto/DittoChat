@@ -18,9 +18,13 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css,html}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css,html}\"",
-    "clean": "npm run clean --workspaces --if-present && rm -rf node_modules"
+    "clean": "npm run clean --workspaces --if-present && rm -rf node_modules",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "changeset publish"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.29.8",
     "prettier": "^3.7.4"
   },
   "keywords": [
