@@ -44,6 +44,11 @@ jobs:
       - name: Run Tests
         run: npm run test
 
+        # This is requried to run before lint check in the ditto-chat-ui package
+        # else lint will fail due to missing types from ditto-chat-core dist
+      - name: Build Ditto Chat Core
+        run: npm run build --workspace=sdks/js/ditto-chat-core
+
       - name: Run Linting
         run: npm run lint
 
