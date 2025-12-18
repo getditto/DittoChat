@@ -1,0 +1,175 @@
+@import "@fontsource/outfit/400.css";
+@import "@fontsource/outfit/500.css";
+@import "@fontsource/outfit/600.css";
+@import "@fontsource/outfit/700.css";
+
+@import "tailwindcss";
+@import "../../sdks/js/ditto-chat-ui/dist/ditto-chat-ui.css";
+@config "../tailwind.config.ts";
+
+
+
+/* Activities Menu Design System */
+
+@layer base {
+  :root {
+    --background: 30 40% 98%;
+    --foreground: 20 20% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 20 20% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 20% 15%;
+
+    --primary: 16 85% 58%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 35 100% 95%;
+    --secondary-foreground: 16 85% 40%;
+
+    --muted: 30 20% 94%;
+    --muted-foreground: 20 10% 45%;
+
+    --accent: 173 58% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 30 20% 90%;
+    --input: 30 20% 90%;
+    --ring: 16 85% 58%;
+
+    --radius: 1rem;
+
+    /* Custom colors */
+    --coral: 16 85% 58%;
+    --coral-light: 16 85% 70%;
+    --coral-dark: 16 85% 45%;
+    --teal: 173 58% 45%;
+    --teal-light: 173 58% 60%;
+    --gold: 42 90% 55%;
+    --lavender: 260 60% 65%;
+
+    /* Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(16 85% 58%) 0%, hsl(35 100% 60%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(30 40% 98%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(173 58% 45%) 0%, hsl(173 58% 60%) 100%);
+
+    /* Shadows */
+    --shadow-sm: 0 2px 8px -2px hsl(20 20% 15% / 0.08);
+    --shadow-md: 0 8px 24px -8px hsl(20 20% 15% / 0.12);
+    --shadow-lg: 0 16px 48px -16px hsl(20 20% 15% / 0.16);
+    --shadow-glow: 0 0 40px hsl(16 85% 58% / 0.25);
+
+    /* Fonts */
+    --font-display: "Outfit", sans-serif;
+    --font-body: "Outfit", sans-serif;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 20 15% 10%;
+    --foreground: 30 20% 95%;
+
+    --card: 20 15% 14%;
+    --card-foreground: 30 20% 95%;
+
+    --popover: 20 15% 14%;
+    --popover-foreground: 30 20% 95%;
+
+    --primary: 16 85% 58%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 20 15% 18%;
+    --secondary-foreground: 30 20% 90%;
+
+    --muted: 20 15% 20%;
+    --muted-foreground: 30 10% 60%;
+
+    --accent: 173 58% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62% 40%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 20 15% 20%;
+    --input: 20 15% 20%;
+    --ring: 16 85% 58%;
+
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+    font-family: var(--font-body);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer utilities {
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .gradient-card {
+    background: var(--gradient-card);
+  }
+
+  .gradient-accent {
+    background: var(--gradient-accent);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-md);
+  }
+
+  .shadow-card-hover {
+    box-shadow: var(--shadow-lg);
+  }
+
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .text-gradient {
+    background: var(--gradient-hero);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}

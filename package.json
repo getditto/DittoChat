@@ -6,7 +6,8 @@
   "workspaces": [
     "sdks/js/ditto-chat-core",
     "sdks/js/ditto-chat-ui",
-    "apps/web"
+    "apps/web",
+    "forge"
   ],
   "scripts": {
     "dev": "npm run dev -w dittochatdemo",

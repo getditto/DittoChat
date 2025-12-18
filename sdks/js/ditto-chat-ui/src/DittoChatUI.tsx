@@ -1,4 +1,3 @@
-import './index.css'
 
 import {
   type ChatUser,
@@ -45,10 +44,10 @@ export default function DittoChatUI({
     notificationHandler: notificationHandler
       ? notificationHandler
       : (title, description) => {
-          toast.info(title, {
-            description,
-          })
-        },
+        toast.info(title, {
+          description,
+        })
+      },
   })
 
   const [chats, setChats] = useState<Chat[]>([])
@@ -262,9 +261,8 @@ export default function DittoChatUI({
         <div className="flex h-screen bg-(--surface-color) font-sans text-(--text-color) overflow-hidden">
           {/* Chat List */}
           <aside
-            className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--border-color) flex flex-col ${
-              activeScreen !== 'list' && 'hidden'
-            } md:flex`}
+            className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--border-color) flex flex-col ${activeScreen !== 'list' && 'hidden'
+              } md:flex`}
           >
             {loading ? (
               <ChatListSkeleton />
@@ -280,9 +278,8 @@ export default function DittoChatUI({
 
           {/* Main Content Area */}
           <main
-            className={`w-full flex-1 flex-col ${
-              activeScreen === 'list' && 'hidden'
-            } md:flex`}
+            className={`w-full flex-1 flex-col ${activeScreen === 'list' && 'hidden'
+              } md:flex`}
           >
             {activeScreen === 'chat' && selectedChat && (
               <ChatView
