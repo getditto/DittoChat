@@ -223,7 +223,7 @@ describe('ChatListItem', () => {
       <ChatListItem {...defaultProps} isSelected={true} />,
     )
     const button = container.querySelector('button')
-    expect(button?.className).toContain('bg-(--primary-color-light)')
+    expect(button?.className).toContain('bg-(--dc-primary-color-light)')
     expect(button?.className).toContain('rounded-xl')
   })
 

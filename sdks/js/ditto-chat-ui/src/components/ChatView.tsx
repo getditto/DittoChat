@@ -239,10 +239,10 @@ function ChatView({
     <div className="flex flex-col h-full">
       {/* Hide header for generated/comment rooms (when roomId is explicitly provided) */}
       {!roomId && (
-        <header className="flex items-center px-4 min-h-12 border-b border-(--border-color) flex-shrink-0">
+        <header className="flex items-center px-4 min-h-12 border-b border-(--dc-border-color) flex-shrink-0">
           <button
             onClick={onBack}
-            className="md:hidden mr-4 text-(--text-color-lighter)"
+            className="md:hidden mr-4 text-(--dc-text-color-lighter)"
           >
             <Icons.arrowLeft className="w-6 h-6" />
           </button>
@@ -253,7 +253,7 @@ function ChatView({
                 imageUrl={avatarUrl || undefined}
               />
               {otherUserIsActive && (
-                <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-(--active-status-bg) border-2 border-white"></span>
+                <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-(--dc-active-status-bg) border-2 border-white"></span>
               )}
             </div>
             <h2 className="text-xl font-semibold">{chatName}</h2>
@@ -269,7 +269,7 @@ function ChatView({
                     toggleRoomSubscription(room._id).catch(console.error)
                   }
                 }}
-                className="ml-auto flex items-center space-x-2 px-3 py-1.5 rounded-full bg-(--secondary-bg) hover:bg-(--secondary-bg-hover) text-(--text-color-lighter) font-medium"
+                className="ml-auto flex items-center space-x-2 px-3 py-1.5 rounded-full bg-(--dc-secondary-bg) hover:bg-(--dc-secondary-bg-hover) text-(--dc-text-color-lighter) font-medium"
               >
                 {isSubscribed ? (
                   <>

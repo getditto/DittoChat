@@ -104,8 +104,8 @@ function ChatList({
   })
 
   return (
-    <div className="flex flex-col h-full bg-(--surface-color)">
-      <header className="pl-4 pr-4 border-b min-h-12 flex items-center border-(--border-color)">
+    <div className="flex flex-col h-full bg-(--dc-surface-color)">
+      <header className="pl-4 pr-4 border-b min-h-12 flex items-center border-(--dc-border-color)">
         <h1 className="text-xl font-semibold">Chats</h1>
       </header>
       <div className="p-4 space-y-4">
@@ -113,7 +113,7 @@ function ChatList({
           <div className="flex w-full rounded-lg shadow-sm">
             <button
               onClick={() => onNewMessage('newMessage')}
-              className={`w-full bg-(--primary-color) text-(--text-on-primary) font-semibold py-3 ${canCreateRoom ? 'rounded-l-xl' : 'rounded-xl'} hover:bg-(--primary-color-hover) transition-colors`}
+              className={`w-full bg-(--dc-primary-color) text-(--dc-text-on-primary) font-semibold py-3 ${canCreateRoom ? 'rounded-l-xl' : 'rounded-xl'} hover:bg-(--dc-primary-color-hover) transition-colors`}
             >
               New Message
             </button>
@@ -122,7 +122,7 @@ function ChatList({
                 onClick={() => setIsDropdownOpen((prev) => !prev)}
                 aria-haspopup="true"
                 aria-expanded={isDropdownOpen}
-                className="relative inline-flex items-center px-3 py-3 bg-(--primary-color) rounded-r-xl text-(--text-on-primary) hover:bg-(--primary-color-hover) focus:z-10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-(--primary-color-focus) border-l border-white/20 transition-colors"
+                className="relative inline-flex items-center px-3 py-3 bg-(--dc-primary-color) rounded-r-xl text-(--dc-text-on-primary) hover:bg-(--dc-primary-color-hover) focus:z-10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-(--dc-primary-color-focus) border-l border-white/20 transition-colors"
               >
                 <span className="sr-only">Open options</span>
                 <Icons.chevronDown className="h-5 w-5" aria-hidden="true" />
@@ -130,7 +130,7 @@ function ChatList({
             )}
           </div>
           {isDropdownOpen && (
-            <div className="origin-top absolute mt-2 w-full rounded-md shadow-lg bg-(--surface-color) ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+            <div className="origin-top absolute mt-2 w-full rounded-md shadow-lg bg-(--dc-surface-color) ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
               <div
                 className="py-1"
                 role="menu"
@@ -142,7 +142,7 @@ function ChatList({
                     onNewMessage('newRoom')
                     setIsDropdownOpen(false)
                   }}
-                  className="block w-full text-left px-4 py-2 text-sm text-[rgb(var(--text-color-medium))] hover:bg-[rgb(var(--secondary-bg))]"
+                  className="block w-full text-left px-4 py-2 text-sm text-[rgb(var(--dc-text-color-medium))] hover:bg-[rgb(var(--dc-secondary-bg))]"
                   role="menuitem"
                 >
                   New Room
@@ -153,13 +153,13 @@ function ChatList({
         </div>
 
         <div className="relative">
-          <Icons.search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-(--text-color-faint)" />
+          <Icons.search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-(--dc-text-color-faint)" />
           <input
             type="text"
             placeholder="Search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-(--secondary-bg) border border-(--border-color) rounded-3xl pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--primary-color-focus)"
+            className="w-full bg-(--dc-secondary-bg) border border-(--dc-border-color) rounded-3xl pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--dc-primary-color-focus)"
           />
         </div>
       </div>

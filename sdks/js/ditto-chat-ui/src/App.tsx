@@ -1,5 +1,5 @@
-import '../styles/tailwind.css'
-import '../styles/ditto-chat-ui.css'
+import './styles/tailwind.css'
+import './styles/ditto-chat-ui.css'
 import { Ditto } from '@dittolive/ditto'
 import {
   DittoProvider,

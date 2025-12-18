@@ -236,19 +236,30 @@ export default function DittoChatUI({
     }
   }, [chats, newlyCreatedRoom])
 
+  function updateVisibleHeight(el: HTMLElement) {
+    const rect = el.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+
+    const visibleHeight = Math.max(0, viewportHeight - rect.top);
+
+    el.style.setProperty("--visible-chat-container-vh", `${visibleHeight}px`);
+  }
+
   // On desktop, default to selecting the first chat
   useEffect(
     () => {
       if (window.innerWidth >= 768 && !selectedChat) {
         setActiveScreen('chat')
       }
+      updateVisibleHeight(document.querySelector('.web-chat-root') as HTMLElement)
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   )
 
+
   return (
-    <div className="web-chat-root">
+    <div className="web-chat-root web-height">
       <div className={themeName}>
         <Toaster
           position="top-right"
@@ -258,10 +269,10 @@ export default function DittoChatUI({
             duration: 3000,
           }}
         />
-        <div className="flex h-screen bg-(--surface-color) font-sans text-(--text-color) overflow-hidden">
+        <div className="flex max-h-full web-height bg-(--dc-surface-color) font-sans text-(--dc-text-color) overflow-hidden">
           {/* Chat List */}
           <aside
-            className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--border-color) flex flex-col ${activeScreen !== 'list' && 'hidden'
+            className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--dc-border-color) flex flex-col ${activeScreen !== 'list' && 'hidden'
               } md:flex`}
           >
             {loading ? (
@@ -302,8 +313,8 @@ export default function DittoChatUI({
             )}
             {!selectedChat &&
               (activeScreen === 'list' || activeScreen === 'chat') && (
-                <div className="hidden md:flex flex-col items-center justify-center h-full bg-(--surface-color-light) text-(--text-color-lightest)">
-                  <Icons.messageCircle className="w-24 h-24 text-(--text-color-disabled) mb-4" />
+                <div className="hidden md:flex flex-col items-center justify-center h-full bg-(--dc-surface-color-light) text-(--dc-text-color-lightest)">
+                  <Icons.messageCircle className="w-24 h-24 text-(--dc-text-color-disabled) mb-4" />
                   <p className="text-lg font-medium">Select a conversation</p>
                   <p className="text-sm">or start a new message</p>
                 </div>

@@ -18,10 +18,15 @@ export default defineConfig({
     }),
   ],
   build: {
+    cssCodeSplit: true,
     lib: {
-      entry: resolve(__dirname, 'src/index.tsx'),
+      entry: {
+        index: resolve(__dirname, 'src/index.tsx'),
+        tailwind: resolve(__dirname, 'src/styles/tailwind.css'),
+        'ditto-chat-ui': resolve(__dirname, 'src/styles/ditto-chat-ui.css'),
+      },
       name: 'DittoChatUI',
-      fileName: (format) => `index.${format}.js`,
+      fileName: (format, entryName) => `${entryName}.${format}.js`,
     },
     rollupOptions: {
       external: ['react', 'react-dom'],

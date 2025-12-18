@@ -12,12 +12,12 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.es.js"
     },
-    "./styles/ditto-chat-ui.css": "./styles/ditto-chat-ui.css",
-    "./styles/tailwind.css": "./styles/tailwind.css"
+    "./styles/ditto-chat-ui.css": "./dist/ditto-chat-ui.css",
+    "./styles/tailwind.css": "./dist/tailwind.css"
   },
   "files": [
     "dist",
-    "styles"
+    "src/styles"
   ],
   "author": "Ditto",
   "license": "MIT",
@@ -30,6 +30,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "clean": "rm -rf dist",
     "preview": "vite preview",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
