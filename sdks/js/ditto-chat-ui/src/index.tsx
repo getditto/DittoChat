@@ -1,4 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
+import '../styles/tailwind.css'
+import '../styles/ditto-chat-ui.css'
 import DittoChatUI from './DittoChatUI'
 
 export type {
