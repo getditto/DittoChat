@@ -1,20 +1,9 @@
 name: Release
 
 on:
-  pull_request:
-    branches: [main]
   push:
     branches:
       - main
-  workflow_dispatch:
-    inputs:
-      dry_run:
-        description: 'Dry run (test without publishing)'
-        required: false
-        type: boolean
-        default: false
-
-concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 permissions:
   contents: write
@@ -55,15 +44,7 @@ jobs:
       - name: Build Packages
         run: npm run build
 
-      - name: Publish Dry Run
-        if: github.event.inputs.dry_run == 'true'
-        run: |
-          echo "🔍 DRY RUN MODE - No packages will be published"
-          echo "The following packages would be published:"
-          npm run release --dry-run || true
-
       - name: Create Release Pull Request or Publish to NPM
-        if: github.event.inputs.dry_run != 'true'
         id: changesets
         uses: changesets/action@v1
         with:
