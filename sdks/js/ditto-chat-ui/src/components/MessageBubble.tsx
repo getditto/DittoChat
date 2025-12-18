@@ -74,7 +74,7 @@ function FormattedMessage({
       <span
         key={`mention-${index}`}
         className={`font-semibold ${
-          isOwn ? 'text-(--mention-text-on-primary)' : 'text-(--mention-text)'
+          isOwn ? 'text-(--dc-mention-text-on-primary)' : 'text-(--dc-mention-text)'
         }`}
       >
         {text.slice(mention.startIndex, mention.endIndex)}
@@ -224,8 +224,8 @@ function MessageBubble({
 
   const senderName = isOwnMessage ? 'You' : sender?.name || 'Unknown User'
   const bubbleClasses = isOwnMessage
-    ? 'bg-(--primary-color) text-(--text-on-primary) rounded-tr-none'
-    : 'bg-(--secondary-bg) text-(--text-color-medium) rounded-tl-none'
+    ? 'bg-(--dc-primary-color) text-(--dc-text-on-primary) rounded-tr-none'
+    : 'bg-(--dc-secondary-bg) text-(--dc-text-color-medium) rounded-tl-none'
 
   const alignmentClass = isOwnMessage ? 'items-end' : 'items-start'
 
@@ -246,7 +246,7 @@ function MessageBubble({
     >
       {showSenderInfo && (
         <div
-          className={`flex items-baseline text-xs text-(--text-color-lightest) mb-1 ${
+          className={`flex items-baseline text-xs text-(--dc-text-color-lightest) mb-1 ${
             isOwnMessage ? 'justify-end' : ''
           }`}
         >
@@ -256,7 +256,7 @@ function MessageBubble({
           <span className="mr-1 text-sm">&#183;</span>
           <span>{formatDate(message.createdOn)}</span>
           {message.isEdited && !message.isDeleted && (
-            <span className="text-(--text-color-faint) text-xs ml-1">
+            <span className="text-(--dc-text-color-faint) text-xs ml-1">
               (edited)
             </span>
           )}
@@ -276,13 +276,13 @@ function MessageBubble({
           {hasImage && !message.isDeleted && (
             <div className={`relative ${hasText ? 'mb-1' : ''}`}>
               {message.isDeleted ? (
-                <div className="flex items-center justify-center w-48 h-48 rounded-xl bg-[rgb(var(--secondary-bg-hover))]">
-                  <span className="italic text-(--text-color-faint)">
+                <div className="flex items-center justify-center w-48 h-48 rounded-xl bg-[rgb(var(--dc-secondary-bg-hover))]">
+                  <span className="italic text-(--dc-text-color-faint)">
                     [deleted image]
                   </span>
                 </div>
               ) : imageError ? (
-                <div className="flex items-center justify-center w-48 h-48 rounded-xl bg-[rgb(var(--secondary-bg-hover))] text-[rgb(var(--text-color-light))]">
+                <div className="flex items-center justify-center w-48 h-48 rounded-xl bg-[rgb(var(--dc-secondary-bg-hover))] text-[rgb(var(--dc-text-color-light))]">
                   <span>{imageError}</span>
                 </div>
               ) : thumbnailUrl ? (
@@ -306,12 +306,12 @@ function MessageBubble({
                   )}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center w-48 h-48 rounded-xl bg-[rgb(var(--secondary-bg-hover))]">
-                  <div className="text-[rgb(var(--text-color-light))] text-sm">
+                <div className="flex flex-col items-center justify-center w-48 h-48 rounded-xl bg-[rgb(var(--dc-secondary-bg-hover))]">
+                  <div className="text-[rgb(var(--dc-text-color-light))] text-sm">
                     {isLoadingThumbnail ? 'Loading…' : 'Preparing image…'}
                   </div>
                   {thumbnailProgress > 0 && (
-                    <div className="text-[rgb(var(--text-color-light))] text-xs mt-1">
+                    <div className="text-[rgb(var(--dc-text-color-light))] text-xs mt-1">
                       {Math.round(thumbnailProgress * 100)}%
                     </div>
                   )}
@@ -325,7 +325,7 @@ function MessageBubble({
               <div
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl ${bubbleClasses} max-w-xs`}
               >
-                <span className="italic text-(--text-color-faint)">
+                <span className="italic text-(--dc-text-color-faint)">
                   [deleted file]
                 </span>
               </div>
@@ -333,7 +333,7 @@ function MessageBubble({
               <div
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl ${bubbleClasses} max-w-xs`}
               >
-                <div className="flex-shrink-0 p-2 bg-(--secondary-bg-hover) rounded-lg">
+                <div className="flex-shrink-0 p-2 bg-(--dc-secondary-bg-hover) rounded-lg">
                   <Icons.fileText className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -366,7 +366,7 @@ function MessageBubble({
                       )
                     }
                   }}
-                  className="p-1.5 hover:bg-(--secondary-bg-hover) rounded-md transition-colors flex-shrink-0"
+                  className="p-1.5 hover:bg-(--dc-secondary-bg-hover) rounded-md transition-colors flex-shrink-0"
                   aria-label="Download file"
                 >
                   <Icons.arrowDown className="w-4 h-4" />
@@ -378,7 +378,7 @@ function MessageBubble({
             <div className={`px-4 py-2 rounded-xl ${bubbleClasses}`}>
               <p className="break-words whitespace-pre-wrap">
                 {message.isDeleted ? (
-                  <span className="italic text-(--text-color-faint)">
+                  <span className="italic text-(--dc-text-color-faint)">
                     [deleted message]
                   </span>
                 ) : (
@@ -402,7 +402,7 @@ function MessageBubble({
                   setIsActionsVisible(false)
                 }}
                 disabled={message.isDeleted || hasImage || hasFile}
-                className="p-1 rounded-full hover:bg-(--secondary-bg-hover) text-(--text-color-lightest) disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-1 rounded-full hover:bg-(--dc-secondary-bg-hover) text-(--dc-text-color-lightest) disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Edit message"
               >
                 <Icons.edit3 className="w-5 h-5" />
@@ -413,13 +413,13 @@ function MessageBubble({
                 <button
                   onClick={() => setIsMenuOpen((p) => !p)}
                   disabled={message.isDeleted}
-                  className="p-1 rounded-full hover:bg-[rgb(var(--secondary-bg-hover))] text-[rgb(var(--text-color-lightest))] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-1 rounded-full hover:bg-[rgb(var(--dc-secondary-bg-hover))] text-[rgb(var(--dc-text-color-lightest))] disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="More options"
                 >
                   <Icons.moreHorizontal className="w-5 h-5" />
                 </button>
                 {isMenuOpen && (
-                  <div className="absolute top-full mt-2 right-0 bg-(--surface-color) rounded-lg shadow-lg border border-(--border-color) w-40 z-10 py-1">
+                  <div className="absolute top-full mt-2 right-0 bg-(--dc-surface-color) rounded-lg shadow-lg border border-(--dc-border-color) w-40 z-10 py-1">
                     {!message.isDeleted &&
                       canEditOwnMessage &&
                       !hasImage &&
@@ -429,7 +429,7 @@ function MessageBubble({
                             onStartEdit(message)
                             setIsMenuOpen(false)
                           }}
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-(--secondary-bg)"
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-(--dc-secondary-bg)"
                         >
                           Edit message
                         </button>
@@ -437,7 +437,7 @@ function MessageBubble({
                     {canDeleteOwnMessage && (
                       <button
                         onClick={handleDelete}
-                        className="w-full text-left px-4 py-2 text-sm text-(--danger-text) hover:bg-(--secondary-bg)"
+                        className="w-full text-left px-4 py-2 text-sm text-(--dc-danger-text) hover:bg-(--dc-secondary-bg)"
                       >
                         Delete message
                       </button>
@@ -468,16 +468,16 @@ function MessageBubble({
               disabled={!canRemoveOwnReaction || !userHasReacted}
               className={`text-xs px-2 py-0.5 rounded-full flex items-center space-x-1 transition-colors ${
                 userHasReacted
-                  ? 'bg-(--primary-color-lighter) border border-(--primary-color-light-border) cursor-pointer'
-                  : 'bg-(--secondary-bg-hover) hover:bg-(--disabled-bg)'
+                  ? 'bg-(--dc-primary-color-lighter) border border-(--dc-primary-color-light-border) cursor-pointer'
+                  : 'bg-(--dc-secondary-bg-hover) hover:bg-(--dc-disabled-bg)'
               } ${!canRemoveOwnReaction && userHasReacted ? 'cursor-not-allowed' : ''}`}
             >
               <span>{reaction.emoji}</span>
               <span
                 className={`font-medium ${
                   userHasReacted
-                    ? 'text-(--primary-color-dark-text)'
-                    : 'text-(--text-color-light)'
+                    ? 'text-(--dc-primary-color-dark-text)'
+                    : 'text-(--dc-text-color-light)'
                 }`}
               >
                 {reaction.userIds.length}

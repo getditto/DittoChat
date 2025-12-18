@@ -449,7 +449,7 @@ describe('MessageBubble', () => {
     render(<MessageBubble {...defaultProps} message={reactionMessage} />)
 
     const reactionButton = screen.getByRole('button', { name: /👍/ })
-    expect(reactionButton).toHaveClass('bg-(--primary-color-lighter)')
+    expect(reactionButton).toHaveClass('bg-(--dc-primary-color-lighter)')
   })
 
   it('shows error state for image load failure', () => {

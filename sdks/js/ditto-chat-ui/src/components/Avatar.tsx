@@ -11,7 +11,7 @@ export default function Avatar({
 }) {
   return (
     <div
-      className={`w-10 h-10 rounded-full bg-(--secondary-bg-hover) flex items-center justify-center ${className}`}
+      className={`w-10 h-10 rounded-full bg-(--dc-secondary-bg-hover) flex items-center justify-center ${className}`}
     >
       {imageUrl ? (
         <img
@@ -20,9 +20,9 @@ export default function Avatar({
           className="w-full h-full rounded-full object-cover"
         />
       ) : isUser ? (
-        <Icons.userProfile className="w-5 h-5 text-(--text-color)" />
+        <Icons.userProfile className="w-5 h-5 text-(--dc-text-color)" />
       ) : (
-        <Icons.hashtag className="w-5 h-5 text-(--text-color)" />
+        <Icons.hashtag className="w-5 h-5 text-(--dc-text-color)" />
       )}
     </div>
   )

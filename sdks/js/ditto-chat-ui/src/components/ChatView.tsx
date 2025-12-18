@@ -59,8 +59,8 @@ function ChatView({ chat, onBack }: ChatViewProps) {
   const toggleRoomSubscription = useDittoChatStore(
     (state) =>
       state.toggleRoomSubscription as
-        | ((roomId: string) => Promise<void>)
-        | undefined,
+      | ((roomId: string) => Promise<void>)
+      | undefined,
   )
   const markRoomAsRead = useDittoChatStore((state) => state.markRoomAsRead)
 
