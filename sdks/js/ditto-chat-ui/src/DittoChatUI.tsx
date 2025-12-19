@@ -295,6 +295,8 @@ export default function DittoChatUI({
     }
   }, [chats, newlyCreatedRoom])
 
+  // Updateing Chat UI Container height based on the Parent Container height
+  // if any topbar applied on parent, then the container height will be updated based on the topbar height
   function updateVisibleHeight(el: HTMLElement) {
     const rect = el.getBoundingClientRect()
     const viewportHeight = window.innerHeight
