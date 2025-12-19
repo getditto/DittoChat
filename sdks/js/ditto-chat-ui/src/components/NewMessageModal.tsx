@@ -1,5 +1,5 @@
 import { AttachmentToken } from '@dittolive/ditto'
-import { type ChatUser,useDittoChatStore } from '@dittolive/ditto-chat-core'
+import { type ChatUser, useDittoChatStore } from '@dittolive/ditto-chat-core'
 import React, { useState } from 'react'
 
 import { useImageAttachment } from '../hooks/useImageAttachment'

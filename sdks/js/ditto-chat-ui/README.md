@@ -69,7 +69,7 @@ The `DittoChatUI` component accepts the following props:
 - `userCollectionKey`: (Required) A string representing the key for the Ditto collection where user information is stored.
 - `userId`: (Required) A string representing the ID of the current user.
 - `theme`: (Optional) Theme mode - `"light"`, `"dark"`, or `"auto"`. Default is `"light"`. When set to `"auto"`, the theme follows the system preference.
-- `rbacConfig`: (Optional) Role-Based Access Control configuration object to control user permissions. See the [RBAC section in DittoChatCore](../DittoChatCore/README.md#role-based-access-control-rbac) for available permissions and detailed documentation.
+- `rbacConfig`: (Optional) Role-Based Access Control configuration object to control user permissions. See the [RBAC section in DittoChatCore](../ditto-chat-core/README.md#role-based-access-control-rbac) for available permissions and detailed documentation.
 - `notificationHandler`: (Optional) A callback function to handle chat notifications. Receives `title` and `description` parameters. If not provided, the component uses a default toast notification handler. See the [Notifications section](#notifications) for more details.
 
 ## Theming
@@ -150,7 +150,6 @@ You can provide a custom handler to integrate with your preferred toast/notifica
 
 ```javascript
 import { toast } from 'sonner'
-
 ;<DittoChatUI
   ditto={ditto}
   userCollectionKey="my-users"
@@ -163,7 +162,24 @@ import { toast } from 'sonner'
 />
 ```
 
-For more examples and details about notification events, see the [DittoChatCore Notifications documentation](../DittoChatCore/README.md#notifications).
+For more examples and details about notification events, see the [DittoChatCore Notifications documentation](../ditto-chat-core/README.md#notifications).
+
+## Comment Rooms (Generated Rooms)
+
+To render a specific comment thread (generated room) separately from the main chat list, you can use the `ChatView` component directly.
+
+```javascript
+import { ChatView } from '@dittolive/ditto-chat-ui'
+
+// ...
+;<ChatView
+  roomId={commentRoomId} // ID of the generated room (e.g., "comments-doc-123")
+  messagesId="messages" // Collection ID to store messages
+  onBack={() => console.log('Back clicked')} // Optional back button handler
+/>
+```
+
+For detailed documentation on **creating** comment rooms and managing their state, see the [DittoChatCore Comment Rooms documentation](../ditto-chat-core/README.md#comment-rooms-generated-rooms).
 
 ## Role-Based Access Control (RBAC)
 
@@ -238,7 +254,7 @@ If no `rbacConfig` is provided, all permissions default to `true`, giving users 
 
 ### Dynamic Permission Updates
 
-For advanced use cases where permissions need to change dynamically, see the [DittoChatCore RBAC documentation](../DittoChatCore/README.md#role-based-access-control-rbac) for information on updating permissions at runtime.
+For advanced use cases where permissions need to change dynamically, see the [DittoChatCore RBAC documentation](../ditto-chat-core/README.md#role-based-access-control-rbac) for information on updating permissions at runtime.
 
 ## Contributing
 

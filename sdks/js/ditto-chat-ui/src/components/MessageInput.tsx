@@ -6,7 +6,7 @@ import {
   useDittoChatStore,
 } from '@dittolive/ditto-chat-core'
 import { clsx } from 'clsx'
-import React, { useEffect,useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 import { useImageAttachment } from '../hooks/useImageAttachment'
 import { usePermissions } from '../utils/usePermissions'
