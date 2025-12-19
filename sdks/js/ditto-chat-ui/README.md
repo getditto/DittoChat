@@ -134,15 +134,7 @@ export interface Theme {
 
 For more advanced customization or to integrate with your existing CSS architecture, you can override the CSS variables directly. These variables are scoped to the `.dcui-root` class.
 
-| Variable             | Description                                  |
-| :------------------- | :------------------------------------------- |
-| `--dc-primary-color` | Primary brand color                          |
-| `--dc-surface-color` | Main background color                        |
-| `--dc-text-color`    | Primary text color                           |
-| `--dc-border-color`  | Default border color                         |
-| `--dc-secondary-bg`  | Secondary background (e.g., message bubbles) |
-
-_Refer to `src/styles/ditto-chat-ui.css` for the complete list of available variables._
+[View full list of CSS Variables](./CSS_VARIABLES.md)
 
 ## Notifications
 
