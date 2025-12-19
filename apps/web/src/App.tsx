@@ -174,7 +174,7 @@ const DittoChatUIWrapper = () => {
         {viewMode === 'chat' && (
           <DittoChatUI
             ditto={ditto?.ditto as Ditto}
-            theme="auto"
+            theme={myTheme}
             userId={userId}
             userCollectionKey="users"
           />
