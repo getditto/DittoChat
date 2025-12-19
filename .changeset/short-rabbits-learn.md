@@ -1,10 +1,10 @@
 ---
-'@dittolive/ditto-chat-ui': major
+'@dittolive/ditto-chat-ui': minor
 ---
 
 # Initial Ditto Chat UI Release
 
-This is the first major release of `@dittolive/ditto-chat-ui`, a complete React UI component library for building chat applications on the Ditto Platform.
+This is the first release of `@dittolive/ditto-chat-ui`, a complete React UI component library for building chat applications on the Ditto Platform.
 
 ## Features
 

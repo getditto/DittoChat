@@ -1,10 +1,10 @@
 ---
-'@dittolive/ditto-chat-core': major
+'@dittolive/ditto-chat-core': minor
 ---
 
 # Initial Ditto Chat Core Release
 
-This is the first major release of `@dittolive/ditto-chat-core`, a React-based chat SDK built on the Ditto Platform for peer-to-peer, real-time messaging.
+This is the first release of `@dittolive/ditto-chat-core`, a React-based chat SDK built on the Ditto Platform for peer-to-peer, real-time messaging.
 
 ## Features
 

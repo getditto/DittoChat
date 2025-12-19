@@ -50,8 +50,8 @@ jobs:
         with:
           publish: npm run release
           version: npm run version-packages
-          commit: 'chore: version packages'
-          title: 'chore: version packages'
+          commit: 'chore: npm packages version bump'
+          title: 'chore: npm packages version bump'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
