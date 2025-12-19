@@ -1,4 +1,3 @@
-
 import {
   type ChatUser,
   type DittoConfParams,
@@ -44,10 +43,10 @@ export default function DittoChatUI({
     notificationHandler: notificationHandler
       ? notificationHandler
       : (title, description) => {
-        toast.info(title, {
-          description,
-        })
-      },
+          toast.info(title, {
+            description,
+          })
+        },
   })
 
   const [chats, setChats] = useState<Chat[]>([])
@@ -56,7 +55,11 @@ export default function DittoChatUI({
   const rooms: Room[] = useDittoChatStore((state) => state.rooms)
   const users: ChatUser[] = useDittoChatStore((state) => state.allUsers)
   const [themeName, setThemeName] = useState(
-    typeof theme === 'string' ? (theme === 'auto' ? getSystemTheme() : theme) : (theme.variant || 'light'),
+    typeof theme === 'string'
+      ? theme === 'auto'
+        ? getSystemTheme()
+        : theme
+      : theme.variant || 'light',
   )
   const currentUser: ChatUser | null = useDittoChatStore(
     (state) => state.currentUser,
@@ -180,7 +183,9 @@ export default function DittoChatUI({
   }, [theme])
 
   const themeStyles = useMemo(() => {
-    if (typeof theme !== 'object') return {}
+    if (typeof theme !== 'object') {
+      return {}
+    }
 
     const styles: React.CSSProperties = {}
     const mapping: Record<string, string> = {
@@ -291,12 +296,12 @@ export default function DittoChatUI({
   }, [chats, newlyCreatedRoom])
 
   function updateVisibleHeight(el: HTMLElement) {
-    const rect = el.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
+    const rect = el.getBoundingClientRect()
+    const viewportHeight = window.innerHeight
 
-    const visibleHeight = Math.max(0, viewportHeight - rect.top);
+    const visibleHeight = Math.max(0, viewportHeight - rect.top)
 
-    el.style.setProperty("--visible-chat-container-vh", `${visibleHeight}px`);
+    el.style.setProperty('--visible-chat-container-vh', `${visibleHeight}px`)
   }
 
   // On desktop, default to selecting the first chat
@@ -310,7 +315,6 @@ export default function DittoChatUI({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   )
-
 
   return (
     <div className="dcui-root web-height" style={themeStyles}>
@@ -326,8 +330,9 @@ export default function DittoChatUI({
         <div className="flex max-h-full web-height bg-(--dc-surface-color) font-sans text-(--dc-text-color) overflow-hidden">
           {/* Chat List */}
           <aside
-            className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--dc-border-color) flex flex-col ${activeScreen !== 'list' && 'hidden'
-              } md:flex`}
+            className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--dc-border-color) flex flex-col ${
+              activeScreen !== 'list' && 'hidden'
+            } md:flex`}
           >
             {loading ? (
               <ChatListSkeleton />
@@ -343,8 +348,9 @@ export default function DittoChatUI({
 
           {/* Main Content Area */}
           <main
-            className={`w-full flex-1 flex-col ${activeScreen === 'list' && 'hidden'
-              } md:flex`}
+            className={`w-full flex-1 flex-col ${
+              activeScreen === 'list' && 'hidden'
+            } md:flex`}
           >
             {activeScreen === 'chat' && selectedChat && (
               <ChatView

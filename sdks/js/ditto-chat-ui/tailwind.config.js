@@ -1,9 +1,9 @@
 module.exports = {
-    content: ["./src/**/*.{ts,tsx}"],
+  content: ['./src/**/*.{ts,tsx}'],
 
-    important: ".dcui-root",
+  important: '.dcui-root',
 
-    corePlugins: {
-        preflight: false,
-    },
-};
+  corePlugins: {
+    preflight: false,
+  },
+}

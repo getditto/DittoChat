@@ -1,5 +1,6 @@
 import './styles/tailwind.css'
 import './styles/ditto-chat-ui.css'
+
 import { Ditto } from '@dittolive/ditto'
 import {
   DittoProvider,
@@ -59,7 +60,7 @@ function App() {
         ditto.startSync()
         return ditto
       }}
-    /* initOptions={initOptions} */
+      /* initOptions={initOptions} */
     >
       {({ loading, error }) => {
         if (loading) {
