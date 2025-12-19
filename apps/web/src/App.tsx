@@ -11,8 +11,15 @@ import { useEffect, useState } from 'react'
 
 import ActivitiesDemo from './ActivitiesDemo'
 import { useDittoChat } from '@dittolive/ditto-chat-core'
+import type { Theme } from '../../../sdks/js/ditto-chat-ui/dist/types'
 
 type ViewMode = 'chat' | 'activities'
+
+const myTheme: Theme = {
+  variant: 'dark',
+  primaryColor: '#5900ffff',
+  surfaceColor: '#ffffff'
+}
 
 const StoreInitializer = ({
   ditto,
@@ -117,9 +124,9 @@ const DittoChatUIWrapper = () => {
         {viewMode === 'chat' && (
           <DittoChatUI
             ditto={ditto?.ditto as Ditto}
-            theme="auto"
             userId={userId}
             userCollectionKey="users"
+            theme={myTheme}
           />
         )}
         {viewMode === 'activities' && (
