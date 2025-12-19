@@ -1,6 +1,4 @@
-import '@dittolive/ditto-chat-ui/styles/tailwind.css'
-import '@dittolive/ditto-chat-ui/styles/ditto-chat-ui.css'
-
+import './index.css'
 import { Ditto } from '@dittolive/ditto'
 import {
   DittoProvider,
@@ -95,15 +93,7 @@ const DittoChatUIWrapper = () => {
         }}
       >
         <button
-          onClick={() => setViewMode('chat')}
-          style={{
-            padding: '6px 12px',
-            background: viewMode === 'chat' ? '#ff4d00' : '#ccc',
-            color: viewMode === 'chat' ? '#fff' : '#333',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-          }}
+          onClick={() => setViewMode('chat')} className='bg-orange-500 text-white px-4 py-2 rounded'
         >
           Chat UI
         </button>

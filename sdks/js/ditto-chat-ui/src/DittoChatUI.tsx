@@ -251,7 +251,7 @@ export default function DittoChatUI({
       if (window.innerWidth >= 768 && !selectedChat) {
         setActiveScreen('chat')
       }
-      updateVisibleHeight(document.querySelector('.web-chat-root') as HTMLElement)
+      updateVisibleHeight(document.querySelector('.dcui-root') as HTMLElement)
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
@@ -259,7 +259,7 @@ export default function DittoChatUI({
 
 
   return (
-    <div className="web-chat-root web-height">
+    <div className="dcui-root web-height">
       <div className={themeName}>
         <Toaster
           position="top-right"

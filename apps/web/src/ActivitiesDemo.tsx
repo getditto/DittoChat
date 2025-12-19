@@ -80,8 +80,8 @@ export default function ActivitiesDemo() {
     }
 
     return (
-      // Wrap in web-chat-root and theme class to apply correct styles
-      <div className="web-chat-root" style={{ height: '100%' }}>
+      // Wrap in dcui-root and theme class to apply correct styles
+      <div className="dcui-root" style={{ height: '100%' }}>
         <div className="light h-full">
           <div className="flex flex-col h-full bg-(--surface-color) font-sans text-(--text-color)">
             <ChatView
