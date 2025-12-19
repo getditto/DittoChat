@@ -1,18 +1,16 @@
 {
   "name": "@dittolive/ditto-chat-core",
   "version": "0.1.0",
-  "main": "src/index.ts",
-  "module": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "./dist/index.es.js",
+  "module": "./dist/index.es.js",
+  "types": "./dist/src/index.d.ts",
   "type": "module",
   "exports": {
     ".": {
-      "development": "./src/index.ts",
       "types": "./dist/src/index.d.ts",
       "default": "./dist/index.es.js"
     },
     "./dist/types/*": {
-      "development": "./src/types/*.ts",
       "types": "./dist/src/types/*.d.ts",
       "default": "./dist/types/*.js"
     }
@@ -28,6 +26,7 @@
   },
   "scripts": {
     "build": "vite build && tsc --emitDeclarationOnly",
+    "prepublishOnly": "yarn build",
     "clean": "rm -rf dist",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
