@@ -1,6 +1,4 @@
-import '@dittolive/ditto-chat-ui/styles/tailwind.css'
-import '@dittolive/ditto-chat-ui/styles/ditto-chat-ui.css'
-
+import './index.css'
 import { Ditto } from '@dittolive/ditto'
 import {
   DittoProvider,
