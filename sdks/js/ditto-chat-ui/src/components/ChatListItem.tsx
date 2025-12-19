@@ -88,7 +88,7 @@ function ChatListItem({
         message.message.userId !== currentUserId &&
         (mentionedMsgIds.includes(message.id) ||
           new Date(message.message.createdOn).getTime() >
-          new Date(subscribedAt || new Date()).getTime()),
+            new Date(subscribedAt || new Date()).getTime()),
     )
 
     setUnreadCount(unreadMessages.length)

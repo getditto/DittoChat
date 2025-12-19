@@ -74,7 +74,9 @@ function FormattedMessage({
       <span
         key={`mention-${index}`}
         className={`font-semibold ${
-          isOwn ? 'text-(--dc-mention-text-on-primary)' : 'text-(--dc-mention-text)'
+          isOwn
+            ? 'text-(--dc-mention-text-on-primary)'
+            : 'text-(--dc-mention-text)'
         }`}
       >
         {text.slice(mention.startIndex, mention.endIndex)}

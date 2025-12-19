@@ -43,8 +43,8 @@ global.FileReader = class {
     // @ts-expect-error - Mock onload without proper event type
     this.onload({ target: { result: 'data:image/png;base64,fake-data' } })
   }
-  onload() { }
-  onerror() { }
+  onload() {}
+  onerror() {}
 } as unknown as typeof FileReader
 
 // Mock Image
@@ -56,14 +56,16 @@ global.Image = class {
       this.onload()
     }, 10)
   }
-  onload() { }
-  onerror() { }
+  onload() {}
+  onerror() {}
 } as unknown as typeof Image
 
 export const createMockDitto = () => ({
   store: {
     execute: vi.fn().mockResolvedValue({ items: [] }),
-    registerObserver: vi.fn().mockReturnValue({ stop: vi.fn(), cancel: vi.fn() }),
+    registerObserver: vi
+      .fn()
+      .mockReturnValue({ stop: vi.fn(), cancel: vi.fn() }),
     newAttachment: vi.fn().mockResolvedValue({
       id: 'mock-attachment-token',
       len: 100,
