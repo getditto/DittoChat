@@ -6,7 +6,6 @@
 }
 
 .dcui-root {
-  <<<<<<< HEAD --dc-theme-name: light;
   /* Primary color scheme */
   --dc-primary-color: rgba(255, 77, 0, 1);
   /* #ff4d00 */
@@ -24,25 +23,7 @@
   /* orange-700 text */
   --dc-text-on-primary: rgb(255 255 255);
   /* white */
-  =======
-  /* Primary color scheme */
-  --dc-primary-color: rgba(255, 77, 0, 1);
-  /* #ff4d00 */
-  --dc-primary-color-hover: rgb(194 65 12);
-  /* orange-700 */
-  --dc-primary-color-focus: rgb(249 115 22);
-  /* orange-500 */
-  --dc-primary-color-light: rgba(255, 77, 0, 0.15);
-  /* orange-50 */
-  --dc-primary-color-lighter: rgb(255 237 213);
-  /* orange-100 */
-  --dc-primary-color-light-border: rgb(253 186 116);
-  /* orange-300 */
-  --dc-primary-color-dark-text: rgb(154 52 18);
-  /* orange-700 text */
-  --dc-text-on-primary: rgb(255 255 255);
-  /* white */
-  >>>>>>>39b10b7 (variable list added and mentioned usage)
+
   /* Mention colors */
   --dc-mention-text: rgb(255 77 0);
   /* orange-600 */
