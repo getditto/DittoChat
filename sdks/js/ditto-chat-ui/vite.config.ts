@@ -17,6 +17,12 @@ export default defineConfig({
       exclude: ['src/App.tsx', 'src/main.tsx'],
     }),
   ],
+  resolve: {
+    alias: {
+      '@dittolive/ditto-chat-core': resolve(__dirname, '../ditto-chat-core/src/index.ts'),
+      '@dittolive/ditto-chat-ui': resolve(__dirname, 'src/index.tsx'),
+    },
+  },
   build: {
     cssCodeSplit: true,
     lib: {
