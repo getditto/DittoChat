@@ -43,10 +43,10 @@ export default function DittoChatUI({
     notificationHandler: notificationHandler
       ? notificationHandler
       : (title, description) => {
-          toast.info(title, {
-            description,
-          })
-        },
+        toast.info(title, {
+          description,
+        })
+      },
   })
 
   const [chats, setChats] = useState<Chat[]>([])
@@ -295,32 +295,17 @@ export default function DittoChatUI({
     }
   }, [chats, newlyCreatedRoom])
 
-  // Updateing Chat UI Container height based on the Parent Container height
-  // if any topbar applied on parent, then the container height will be updated based on the topbar height
-  function updateVisibleHeight(el: HTMLElement) {
-    const rect = el.getBoundingClientRect()
-    const viewportHeight = window.innerHeight
-
-    const visibleHeight = Math.max(0, viewportHeight - rect.top)
-
-    el.style.setProperty('--visible-chat-container-vh', `${visibleHeight}px`)
-  }
-
   // On desktop, default to selecting the first chat
   useEffect(
     () => {
       if (window.innerWidth >= 768 && !selectedChat) {
         setActiveScreen('chat')
       }
-      updateVisibleHeight(document.querySelector('.dcui-root') as HTMLElement)
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
+    }, [])
 
   return (
-    <div className="dcui-root web-height" style={themeStyles}>
-      <div className={themeName}>
+    <div className="dcui-root" style={{ ...themeStyles, height: '100%' }}>
+      <div className={`${themeName} h-full`}>
         <Toaster
           position="top-right"
           richColors
@@ -329,12 +314,11 @@ export default function DittoChatUI({
             duration: 3000,
           }}
         />
-        <div className="flex max-h-full web-height bg-(--dc-surface-color) font-sans text-(--dc-text-color) overflow-hidden">
+        <div className="flex h-full bg-(--dc-surface-color) font-sans text-(--dc-text-color) overflow-hidden">
           {/* Chat List */}
           <aside
-            className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--dc-border-color) flex flex-col ${
-              activeScreen !== 'list' && 'hidden'
-            } md:flex`}
+            className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--dc-border-color) flex flex-col h-full ${activeScreen !== 'list' && 'hidden'
+              } md:flex`}
           >
             {loading ? (
               <ChatListSkeleton />
@@ -350,9 +334,8 @@ export default function DittoChatUI({
 
           {/* Main Content Area */}
           <main
-            className={`w-full flex-1 flex-col ${
-              activeScreen === 'list' && 'hidden'
-            } md:flex`}
+            className={`w-full flex-1 flex flex-col h-full ${activeScreen === 'list' && 'hidden'
+              } md:flex`}
           >
             {activeScreen === 'chat' && selectedChat && (
               <ChatView
