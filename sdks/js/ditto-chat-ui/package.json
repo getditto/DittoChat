@@ -1,7 +1,6 @@
 {
   "name": "@dittolive/ditto-chat-ui",
-  "private": true,
-  "version": "1.0.0",
+  "version": "0.0.0",
   "main": "src/index.tsx",
   "module": "src/index.tsx",
   "types": "src/index.tsx",
@@ -32,10 +31,9 @@
     "lint:fix": "eslint . --fix",
     "clean": "rm -rf dist",
     "preview": "vite preview",
-    "test": "vitest",
+    "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit --skipLibCheck",
-    "prepublishOnly": "npm run build"
+    "typecheck": "tsc --noEmit --skipLibCheck"
   },
   "dependencies": {
     "@dittolive/ditto-chat-core": "*",

@@ -1,6 +1,6 @@
 {
   "name": "@dittolive/ditto-chat-core",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "main": "src/index.ts",
   "module": "src/index.ts",
   "types": "src/index.ts",
@@ -31,11 +31,10 @@
     "clean": "rm -rf dist",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "vitest",
+    "test": "vitest run",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit --skipLibCheck",
-    "prepublishOnly": "npm run build"
+    "typecheck": "tsc --noEmit --skipLibCheck"
   },
   "peerDependencies": {
     "@dittolive/ditto": "^4.12.3",
