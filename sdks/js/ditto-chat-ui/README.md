@@ -72,6 +72,78 @@ The `DittoChatUI` component accepts the following props:
 - `rbacConfig`: (Optional) Role-Based Access Control configuration object to control user permissions. See the [RBAC section in DittoChatCore](../ditto-chat-core/README.md#role-based-access-control-rbac) for available permissions and detailed documentation.
 - `notificationHandler`: (Optional) A callback function to handle chat notifications. Receives `title` and `description` parameters. If not provided, the component uses a default toast notification handler. See the [Notifications section](#notifications) for more details.
 
+## Theming
+
+The `DittoChatUI` component offers a flexible theming system that supports both light and dark modes, as well as granular customization of colors.
+
+### Theme Object
+
+You can pass a `theme` object to the `DittoChatUI` component to override specific colors. The `Theme` interface includes the following properties:
+
+```typescript
+export interface Theme {
+  variant?: 'light' | 'dark'
+
+  // Primary Palette
+  primaryColor?: string
+  primaryColorHover?: string
+  primaryColorFocus?: string
+  primaryColorLight?: string
+  primaryColorLighter?: string
+  primaryColorLightBorder?: string
+  primaryColorDarkText?: string
+  textOnPrimary?: string
+
+  // Mentions
+  mentionText?: string
+  mentionTextOnPrimary?: string
+
+  // Surface & Backgrounds
+  surfaceColor?: string
+  surfaceColorLight?: string
+  secondaryBg?: string
+  secondaryBgHover?: string
+  disabledBg?: string
+
+  // Text Colors
+  textColor?: string
+  textColorMedium?: string
+  textColorLight?: string
+  textColorLighter?: string
+  textColorLightest?: string
+  textColorFaint?: string
+  textColorDisabled?: string
+
+  // Borders
+  borderColor?: string
+
+  // Status & Actions
+  editBg?: string
+  editText?: string
+  infoIconColor?: string
+  notificationBadgeBg?: string
+  activeStatusBg?: string
+  dangerText?: string
+  dangerBg?: string
+  successBg?: string
+  successText?: string
+}
+```
+
+### CSS Variables
+
+For more advanced customization or to integrate with your existing CSS architecture, you can override the CSS variables directly. These variables are scoped to the `.dcui-root` class.
+
+| Variable | Description |
+| :--- | :--- |
+| `--dc-primary-color` | Primary brand color |
+| `--dc-surface-color` | Main background color |
+| `--dc-text-color` | Primary text color |
+| `--dc-border-color` | Default border color |
+| `--dc-secondary-bg` | Secondary background (e.g., message bubbles) |
+
+*Refer to `src/styles/ditto-chat-ui.css` for the complete list of available variables.*
+
 ## Notifications
 
 The `DittoChatUI` component provides built-in notification support through the `notificationHandler` prop.
