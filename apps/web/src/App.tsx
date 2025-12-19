@@ -1,5 +1,4 @@
-import '@dittolive/ditto-chat-ui/dist/ditto-chat-ui.css'
-
+import './index.css'
 import { Ditto } from '@dittolive/ditto'
 import {
   DittoProvider,
@@ -9,6 +8,55 @@ import {
 } from '@dittolive/react-ditto'
 import DittoChatUI from '@dittolive/ditto-chat-ui'
 import { useEffect, useState } from 'react'
+import type { Theme } from '../../../sdks/js/ditto-chat-ui/dist/types'
+
+const myTheme: Theme = {
+  variant: 'dark',
+
+  // Primary Palette
+  primaryColor: '#6366f1', // Indigo 500
+  primaryColorHover: '#4f46e5', // Indigo 600
+  primaryColorFocus: '#4338ca', // Indigo 700
+  primaryColorLight: '#7782a4ff', // Indigo 100
+  primaryColorLighter: '#eef2ff', // Indigo 50
+  primaryColorLightBorder: '#c7d2fe', // Indigo 200
+  primaryColorDarkText: '#312e81', // Indigo 900
+  textOnPrimary: '#ffffff',
+
+  // Mentions
+  mentionText: '#6366f1',
+  mentionTextOnPrimary: '#c7d2fe',
+
+  // Surface & Backgrounds
+  surfaceColor: '#111827', // Gray 900
+  surfaceColorLight: '#1f2937', // Gray 800
+  secondaryBg: '#374151', // Gray 700
+  secondaryBgHover: '#4b5563', // Gray 600
+  disabledBg: '#374151', // Gray 700
+
+  // Text Colors
+  textColor: '#ffffffff', // Gray 50
+  textColorMedium: '#e5e7eb', // Gray 200
+  textColorLight: '#d1d5db', // Gray 300
+  textColorLighter: '#9ca3af', // Gray 400
+  textColorLightest: '#6b7280', // Gray 500
+  textColorFaint: '#4b5563', // Gray 600
+  textColorDisabled: '#374151', // Gray 700
+
+  // Borders
+  borderColor: '#374151', // Gray 700
+
+  // Status & Actions
+  editBg: '#1e3a8a', // Blue 900
+  editText: '#bfdbfe', // Blue 200
+  infoIconColor: '#3b82f6', // Blue 500
+  notificationBadgeBg: '#ef4444', // Red 500
+  activeStatusBg: '#22c55e', // Green 500
+  dangerText: '#f87171', // Red 400
+  dangerBg: '#7f1d1d', // Red 900
+  successBg: '#14532d', // Green 900
+  successText: '#86efac', // Green 300
+}
 
 import ActivitiesDemo from './ActivitiesDemo'
 import { useDittoChat } from '@dittolive/ditto-chat-core'
@@ -122,11 +170,11 @@ const DittoChatUIWrapper = () => {
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, overflow: 'auto' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
         {viewMode === 'chat' && (
           <DittoChatUI
             ditto={ditto?.ditto as Ditto}
-            theme="auto"
+            theme={myTheme}
             userId={userId}
             userCollectionKey="users"
           />

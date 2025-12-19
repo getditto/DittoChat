@@ -1,0 +1,13 @@
+@layer app, dcui;
+
+/* Use Layer Approach if ditto-chat-ui source is available */
+/* @import "tailwindcss" layer(app);
+@import "@dittolive/ditto-chat-ui/dist/ditto-chat-ui.css" layer(dcui);
+@import "@dittolive/ditto-chat-ui/dist/tailwind.css" layer(dcui); */
+
+@import 'tailwindcss';
+@import '@dittolive/ditto-chat-ui/dist/ditto-chat-ui.css';
+
+/* We need add the source path to the of the components to identify the tailwind classes and load,
+ * this is required to make the tailwind classes work  */
+@source "../../../node_modules/@dittolive/ditto-chat-ui/src/**/*.{ts,tsx}";

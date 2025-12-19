@@ -12,10 +12,11 @@
       "default": "./dist/index.es.js"
     },
     "./dist/ditto-chat-ui.css": "./dist/ditto-chat-ui.css",
-    "./styles": "./src/index.css"
+    "./dist/tailwind.css": "./dist/tailwind.css"
   },
   "files": [
-    "dist"
+    "dist",
+    "src/styles"
   ],
   "author": "Ditto",
   "license": "MIT",
@@ -28,6 +29,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "clean": "rm -rf dist",
     "preview": "vite preview",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
@@ -37,10 +39,9 @@
     "@dittolive/ditto-chat-core": "*",
     "clsx": "^2.1.1",
     "emoji-picker-react": "^4.15.0",
-    "react": "^18 || ^19",
-    "react-dom": "^18 || ^19",
     "react-virtualized": "^9.22.6",
-    "sonner": "^2.0.7"
+    "sonner": "^2.0.7",
+    "tailwindcss": "^4.1.18"
   },
   "peerDependencies": {
     "@dittolive/ditto": "^4.12.3",
@@ -64,9 +65,9 @@
     "eslint": "^9.31.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.24",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-sort-keys-fix": "^1.1.2",
-    "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.4.0",
     "jsdom": "^27.0.1",
     "typescript": "~5.9.3",

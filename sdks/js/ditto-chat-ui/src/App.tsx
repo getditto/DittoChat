@@ -1,3 +1,6 @@
+import './styles/tailwind.css'
+import './styles/ditto-chat-ui.css'
+
 import { Ditto } from '@dittolive/ditto'
 import {
   DittoProvider,
@@ -11,7 +14,7 @@ import DittoChatUI from './DittoChatUI'
 const DittoChatUIWrapper = () => {
   const ditto = useDitto('testing')
   return (
-    <div>
+    <div style={{ height: '100vh' }}>
       <DittoChatUI
         theme="light"
         ditto={ditto?.ditto as Ditto}
@@ -57,7 +60,7 @@ function App() {
         ditto.startSync()
         return ditto
       }}
-      /* initOptions={initOptions} */
+    /* initOptions={initOptions} */
     >
       {({ loading, error }) => {
         if (loading) {

@@ -1,0 +1,132 @@
+/* Ditto Chat UI CSS */
+/* These variables are scoped to .dcui-root and only affect chat UI components */
+
+.web-height {
+  height: var(--visible-chat-container-vh, 100vh) !important;
+}
+
+.dcui-root {
+  /* Primary color scheme */
+  --dc-primary-color: rgba(255, 77, 0, 1);
+  /* #ff4d00 */
+  --dc-primary-color-hover: rgb(194 65 12);
+  /* orange-700 */
+  --dc-primary-color-focus: rgb(249 115 22);
+  /* orange-500 */
+  --dc-primary-color-light: rgba(255, 77, 0, 0.15);
+  /* orange-50 */
+  --dc-primary-color-lighter: rgb(255 237 213);
+  /* orange-100 */
+  --dc-primary-color-light-border: rgb(253 186 116);
+  /* orange-300 */
+  --dc-primary-color-dark-text: rgb(154 52 18);
+  /* orange-700 text */
+  --dc-text-on-primary: rgb(255 255 255);
+  /* white */
+
+  /* Mention colors */
+  --dc-mention-text: rgb(255 77 0);
+  /* orange-600 */
+  --dc-mention-text-on-primary: rgb(254 215 170);
+  /* orange-200 */
+
+  /* Surface & Background colors */
+  --dc-surface-color: rgb(255 255 255);
+  /* white */
+  --dc-surface-color-light: rgb(249 250 251);
+  /* gray-50 */
+  --dc-secondary-bg: rgb(243 244 246);
+  /* gray-100 */
+  --dc-secondary-bg-hover: rgba(0, 0, 0, 0.05);
+  /* gray-200 */
+  --dc-disabled-bg: rgb(209 213 219);
+  /* gray-300 */
+
+  /* Text colors */
+  --dc-text-color: rgb(17 24 39);
+  /* gray-900 */
+  --dc-text-color-medium: rgb(31 41 55);
+  /* gray-800 */
+  --dc-text-color-light: rgb(55 65 81);
+  /* gray-700 */
+  --dc-text-color-lighter: rgb(75 85 99);
+  /* gray-600 */
+  --dc-text-color-lightest: rgb(107 114 128);
+  /* gray-500 */
+  --dc-text-color-faint: rgb(156 163 175);
+  /* gray-400 */
+  --dc-text-color-disabled: rgb(209 213 219);
+  /* gray-300 */
+
+  /* Border color */
+  --dc-border-color: rgb(229 231 235);
+  /* gray-200 */
+
+  /* Semantic/Status colors */
+  --dc-edit-bg: rgb(239 246 255);
+  /* blue-50 */
+  --dc-edit-text: rgb(30 64 175);
+  /* blue-800 */
+  --dc-info-icon-color: rgb(59 130 246);
+  /* blue-500 */
+  --dc-notification-badge-bg: rgb(239 68 68);
+  /* red-500 */
+  --dc-active-status-bg: rgb(34 197 94);
+  /* green-500 */
+  --dc-danger-text: rgb(220 38 38);
+  /* red-600 */
+  --dc-danger-bg: rgb(254 242 242);
+  /* red-50 */
+  --dc-success-bg: rgb(240 253 244);
+  /* green-50 */
+  --dc-success-text: rgb(21 128 61);
+  /* green-700 */
+}
+
+.dcui-root .dark {
+  /* Surface & Background colors */
+  --dc-surface-color: rgb(0 0 0);
+  /* black */
+  --dc-surface-color-light: rgb(17 24 39);
+  /* gray-900 */
+  --dc-secondary-bg: rgb(31 41 55);
+  /* gray-800 */
+  --dc-secondary-bg-hover: rgb(55 65 81);
+  /* gray-700 */
+  --dc-disabled-bg: rgb(55 65 81);
+  /* gray-700 */
+
+  /* Text colors */
+  --dc-text-color: rgb(249 250 251);
+  /* gray-50 */
+  --dc-text-color-medium: rgb(229 231 235);
+  /* gray-200 */
+  --dc-text-color-light: rgb(209 213 219);
+  /* gray-300 */
+  --dc-text-color-lighter: rgb(156 163 175);
+  /* gray-400 */
+  --dc-text-color-lightest: rgb(107 114 128);
+  /* gray-500 */
+  --dc-text-color-faint: rgb(156 163 175);
+  /* gray-600 */
+  --dc-text-color-disabled: rgb(55 65 81);
+  /* gray-700 */
+
+  /* Border color */
+  --dc-border-color: rgb(55 65 81);
+  /* gray-700 */
+
+  /* Semantic/Status colors */
+  --dc-edit-bg: rgb(30 58 138);
+  /* blue-900 */
+  --dc-edit-text: rgb(191 219 254);
+  /* blue-200 */
+  --dc-danger-text: rgb(248 113 113);
+  /* red-400 */
+  --dc-danger-bg: rgb(127 29 29);
+  /* red-900 */
+  --dc-success-bg: rgb(20 83 45);
+  /* green-900 */
+  --dc-success-text: rgb(134 239 172);
+  /* green-300 */
+}
