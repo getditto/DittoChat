@@ -19,6 +19,7 @@ interface ChatListItemProps {
   currentUserId: string
   isSelected: boolean
   onSelect: () => void
+  showSeparator?: boolean
 }
 
 function ChatListItem({
@@ -27,6 +28,7 @@ function ChatListItem({
   currentUserId,
   isSelected,
   onSelect,
+  showSeparator = false,
 }: ChatListItemProps) {
   const lastMessage = chat.messages[chat.messages.length - 1]
   const [unreadCount, setUnreadCount] = React.useState(0)
@@ -95,46 +97,55 @@ function ChatListItem({
   }, [subscribedAt, mentionedMsgIds, currentUserId, messages])
 
   return (
-    <button
-      onClick={onSelect}
-      className={clsx(
-        'w-full text-left px-3 py-3 flex items-center space-x-3 transition-colors border-b',
-        isSelected
-          ? 'bg-(--dc-primary-color-light) rounded-xl border-b-(--dc-surface-color)'
-          : 'hover:bg-(--dc-surface-color-light) border-b-(--dc-border-color)',
-      )}
-    >
-      <div className="relative -top-4">
-        <Avatar
-          isUser={chat.type === 'dm'}
-          imageUrl={chat.type === 'dm' ? avatarUrl || undefined : undefined}
-        />
-        {otherUserIsActive && (
-          <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-(--dc-active-status-bg) border-2 border-white"></span>
-        )}
-      </div>
-      <div className="flex-1 overflow-hidden h-20">
-        <div className="flex justify-between items-baseline">
-          <p className="font-semibold truncate">{chatName}</p>
-          <p className="text-sm text-(--dc-text-color-lightest) flex-shrink-0 ml-2">
-            {lastMessage && formatDate(lastMessage.createdOn)}
-          </p>
-        </div>
-        <div className="flex justify-between items-start mt-0.5">
-          <p className="text-(--dc-text-color-lighter) font-normal line-clamp-2 pr-2">
-            {senderName && <span className="font-medium">{senderName}: </span>}
-            {lastMessage && lastMessage?.thumbnailImageToken
-              ? 'Image'
-              : lastMessage?.text}
-          </p>
-          {unreadCount > 0 && !isSelected && (
-            <span className="flex-shrink-0 min-w-[1.25rem] h-5 px-1.5 text-xs flex items-center justify-center rounded-full bg-(--dc-notification-badge-bg) text-white font-medium">
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </span>
+    <>
+      <div className="relative p-1">
+        <button
+          onClick={onSelect}
+          className={clsx(
+            'w-full text-left px-4 py-3 flex items-center space-x-3 transition-colors rounded-xl outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)',
+            isSelected
+              ? 'bg-(--dc-primary-color-light)'
+              : 'hover:bg-(--dc-surface-color-light)',
           )}
-        </div>
+        >
+          <div className="relative -top-4">
+            <Avatar
+              isUser={chat.type === 'dm'}
+              imageUrl={chat.type === 'dm' ? avatarUrl || undefined : undefined}
+            />
+            {otherUserIsActive && (
+              <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-(--dc-active-status-bg) border-2 border-white"></span>
+            )}
+          </div>
+          <div className="flex-1 overflow-hidden h-20">
+            <div className="flex justify-between items-baseline">
+              <p className="font-semibold truncate">{chatName}</p>
+              <p className="text-sm text-(--dc-text-color-lightest) flex-shrink-0 ml-2">
+                {lastMessage && formatDate(lastMessage.createdOn)}
+              </p>
+            </div>
+            <div className="flex justify-between items-start mt-0.5">
+              <p className="text-(--dc-text-color-lighter) font-normal line-clamp-2 pr-2">
+                {senderName && (
+                  <span className="font-medium">{senderName}: </span>
+                )}
+                {lastMessage && lastMessage?.thumbnailImageToken
+                  ? 'Image'
+                  : lastMessage?.text}
+              </p>
+              {unreadCount > 0 && !isSelected && (
+                <span className="flex-shrink-0 min-w-[1.25rem] h-5 px-1.5 text-xs flex items-center justify-center rounded-full bg-(--dc-notification-badge-bg) text-white font-medium">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </div>
+          </div>
+        </button>
       </div>
-    </button>
+      {showSeparator && (
+        <div className="h-px bg-(--dc-border-color) mx-4 my-1" />
+      )}
+    </>
   )
 }
 

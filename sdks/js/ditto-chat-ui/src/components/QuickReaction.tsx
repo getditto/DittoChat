@@ -135,7 +135,7 @@ export default function QuickReaction({
         ref={triggerRef}
         onClick={() => setIsEmojiPickerOpen((p) => !p)}
         disabled={disabled}
-        className="p-1 rounded-full hover:bg-(--dc-secondary-bg-hover) text-(--dc-text-color-lightest) disabled:opacity-50 disabled:cursor-not-allowed"
+        className="p-1 rounded-full hover:bg-(--dc-secondary-bg-hover) text-(--dc-text-color-lightest) disabled:opacity-50 disabled:cursor-not-allowed outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
         aria-label="Add reaction"
       >
         <Icons.smile className="w-5 h-5" />

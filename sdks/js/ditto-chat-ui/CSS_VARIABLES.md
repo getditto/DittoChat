@@ -9,12 +9,11 @@ Controls the main branding and interactive elements.
 | Variable | Description | Affects / Used In |
 | :--- | :--- | :--- |
 | `--dc-primary-color` | Brand color | **Message Input**: Send button<br>**Chat List**: "New Message" button<br>**Bubbles**: Sent message background<br>**Modals**: Primary action buttons |
-| `--dc-primary-color-hover` | Hower state | **Buttons**: Hover state for "New Message", "Create Room", and other primary actions |
-| `--dc-primary-color-focus` | Focus ring | **Inputs**: Focus ring for Search bars, New Room name input, etc. |
-| `--dc-primary-color-light` | Selected background | **Chat List**: Background of the currently selected active chat item |
-| `--dc-primary-color-lighter` | Light accent | **Bubbles**: Background for image attachments in sent messages |
-| `--dc-primary-color-light-border`| Accent border | **Bubbles**: Border for image attachments in sent messages |
-| `--dc-primary-color-dark-text` | Accent text | **Bubbles**: Text color inside image attachment containers |
+| `--dc-primary-color-hover` | Hover state | **Buttons**: Hover state for "New Message", "Create Room", and other primary actions |
+| `--dc-primary-color-light` | Selected background | **Chat List**: Background of the currently selected/active chat item (transparent variant) |
+| `--dc-primary-color-lighter` | Light accent | **Reactions**: Background for user's own reactions to messages |
+| `--dc-primary-color-light-border`| Accent border | **Reactions**: Border for user's own reactions to messages |
+| `--dc-primary-color-dark-text` | Accent text | **Reactions**: Text color for reaction counts |
 | `--dc-text-on-primary` | Content on primary | **Buttons & Bubbles**: Text/Icon color sitting on top of `--dc-primary-color` elements |
 
 ## Mention Colors
@@ -53,6 +52,12 @@ Controls the structural layout backgrounds.
 | Variable | Description | Affects / Used In |
 | :--- | :--- | :--- |
 | `--dc-border-color` | Borders | **Dividers**: Header/List separators<br>**Inputs**: Border for search and text inputs |
+
+## Focus & Interaction
+
+| Variable | Description | Affects / Used In |
+| :--- | :--- | :--- |
+| `--dc-ring-color` | Focus ring | **All Interactive Elements**: Focus ring color for buttons, inputs, chat list items, and all interactive UI components when navigating with keyboard |
 
 ## Status & Semantic Colors
 

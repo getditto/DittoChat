@@ -55,6 +55,8 @@ export interface Theme {
 
   borderColor?: string
 
+  ringColor?: string
+
   editBg?: string
   editText?: string
   infoIconColor?: string

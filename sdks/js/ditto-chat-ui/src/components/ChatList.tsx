@@ -91,6 +91,7 @@ function ChatList({
             users={users}
             isSelected={chat.id === selectedChatId}
             onSelect={() => onSelectChat(chat)}
+            showSeparator={index < filteredChats.length - 1}
           />
         </div>
       </CellMeasurer>
@@ -110,10 +111,10 @@ function ChatList({
       </header>
       <div className="p-4 space-y-4">
         <div className="relative w-full" ref={dropdownRef}>
-          <div className="flex w-full rounded-lg shadow-sm">
+          <div className="flex w-full">
             <button
               onClick={() => onNewMessage('newMessage')}
-              className={`w-full bg-(--dc-primary-color) text-(--dc-text-on-primary) font-semibold py-3 ${canCreateRoom ? 'rounded-l-xl' : 'rounded-xl'} hover:bg-(--dc-primary-color-hover) transition-colors`}
+              className={`w-full bg-(--dc-primary-color) text-(--dc-text-on-primary) font-semibold py-3 ${canCreateRoom ? 'rounded-l-xl' : 'rounded-xl'} hover:bg-(--dc-primary-color-hover) outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color) transition-colors`}
             >
               New Message
             </button>
@@ -122,7 +123,7 @@ function ChatList({
                 onClick={() => setIsDropdownOpen((prev) => !prev)}
                 aria-haspopup="true"
                 aria-expanded={isDropdownOpen}
-                className="relative inline-flex items-center px-3 py-3 bg-(--dc-primary-color) rounded-r-xl text-(--dc-text-on-primary) hover:bg-(--dc-primary-color-hover) focus:z-10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-(--dc-primary-color-focus) border-l border-white/20 transition-colors"
+                className="relative inline-flex items-center px-3 py-3 bg-(--dc-primary-color) rounded-r-xl text-(--dc-text-on-primary) hover:bg-(--dc-primary-color-hover) focus:z-10 outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color) border-l border-white/20 transition-colors"
               >
                 <span className="sr-only">Open options</span>
                 <Icons.chevronDown className="h-5 w-5" aria-hidden="true" />
@@ -159,14 +160,14 @@ function ChatList({
             placeholder="Search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-(--dc-secondary-bg) border border-(--dc-border-color) rounded-3xl pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--dc-primary-color-focus)"
+            className="w-full bg-(--dc-secondary-bg) border border-(--dc-border-color) rounded-3xl pl-10 pr-4 py-2 outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
           />
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 mb-4">
+      <div className="flex-1 min-h-0 mb-4 px-4">
         <AutoSizer>
-          {({ height, width }) => {
+          {({ height, width }: { height: number; width: number }) => {
             return (
               <List
                 ref={listRef}
@@ -178,6 +179,7 @@ function ChatList({
                 overscanRowCount={10}
                 scrollToIndex={selectedIndex >= 0 ? selectedIndex : undefined}
                 scrollToAlignment="auto"
+                className="outline-none focus:outline-none"
               />
             )
           }}

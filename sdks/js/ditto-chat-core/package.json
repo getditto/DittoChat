@@ -37,7 +37,7 @@
     "typecheck": "tsc --noEmit --skipLibCheck"
   },
   "peerDependencies": {
-    "@dittolive/ditto": "^4.12.3",
+    "@dittolive/ditto": "^4.14.0",
     "react": "^18 || ^19",
     "zustand": "^5.0.8"
   },
@@ -46,6 +46,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@types/react": "^19.2.2",
+    "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^5.0.4",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
@@ -70,7 +71,7 @@
     "ditto-chat"
   ],
   "dependencies": {
-    "@dittolive/ditto": "^4.12.3",
+    "@dittolive/ditto": "^4.14.0",
     "immer": "^10.2.0",
     "uuid": "^13.0.0"
   },

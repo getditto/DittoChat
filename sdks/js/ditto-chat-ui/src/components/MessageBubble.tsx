@@ -368,7 +368,7 @@ function MessageBubble({
                       )
                     }
                   }}
-                  className="p-1.5 hover:bg-(--dc-secondary-bg-hover) rounded-md transition-colors flex-shrink-0"
+                  className="p-1.5 hover:bg-(--dc-secondary-bg-hover) rounded-md transition-colors flex-shrink-0 outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
                   aria-label="Download file"
                 >
                   <Icons.arrowDown className="w-4 h-4" />
@@ -404,7 +404,7 @@ function MessageBubble({
                   setIsActionsVisible(false)
                 }}
                 disabled={message.isDeleted || hasImage || hasFile}
-                className="p-1 rounded-full hover:bg-(--dc-secondary-bg-hover) text-(--dc-text-color-lightest) disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-1 rounded-full hover:bg-(--dc-secondary-bg-hover) text-(--dc-text-color-lightest) disabled:opacity-50 disabled:cursor-not-allowed outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
                 aria-label="Edit message"
               >
                 <Icons.edit3 className="w-5 h-5" />
@@ -415,7 +415,7 @@ function MessageBubble({
                 <button
                   onClick={() => setIsMenuOpen((p) => !p)}
                   disabled={message.isDeleted}
-                  className="p-1 rounded-full hover:bg-[rgb(var(--dc-secondary-bg-hover))] text-[rgb(var(--dc-text-color-lightest))] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-1 rounded-full hover:bg-(--dc-secondary-bg-hover) text-(--dc-text-color-lightest) disabled:opacity-50 disabled:cursor-not-allowed outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
                   aria-label="More options"
                 >
                   <Icons.moreHorizontal className="w-5 h-5" />
@@ -431,7 +431,7 @@ function MessageBubble({
                             onStartEdit(message)
                             setIsMenuOpen(false)
                           }}
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-(--dc-secondary-bg)"
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-(--dc-secondary-bg) outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
                         >
                           Edit message
                         </button>
@@ -439,7 +439,7 @@ function MessageBubble({
                     {canDeleteOwnMessage && (
                       <button
                         onClick={handleDelete}
-                        className="w-full text-left px-4 py-2 text-sm text-(--dc-danger-text) hover:bg-(--dc-secondary-bg)"
+                        className="w-full text-left px-4 py-2 text-sm text-(--dc-danger-text) hover:bg-(--dc-secondary-bg) outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
                       >
                         Delete message
                       </button>

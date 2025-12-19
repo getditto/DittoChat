@@ -49,7 +49,7 @@ function UserMentionItem({
     <button
       onClick={onSelect}
       className={clsx(
-        'w-full text-left px-3 py-2 flex items-center space-x-3 hover:bg-(--dc-secondary-bg)',
+        'w-full text-left px-3 py-2 flex items-center space-x-3 hover:bg-(--dc-secondary-bg) outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)',
         isHighlighted ? 'bg-(--dc-secondary-bg)' : '',
       )}
     >
@@ -441,8 +441,8 @@ function MessageInput({
   }, [])
 
   return (
-    <div className="p-4 bg-(--dc-surface-color) border-t border-(--dc-border-color) mt-auto flex-shrink-0">
-      <div className="relative">
+    <div className="p-4 bg-(--dc-surface-color) border-t border-(--dc-border-color) mt-auto flex-shrink-0 w-full">
+      <div className="relative w-full">
         {editingMessage && (
           <div className="bg-[rgba(var(--dc-edit-bg),0.5)] rounded-lg p-3 mb-2 flex justify-between items-start">
             <div>
@@ -455,7 +455,7 @@ function MessageInput({
             </div>
             <button
               onClick={onCancelEdit}
-              className="text-(--dc-text-color-lightest) hover:text-(--dc-text-color-medium) flex-shrink-0 ml-2"
+              className="text-(--dc-text-color-lightest) hover:text-(--dc-text-color-medium) flex-shrink-0 ml-2 outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-transparent rounded"
             >
               <Icons.x className="w-5 h-5" />
             </button>
@@ -516,14 +516,14 @@ function MessageInput({
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="w-full text-left px-4 py-2 text-sm hover:bg-[rgb(var(--dc-secondary-bg))] flex items-center space-x-3"
+              className="w-full text-left px-4 py-2 text-sm hover:bg-[rgb(var(--dc-secondary-bg))] flex items-center space-x-3 outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
             >
               <Icons.image className="w-5 h-5 text-(--dc-text-color-lightest)" />
               <span>Photo</span>
             </button>
             <button
               onClick={() => documentFileInputRef.current?.click()}
-              className="w-full text-left px-4 py-2 text-sm hover:bg-(--dc-secondary-bg) flex items-center space-x-3"
+              className="w-full text-left px-4 py-2 text-sm hover:bg-(--dc-secondary-bg) flex items-center space-x-3 outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
             >
               <Icons.fileText className="w-5 h-5 text-(--dc-text-color-lightest)" />
               <span>File</span>
@@ -531,22 +531,23 @@ function MessageInput({
           </div>
         )}
 
-        <div className="flex items-start space-x-3">
+        <div className="flex items-start space-x-3 w-full">
           <div className="relative" ref={attachMenuRef}>
             <button
               onClick={() => setIsAttachMenuOpen((p) => !p)}
-              className="flex-shrink-0 flex items-center space-x-2 px-3 py-2 rounded-full bg-(--dc-secondary-bg) hover:bg-(--dc-secondary-bg-hover) text-(--dc-text-color-lighter) font-medium"
+              className="flex-shrink-0 flex items-center space-x-2 px-3 py-2 rounded-full bg-(--dc-secondary-bg) hover:bg-(--dc-secondary-bg-hover) text-(--dc-text-color-lighter) font-medium outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
             >
               <Icons.paperclip className="w-5 h-5" />
               <span>Attach</span>
             </button>
           </div>
 
-          <div className="flex-1 flex items-start bg-(--dc-secondary-bg) rounded-lg">
-            <div className="relative flex-1 min-h-12 max-h-20 p-2 overflow-y-auto">
+          <div className="flex-1 flex items-start bg-(--dc-secondary-bg) rounded-lg min-w-0 overflow-hidden">
+            <div className="relative flex-1 min-h-12 max-h-32 p-2 overflow-y-auto min-w-0 max-w-full">
               <div
                 aria-hidden="true"
-                className="text-base whitespace-pre-wrap break-words invisible"
+                className="text-base whitespace-pre-wrap invisible max-w-full"
+                style={{ width: '100%', maxWidth: '100%', wordBreak: 'break-all', overflowWrap: 'anywhere' }}
               >
                 {renderHighlightedText()}
               </div>
@@ -556,13 +557,14 @@ function MessageInput({
                 onChange={handleTextChange}
                 onKeyDown={handleKeyDown}
                 placeholder={editingMessage ? 'Edit message...' : 'Message...'}
-                className="absolute inset-0 w-full h-full bg-transparent text-(--dc-text-color) text-base resize-none outline-none px-2 py-2"
+                className="absolute inset-0 w-full h-full bg-transparent text-(--dc-text-color) text-base resize-none outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-secondary-bg) px-2 py-2 overflow-x-hidden overflow-y-auto rounded-lg"
+                style={{ maxWidth: '100%', wordBreak: 'break-all', overflowWrap: 'anywhere' }}
               />
             </div>
             <button
               onClick={handleAction}
               disabled={!text.trim()}
-              className="w-8 h-8 m-1 flex items-center justify-center rounded-full bg-(--dc-primary-color) text-(--dc-text-on-primary) disabled:bg-(--dc-disabled-bg) transition-colors flex-shrink-0"
+              className="w-8 h-8 m-1 flex items-center justify-center rounded-full bg-(--dc-primary-color) text-(--dc-text-on-primary) disabled:bg-(--dc-disabled-bg) transition-colors flex-shrink-0 outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-secondary-bg)"
             >
               {editingMessage ? (
                 <Icons.check className="w-5 h-5" />

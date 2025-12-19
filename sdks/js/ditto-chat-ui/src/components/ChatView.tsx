@@ -75,8 +75,8 @@ function ChatView({
   const toggleRoomSubscription = useDittoChatStore(
     (state) =>
       state.toggleRoomSubscription as
-      | ((roomId: string) => Promise<void>)
-      | undefined,
+        | ((roomId: string) => Promise<void>)
+        | undefined,
   )
   const markRoomAsRead = useDittoChatStore((state) => state.markRoomAsRead)
 
@@ -239,7 +239,7 @@ function ChatView({
     <div className="flex flex-col h-full">
       {/* Hide header for generated/comment rooms (when roomId is explicitly provided) */}
       {!roomId && (
-        <header className="flex items-center px-4 min-h-12 border-b border-(--border-color) flex-shrink-0">
+        <header className="flex items-center px-4 min-h-12 border-b border-(--dc-border-color) shrink-0">
           <button
             onClick={onBack}
             className="md:hidden mr-4 text-(--text-color-lighter)"
@@ -269,7 +269,7 @@ function ChatView({
                     toggleRoomSubscription(room._id).catch(console.error)
                   }
                 }}
-                className="ml-auto flex items-center space-x-2 px-3 py-1.5 rounded-full bg-(--secondary-bg) hover:bg-(--secondary-bg-hover) text-(--text-color-lighter) font-medium"
+                className="ml-auto flex items-center space-x-2 px-3 py-1.5 rounded-full bg-(--secondary-bg) hover:bg-(--secondary-bg-hover) text-(--text-color-lighter) font-medium outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
               >
                 {isSubscribed ? (
                   <>
