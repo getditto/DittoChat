@@ -1,11 +1,16 @@
-import { vi } from 'vitest'
+import { vi, afterEach } from 'vitest'
 import { Ditto } from '@dittolive/ditto'
 import { createStore } from 'zustand'
 import { createRoomSlice } from '../src/slices/useRooms'
 import { createChatUserSlice } from '../src/slices/useChatUser'
 import { createMessageSlice } from '../src/slices/useMessages'
 import { createRBACSlice } from '../src/slices/useRBAC'
-import { ChatStore } from '../src/useChat'
+import { ChatStore, resetChatStore } from '../src/useChat'
+
+// Reset the global store between tests for proper test isolation
+afterEach(() => {
+  resetChatStore()
+})
 
 // Type for the mock Ditto instance used in tests
 export type MockDitto = ReturnType<typeof createMockDitto>
@@ -38,8 +43,8 @@ global.FileReader = class {
     // @ts-expect-error - Mock onload without proper event type
     this.onload({ target: { result: 'data:image/png;base64,fake-data' } })
   }
-  onload() {}
-  onerror() {}
+  onload() { }
+  onerror() { }
 } as unknown as typeof FileReader
 
 // Mock Image
@@ -51,14 +56,14 @@ global.Image = class {
       this.onload()
     }, 10)
   }
-  onload() {}
-  onerror() {}
+  onload() { }
+  onerror() { }
 } as unknown as typeof Image
 
 export const createMockDitto = () => ({
   store: {
     execute: vi.fn().mockResolvedValue({ items: [] }),
-    registerObserver: vi.fn().mockReturnValue({ stop: vi.fn() }),
+    registerObserver: vi.fn().mockReturnValue({ stop: vi.fn(), cancel: vi.fn() }),
     newAttachment: vi.fn().mockResolvedValue({
       id: 'mock-attachment-token',
       len: 100,
@@ -85,6 +90,9 @@ export const createTestStore = (mockDitto: MockDitto | null) => {
         ...createChatUserSlice(set, get, params),
         ...createMessageSlice(set, get, params),
         ...createRBACSlice(set, get, params),
+        activeRoomId: null,
+        setActiveRoomId: (roomId: string | number | null) =>
+          set({ activeRoomId: roomId }),
         chatLogout: vi.fn(), // Mock implementation for tests
       }) as any,
   )

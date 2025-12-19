@@ -10,9 +10,30 @@ import {
 import DittoChatUI from '@dittolive/ditto-chat-ui'
 import { useEffect, useState } from 'react'
 
+import ActivitiesDemo from './ActivitiesDemo'
+import { useDittoChat } from '@dittolive/ditto-chat-core'
+
+type ViewMode = 'chat' | 'activities'
+
+const StoreInitializer = ({
+  ditto,
+  userId,
+}: {
+  ditto: Ditto
+  userId: string
+}) => {
+  useDittoChat({
+    ditto,
+    userId,
+    userCollectionKey: 'users',
+  })
+  return null
+}
+
 const DittoChatUIWrapper = () => {
   const ditto = useDitto('testing')
   const [userId, setUserId] = useState('')
+  const [viewMode, setViewMode] = useState<ViewMode>('chat')
   const { documents: users } = usePendingCursorOperation({
     collection: 'users',
   })
@@ -21,45 +42,101 @@ const DittoChatUIWrapper = () => {
     console.log({ userId })
   }, [userId])
 
-  return userId ? (
-    <DittoChatUI
-      ditto={ditto?.ditto as Ditto}
-      theme="auto"
-      userId={userId}
-      userCollectionKey="users"
-    />
-  ) : (
-    <div>
-      <p style={{ textAlign: 'center', fontSize: '24px', margin: '1rem' }}>
-        Login User
-      </p>
+  if (!userId) {
+    return (
+      <div>
+        <p style={{ textAlign: 'center', fontSize: '24px', margin: '1rem' }}>
+          Login User
+        </p>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+            alignItems: 'center',
+            minWidth: '100%',
+          }}
+        >
+          {users.map((user) => (
+            <button
+              key={user.value._id}
+              style={{
+                background: '#ff4d00',
+                color: '#fff',
+                width: '200px',
+                height: '50px',
+                padding: '10px',
+                borderRadius: '20px',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+              onClick={() => setUserId(user.value._id)}
+            >
+              {user.value.name}
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* Toggle Button */}
       <div
         style={{
+          padding: '8px 16px',
+          background: '#f0f0f0',
+          borderBottom: '1px solid #ddd',
           display: 'flex',
-          flexDirection: 'column',
-          gap: '1rem',
+          gap: '10px',
           alignItems: 'center',
-          minWidth: '100%',
         }}
       >
-        {users.map((user) => (
-          <button
-            key={user.value._id}
-            style={{
-              background: '#ff4d00',
-              color: '#fff',
-              width: '200px',
-              height: '50px',
-              padding: '10px',
-              borderRadius: '20px',
-              border: 'none',
-              cursor: 'pointer',
-            }}
-            onClick={() => setUserId(user.value._id)}
-          >
-            {user.value.name}
-          </button>
-        ))}
+        <button
+          onClick={() => setViewMode('chat')}
+          style={{
+            padding: '6px 12px',
+            background: viewMode === 'chat' ? '#ff4d00' : '#ccc',
+            color: viewMode === 'chat' ? '#fff' : '#333',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+          }}
+        >
+          Chat UI
+        </button>
+        <button
+          onClick={() => setViewMode('activities')}
+          style={{
+            padding: '6px 12px',
+            background: viewMode === 'activities' ? '#ff4d00' : '#ccc',
+            color: viewMode === 'activities' ? '#fff' : '#333',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+          }}
+        >
+          Activities Demo
+        </button>
+      </div>
+
+      {/* Content */}
+      <div style={{ flex: 1, overflow: 'auto' }}>
+        {viewMode === 'chat' && (
+          <DittoChatUI
+            ditto={ditto?.ditto as Ditto}
+            theme="auto"
+            userId={userId}
+            userCollectionKey="users"
+          />
+        )}
+        {viewMode === 'activities' && (
+          <>
+            <StoreInitializer ditto={ditto?.ditto as Ditto} userId={userId} />
+            <ActivitiesDemo />
+          </>
+        )}
       </div>
     </div>
   )

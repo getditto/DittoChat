@@ -34,56 +34,68 @@ export type ChatStore = RoomSlice &
     chatLogout: () => void
   }
 
-export let chatStore: StoreApi<ChatStore> | null = null
-export let chatStoreSub: (() => void) | undefined
+// Use globalThis to ensure a single store instance across all npm packages
+declare global {
+  // eslint-disable-next-line no-var
+  var __DITTO_CHAT_STORE__: StoreApi<ChatStore> | undefined
+}
 
-function cancelSubscriptionOrObserver(
+export function cancelSubscriptionOrObserver(
   subscription: SyncSubscription | StoreObserver | null,
 ) {
-  if (subscription && !subscription.isCancelled) {
+  if (
+    subscription &&
+    !subscription.isCancelled
+  ) {
     subscription.cancel()
   }
 }
 
 export function useDittoChat(params: DittoConfParams) {
   const store = useMemo(() => {
-    if (!chatStore) {
-      chatStore = createStore<ChatStore>()((set, get) => ({
-        ...createRoomSlice(set, get, params),
-        ...createChatUserSlice(set, get, params),
-        ...createMessageSlice(set, get, params),
-        ...createRBACSlice(set, get, params),
-        activeRoomId: null,
-        setActiveRoomId: (roomId) => set({ activeRoomId: roomId }),
-        chatLogout: () => {
-          const state = get()
-          cancelSubscriptionOrObserver(state.roomsSubscription)
-          cancelSubscriptionOrObserver(state.roomsObserver)
-          cancelSubscriptionOrObserver(state.dmRoomsSubscription)
-          cancelSubscriptionOrObserver(state.dmRoomsObserver)
-          Object.values(state.messageSubscriptionsByRoom || {}).map((sub) =>
-            cancelSubscriptionOrObserver(sub),
-          )
-          Object.values(state.messageObserversByRoom || {}).map((sub) =>
-            cancelSubscriptionOrObserver(sub),
-          )
-          cancelSubscriptionOrObserver(state.userObserver)
-          cancelSubscriptionOrObserver(state.userSubscription)
-          cancelSubscriptionOrObserver(state.allUsersObserver)
-          cancelSubscriptionOrObserver(state.allUsersSubscription)
-        },
-      }))
+    // Check global instance first
+    if (!globalThis.__DITTO_CHAT_STORE__) {
+      console.log('Creating NEW global chatStore instance')
+      globalThis.__DITTO_CHAT_STORE__ = createStore<ChatStore>()(
+        (set, get) => ({
+          ...createRoomSlice(set, get, params),
+          ...createChatUserSlice(set, get, params),
+          ...createMessageSlice(set, get, params),
+          ...createRBACSlice(set, get, params),
+          activeRoomId: null,
+          setActiveRoomId: (roomId) => set({ activeRoomId: roomId }),
+          chatLogout: () => {
+            const state = get()
+            cancelSubscriptionOrObserver(state.roomsSubscription)
+            cancelSubscriptionOrObserver(state.roomsObserver)
+            cancelSubscriptionOrObserver(state.dmRoomsSubscription)
+            cancelSubscriptionOrObserver(state.dmRoomsObserver)
+            Object.values(state.messageSubscriptionsByRoom || {}).map((sub) =>
+              cancelSubscriptionOrObserver(sub),
+            )
+            Object.values(state.messageObserversByRoom || {}).map((sub) =>
+              cancelSubscriptionOrObserver(sub),
+            )
+            cancelSubscriptionOrObserver(state.userObserver)
+            cancelSubscriptionOrObserver(state.userSubscription)
+            cancelSubscriptionOrObserver(state.allUsersObserver)
+            cancelSubscriptionOrObserver(state.allUsersSubscription)
+          },
+        }),
+      )
+    } else {
+      console.log('Reusing EXISTING global chatStore instance')
     }
-    return chatStore
+    return globalThis.__DITTO_CHAT_STORE__
   }, [params])
 
-  return useStore(store!)
+  return useStore(store)
 }
 
 export function useDittoChatStore<T = Partial<ChatStore>>(
   selector?: (state: ChatStore) => T,
 ) {
-  if (!chatStore) {
+  if (!globalThis.__DITTO_CHAT_STORE__) {
     throw new Error(
       'chatStore must be initialized before useDittoChatStore. use useDittoChat for initialization',
     )
@@ -92,7 +104,23 @@ export function useDittoChatStore<T = Partial<ChatStore>>(
   const shallowSelector = useShallow(
     selector || ((state: ChatStore) => state as T),
   )
-  const storeValue = useStore(chatStore, shallowSelector)
+  const storeValue = useStore(globalThis.__DITTO_CHAT_STORE__, shallowSelector)
 
   return storeValue
+}
+
+/**
+ * Get the global chat store instance
+ * Useful for debugging or accessing the store outside of React components
+ */
+export function getChatStore() {
+  return globalThis.__DITTO_CHAT_STORE__
+}
+
+/**
+ * Reset the global chat store
+ * Useful for testing or when you need to completely reinitialize
+ */
+export function resetChatStore() {
+  globalThis.__DITTO_CHAT_STORE__ = undefined
 }
