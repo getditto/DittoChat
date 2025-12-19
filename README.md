@@ -62,7 +62,7 @@ peer-to-peer chat application using the Ditto Platform.
 
 The JavaScript implementation consists of two packages:
 
-**[@dittolive/ditto-chat-core](./sdks/js/DittoChatCore/README.md)** - Core data models and React hooks for real-time chat functionalities
+**[@dittolive/ditto-chat-core](./sdks/js/ditto-chat-core/README.md)** - Core data models and React hooks for real-time chat functionalities
 
 ```bash
 npm install @dittolive/ditto-chat-core
@@ -70,7 +70,7 @@ npm install @dittolive/ditto-chat-core
 yarn add @dittolive/ditto-chat-core
 ```
 
-**[@dittolive/ditto-chat-ui](./sdks/js/DittoChatUI/README.md)** - Ready-to-use React components for building chat UIs
+**[@dittolive/ditto-chat-ui](./sdks/js/ditto-chat-ui/README.md)** - Ready-to-use React components for building chat UIs
 
 ```bash
 npm install @dittolive/ditto-chat-ui

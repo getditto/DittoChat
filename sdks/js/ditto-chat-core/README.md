@@ -2,6 +2,35 @@
 
 `@dittolive/ditto-chat-core` is a React and TypeScript-based library leveraging Ditto for real-time chat functionalities.
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+- [Comment Rooms (Generated Rooms)](#comment-rooms-generated-rooms)
+  - [Creating a Comment Room](#creating-a-comment-room)
+  - [Subscribing to Messages](#subscribing-to-messages)
+- [Role-Based Access Control (RBAC)](#role-based-access-control-rbac)
+  - [Available Permissions](#available-permissions)
+  - [Configuring Permissions](#configuring-permissions)
+  - [Checking Permissions](#checking-permissions)
+- [Notifications](#notifications)
+  - [Notification Handler](#notification-handler)
+  - [Default Behavior](#default-behavior)
+  - [Custom Notification Handler](#custom-notification-handler)
+  - [Common Notification Events](#common-notification-events)
+- [Singleton Store Pattern](#singleton-store-pattern)
+  - [Why This Matters](#why-this-matters)
+  - [What This Means for You](#what-this-means-for-you)
+  - [Example](#example)
+  - [Ensuring Single Zustand Installation](#ensuring-single-zustand-installation)
+  - [Detailed Documentation](#detailed-documentation)
+- [Architecture & Performance](#architecture--performance)
+  - [Optimistic UI Updates](#optimistic-ui-updates)
+- [Available Scripts](#available-scripts)
+- [Keywords](#keywords)
+- [License](#license)
+- [Repository](#repository)
+
 ## Installation
 
 You can install `@dittolive/ditto-chat-core` using npm or yarn:
@@ -12,21 +41,12 @@ npm install @dittolive/ditto-chat-core
 yarn add @dittolive/ditto-chat-core
 ```
 
-## Peer Dependencies
-
-This library requires the following peer dependencies:
-
-- `@dittolive/ditto`: `^4.12.3`
-- `react`: `^18 || ^19`
-
-Make sure you have these installed in your project.
-
 ## Usage
 
 Here's a basic example of how to use `@dittolive/ditto-chat-core` in your React application:
 
 ```typescript
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Ditto } from '@dittolive/ditto';
 import { useDittoChat, useDittoChatStore } from '@dittolive/ditto-chat-core';
 
@@ -36,24 +56,28 @@ const currentUserId = 'your-user-id';
 const userCollectionKey = 'your-user-collection-key';
 
 function ChatApp() {
-  // 1. Initialize the chat store with your Ditto instance and user details
-  const { rooms, activeRoomId, setActiveRoomId } = useDittoChat({
+  // 1. Initialize the chat store with useDittoChat
+  useDittoChat({
     ditto: dittoInstance,
     userId: currentUserId,
     userCollectionKey: userCollectionKey,
   });
 
-  // 2. Access parts of the store using useDittoChatStore
-  const messages = useDittoChatStore(state => state.messages);
-  const sendMessage = useDittoChatStore(state => state.sendMessage);
+  // 2. Access parts of the store using useDittoChatStore selectors
+  const rooms = useDittoChatStore(state => state.rooms);
+  const activeRoomId = useDittoChatStore(state => state.activeRoomId);
+  const setActiveRoomId = useDittoChatStore(state => state.setActiveRoomId);
+  const messagesByRoom = useDittoChatStore(state => state.messagesByRoom);
+  const createMessage = useDittoChatStore(state => state.createMessage);
+
+  // 3. Derived state
+  const activeRoom = rooms.find(r => r._id === activeRoomId);
+  const messages = activeRoomId ? (messagesByRoom[activeRoomId] || []) : [];
 
   // Example usage:
   const handleSendMessage = (text: string) => {
-    if (activeRoomId) {
-      sendMessage(activeRoomId, {
-        text: text,
-        // other message properties
-      });
+    if (activeRoom) {
+      createMessage(activeRoom, text);
     }
   };
 
@@ -64,16 +88,20 @@ function ChatApp() {
       <h2>Rooms:</h2>
       <ul>
         {rooms.map(room => (
-          <li key={room._id} onClick={() => setActiveRoomId(room._id)}>
-            {room.name} {room._id === activeRoomId ? '(Active)' : ''}
+          <li
+            key={room._id}
+            onClick={() => setActiveRoomId(room._id)}
+            style={{ fontWeight: room._id === activeRoomId ? 'bold' : 'normal' }}
+          >
+            {room.name}
           </li>
         ))}
       </ul>
       <h2>Messages in Active Room:</h2>
       <ul>
-        {messages.filter(msg => msg.roomId === activeRoomId).map(msg => (
-          <li key={msg._id}>
-            <strong>{msg.senderId}:</strong> {msg.text}
+        {messages.map(wrapper => (
+          <li key={wrapper.id}>
+            <strong>{wrapper.user?.name || wrapper.message.userId}:</strong> {wrapper.message.text}
           </li>
         ))}
       </ul>
@@ -86,6 +114,49 @@ export default ChatApp;
 ```
 
 **Note:** The `dittoInstance`, `currentUserId`, and `userCollectionKey` should be provided from your application's context or configuration. You will need to replace `null` with a properly initialized Ditto instance.
+
+## Comment Rooms (Generated Rooms)
+
+DittoChatCore supports "Generated Rooms" which behave differently from standard chat rooms:
+
+1.  They are **excluded** from the main room list found in `state.rooms`.
+2.  They are stored separately in `state.generatedRooms`.
+3.  They must be subscribed to explicitly.
+
+### Creating a Comment Room
+
+Use `createGeneratedRoom` to create a room that won't pollute the main chat list:
+
+```typescript
+const { createGeneratedRoom } = useDittoChatStore((state) => state)
+
+const handleOpenComments = async (entityId: string) => {
+  // Creates a room with ID `comments-${entityId}` if it doesn't exist
+  // and adds it to state.generatedRooms
+  await createGeneratedRoom(`comments-${entityId}`, 'Comments Thread')
+}
+```
+
+### Subscribing to Messages
+
+For generated rooms, you often want to subscribe to messages only when viewing that specific thread. Use the `subscribeToRoomMessages` helper:
+
+```typescript
+const { subscribeToRoomMessages, unsubscribeFromRoomMessages } =
+  useDittoChatStore((state) => state)
+
+useEffect(() => {
+  if (isCommentsOpen) {
+    // Subscribe to messages for this specific room
+    subscribeToRoomMessages(commentRoomId, 'messages')
+  }
+
+  return () => {
+    // Clean up subscription when closing/unmounting
+    unsubscribeFromRoomMessages(commentRoomId)
+  }
+}, [isCommentsOpen, commentRoomId])
+```
 
 ## Role-Based Access Control (RBAC)
 
@@ -232,6 +303,41 @@ The chat system triggers notifications for various events:
 
 - New messages in subscribed rooms
 - User mentions
+
+## Singleton Store Pattern
+
+**Important:** DittoChatCore uses a **global singleton pattern** to ensure that all npm packages share the same Zustand store instance.
+
+### Why This Matters
+
+When `@dittolive/ditto-chat-core` is installed in multiple packages (e.g., in your main app and in `@dittolive/ditto-chat-ui`), each package could potentially get its own copy of the module. To prevent multiple independent store instances, we use `globalThis` to maintain a single shared store.
+
+### What This Means for You
+
+1.  **Initialize once** - Call `useDittoChat()` in your root component
+2.  **Use anywhere** - Call `useDittoChatStore()` in any component from any package
+3.  **Shared state** - All packages automatically share the same state
+
+### Example
+
+```typescript
+// In your main app (initialize once)
+function App() {
+  useDittoChat({
+    ditto: dittoInstance,
+    userId: currentUserId,
+    userCollectionKey: userCollectionKey,
+  })
+
+  return <YourApp />
+}
+
+// In any component, from any package (use the shared store)
+function ChatComponent() {
+  const messages = useDittoChatStore((state) => state.messagesByRoom)
+  // All components see the same state
+}
+```
 
 ## Architecture & Performance
 

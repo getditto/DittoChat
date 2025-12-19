@@ -22,15 +22,31 @@ import MessageInput from './MessageInput'
 interface ChatViewProps {
   chat: Chat
   onBack: () => void
+  /**
+   * Optional room ID - when provided, enables dynamic subscription for generated rooms.
+   * If not provided, uses chat.id (default behavior for regular rooms).
+   */
+  roomId?: string
+  /**
+   * Optional messages collection ID - required when using dynamic subscriptions.
+   * Defaults to "messages" if not provided.
+   */
+  messagesId?: string
 }
-
-function ChatView({ chat, onBack }: ChatViewProps) {
+function ChatView({
+  chat,
+  onBack,
+  roomId,
+  messagesId = 'messages',
+}: ChatViewProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [editingMessage, setEditingMessage] = useState<Message | null>(null)
   const { canSubscribeToRoom } = usePermissions()
 
+  const effectiveRoomId = roomId || chat.id
+
   const messages: MessageWithUser[] = useDittoChatStore(
-    (state) => state.messagesByRoom[chat.id] || EMPTY_MESSAGES,
+    (state) => state.messagesByRoom[effectiveRoomId] || EMPTY_MESSAGES,
   )
   const currentUser: ChatUser | null = useDittoChatStore(
     (state) => state.currentUser,
@@ -64,8 +80,50 @@ function ChatView({ chat, onBack }: ChatViewProps) {
   )
   const markRoomAsRead = useDittoChatStore((state) => state.markRoomAsRead)
 
+  // Dynamic subscription methods for generated rooms
+  const subscribeToRoomMessages = useDittoChatStore(
+    (state) => state.subscribeToRoomMessages,
+  )
+  const unsubscribeFromRoomMessages = useDittoChatStore(
+    (state) => state.unsubscribeFromRoomMessages,
+  )
+
   const rooms = useDittoChatStore((state) => state.rooms || EMPTY_ROOMS)
-  const room = rooms.find((room) => room._id === chat.id)
+  const generatedRooms = useDittoChatStore(
+    (state) => state.generatedRooms || EMPTY_ROOMS,
+  )
+  const room =
+    rooms.find((room) => room._id === effectiveRoomId) ||
+    generatedRooms.find((room) => room._id === effectiveRoomId)
+
+  const isSubscribed =
+    currentUser?.subscriptions &&
+    room &&
+    room._id in currentUser.subscriptions &&
+    currentUser.subscriptions[room._id] !== null
+
+  // Dynamic subscription lifecycle for generated rooms
+  // When roomId is explicitly provided, we subscribe on mount and unsubscribe on unmount
+  useEffect(() => {
+    if (roomId) {
+      // Capture roomId in closure to ensure cleanup has correct value
+      const currentRoomId = roomId
+      subscribeToRoomMessages(currentRoomId, messagesId).catch((err) => {
+        console.error(`[ChatView] Error subscribing to ${currentRoomId}:`, err)
+      })
+
+      return () => {
+        try {
+          unsubscribeFromRoomMessages(currentRoomId)
+        } catch (err) {
+          console.error(
+            `[ChatView] Error unsubscribing from ${currentRoomId}:`,
+            err,
+          )
+        }
+      }
+    }
+  }, [roomId, messagesId, subscribeToRoomMessages, unsubscribeFromRoomMessages])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -179,57 +237,55 @@ function ChatView({ chat, onBack }: ChatViewProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <header className="flex items-center px-4 min-h-12 border-b border-(--border-color) flex-shrink-0">
-        <button
-          onClick={onBack}
-          className="md:hidden mr-4 text-(--text-color-lighter)"
-        >
-          <Icons.arrowLeft className="w-6 h-6" />
-        </button>
-        <div className="flex items-center space-x-3">
-          <div className="relative">
-            <Avatar
-              isUser={chat.type === 'dm'}
-              imageUrl={avatarUrl || undefined}
-            />
-            {otherUserIsActive && (
-              <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-(--active-status-bg) border-2 border-white"></span>
-            )}
-          </div>
-          <h2 className="text-xl font-semibold">{chatName}</h2>
-        </div>
-
-        {room && currentUser && chat.type === 'group' && canSubscribeToRoom && (
+      {/* Hide header for generated/comment rooms (when roomId is explicitly provided) */}
+      {!roomId && (
+        <header className="flex items-center px-4 min-h-12 border-b border-(--border-color) flex-shrink-0">
           <button
-            onClick={() => {
-              if (toggleRoomSubscription) {
-                toggleRoomSubscription(room._id).catch(console.error)
-              }
-            }}
-            className="ml-auto flex items-center space-x-2 px-3 py-1.5 rounded-full bg-(--secondary-bg) hover:bg-(--secondary-bg-hover) text-(--text-color-lighter) font-medium"
+            onClick={onBack}
+            className="md:hidden mr-4 text-(--text-color-lighter)"
           >
-            {(() => {
-              const hasKey =
-                currentUser?.subscriptions &&
-                room._id in currentUser.subscriptions
-              const subValue = currentUser?.subscriptions?.[room._id]
-              const isSubscribed = hasKey && subValue !== null
-
-              return isSubscribed ? (
-                <>
-                  <Icons.x className="w-5 h-5" />
-                  <span>Unsubscribe</span>
-                </>
-              ) : (
-                <>
-                  <Icons.plus className="w-5 h-5" />
-                  <span>Subscribe</span>
-                </>
-              )
-            })()}
+            <Icons.arrowLeft className="w-6 h-6" />
           </button>
-        )}
-      </header>
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <Avatar
+                isUser={chat.type === 'dm'}
+                imageUrl={avatarUrl || undefined}
+              />
+              {otherUserIsActive && (
+                <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-(--active-status-bg) border-2 border-white"></span>
+              )}
+            </div>
+            <h2 className="text-xl font-semibold">{chatName}</h2>
+          </div>
+
+          {room &&
+            currentUser &&
+            chat.type === 'group' &&
+            canSubscribeToRoom && (
+              <button
+                onClick={() => {
+                  if (toggleRoomSubscription) {
+                    toggleRoomSubscription(room._id).catch(console.error)
+                  }
+                }}
+                className="ml-auto flex items-center space-x-2 px-3 py-1.5 rounded-full bg-(--secondary-bg) hover:bg-(--secondary-bg-hover) text-(--text-color-lighter) font-medium"
+              >
+                {isSubscribed ? (
+                  <>
+                    <Icons.x className="w-5 h-5" />
+                    <span>Unsubscribe</span>
+                  </>
+                ) : (
+                  <>
+                    <Icons.plus className="w-5 h-5" />
+                    <span>Subscribe</span>
+                  </>
+                )}
+              </button>
+            )}
+        </header>
+      )}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => {
           const sender = allUsers.find(
