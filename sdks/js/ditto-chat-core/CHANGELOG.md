@@ -1,5 +1,11 @@
 # @dittolive/ditto-chat-core
 
+## 0.1.1
+
+### Patch Changes
+
+- e417a1b: Ditto Package upgrade
+
 ## 0.1.0
 
 ### Minor Changes
