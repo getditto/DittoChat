@@ -1,5 +1,18 @@
 # @dittolive/ditto-chat-ui
 
+## 0.1.1
+
+### Patch Changes
+
+- 86a6e35: - Resolved Configuration Conflicts: Standardized the CSS framework configuration syntax to fix build and linting errors.
+  - Fixed Style Generation: Corrected build path resolution to ensure component styles are properly located and compiled.
+  - Enabled Custom Theming: Enhanced the main UI component to accept a custom theme object, allowing for full color palette control at runtime.
+  - Dynamic Variable Mapping: Implemented logic to map custom theme properties directly to CSS variables.
+  - Documented Styling: Added comprehensive documentation detailing all available style variables and their specific effects across the UI.
+  - Updated Demo: Refreshed the example application to showcase the new custom theming capabilities.
+- Updated dependencies [e417a1b]
+  - @dittolive/ditto-chat-core@0.1.1
+
 ## 0.1.0
 
 ### Minor Changes
