@@ -212,6 +212,7 @@ export default function DittoChatUI({
       textColorFaint: '--dc-text-color-faint',
       textColorDisabled: '--dc-text-color-disabled',
       borderColor: '--dc-border-color',
+      ringColor: '--dc-ring-color',
       editBg: '--dc-edit-bg',
       editText: '--dc-edit-text',
       infoIconColor: '--dc-info-icon-color',

@@ -1,18 +1,16 @@
 {
   "name": "@dittolive/ditto-chat-core",
   "version": "0.1.0",
-  "main": "src/index.ts",
-  "module": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "./dist/index.es.js",
+  "module": "./dist/index.es.js",
+  "types": "./dist/src/index.d.ts",
   "type": "module",
   "exports": {
     ".": {
-      "development": "./src/index.ts",
       "types": "./dist/src/index.d.ts",
       "default": "./dist/index.es.js"
     },
     "./dist/types/*": {
-      "development": "./src/types/*.ts",
       "types": "./dist/src/types/*.d.ts",
       "default": "./dist/types/*.js"
     }
@@ -28,6 +26,7 @@
   },
   "scripts": {
     "build": "vite build && tsc --emitDeclarationOnly",
+    "prepublishOnly": "yarn build",
     "clean": "rm -rf dist",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -37,7 +36,7 @@
     "typecheck": "tsc --noEmit --skipLibCheck"
   },
   "peerDependencies": {
-    "@dittolive/ditto": "^4.12.3",
+    "@dittolive/ditto": "^4.14.0",
     "react": "^18 || ^19",
     "zustand": "^5.0.8"
   },
@@ -46,6 +45,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@types/react": "^19.2.2",
+    "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^5.0.4",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
@@ -70,7 +70,7 @@
     "ditto-chat"
   ],
   "dependencies": {
-    "@dittolive/ditto": "^4.12.3",
+    "@dittolive/ditto": "^4.14.0",
     "immer": "^10.2.0",
     "uuid": "^13.0.0"
   },
