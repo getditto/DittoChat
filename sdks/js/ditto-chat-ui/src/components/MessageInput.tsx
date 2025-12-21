@@ -5,6 +5,7 @@ import {
   type Message,
   useDittoChatStore,
 } from '@dittolive/ditto-chat-core'
+import * as Popover from '@radix-ui/react-popover'
 import { clsx } from 'clsx'
 import React, { useEffect, useRef, useState } from 'react'
 
@@ -419,26 +420,6 @@ function MessageInput({
     return <>{finalParts}</>
   }
 
-  // Close popovers on outside click
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        attachMenuRef.current &&
-        !attachMenuRef.current.contains(event.target as Node)
-      ) {
-        setIsAttachMenuOpen(false)
-      }
-      if (
-        !event
-          .composedPath()
-          .some((el) => (el as HTMLElement).id === 'mention-popover')
-      ) {
-        setIsMentioning(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
 
   return (
     <div className="p-4 bg-(--dc-surface-color) border-t border-(--dc-border-color) mt-auto flex-shrink-0 w-full">
@@ -462,105 +443,122 @@ function MessageInput({
           </div>
         )}
 
-        {isMentioning && filteredMentionUsers.length > 0 && (
-          <div
-            id="mention-popover"
-            className="absolute bottom-full mb-2 bg-(--dc-surface-color) rounded-lg shadow-lg border border-(--dc-border-color) w-64 z-20 overflow-hidden"
-          >
-            <ul className="max-h-60 overflow-y-auto">
-              {filteredMentionUsers.map((user, index) => (
-                <li key={user._id}>
-                  <UserMentionItem
-                    user={user}
-                    isHighlighted={index === highlightedMentionIndex}
-                    onSelect={() => handleMentionSelect(user)}
-                    fetchAttachment={fetchAttachment}
-                  />
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {isAttachMenuOpen && (
-          <div
-            ref={attachMenuRef}
-            className="absolute bottom-full mb-2 bg-(--dc-surface-color) rounded-lg shadow-lg border border-(--dc-border-color) w-48 z-10 py-1"
-          >
-            <input
-              type="file"
-              ref={fileInputRef}
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (file && onSendImage) {
-                  onSendImage(file, text.trim() || undefined)
-                  setText('')
-                  setIsAttachMenuOpen(false)
-                }
-              }}
-            />
-            <input
-              type="file"
-              ref={documentFileInputRef}
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (file && onSendFile) {
-                  onSendFile(file, text.trim() || undefined)
-                  setText('')
-                  setIsAttachMenuOpen(false)
-                }
-              }}
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full text-left px-4 py-2 text-sm hover:bg-[rgb(var(--dc-secondary-bg))] flex items-center space-x-3 outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
-            >
-              <Icons.image className="w-5 h-5 text-(--dc-text-color-lightest)" />
-              <span>Photo</span>
-            </button>
-            <button
-              onClick={() => documentFileInputRef.current?.click()}
-              className="w-full text-left px-4 py-2 text-sm hover:bg-(--dc-secondary-bg) flex items-center space-x-3 outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
-            >
-              <Icons.fileText className="w-5 h-5 text-(--dc-text-color-lightest)" />
-              <span>File</span>
-            </button>
-          </div>
-        )}
-
         <div className="flex items-start space-x-3 w-full">
-          <div className="relative" ref={attachMenuRef}>
-            <button
-              onClick={() => setIsAttachMenuOpen((p) => !p)}
-              className="flex-shrink-0 flex items-center space-x-2 px-3 py-2 rounded-full bg-(--dc-secondary-bg) hover:bg-(--dc-secondary-bg-hover) text-(--dc-text-color-lighter) font-medium outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
-            >
-              <Icons.paperclip className="w-5 h-5" />
-              <span>Attach</span>
-            </button>
-          </div>
+          <Popover.Root open={isAttachMenuOpen} onOpenChange={setIsAttachMenuOpen}>
+            <Popover.Trigger asChild>
+              <button
+                className="flex-shrink-0 flex items-center space-x-2 px-3 py-2 rounded-full bg-(--dc-secondary-bg) hover:bg-(--dc-secondary-bg-hover) text-(--dc-text-color-lighter) font-medium outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
+              >
+                <Icons.paperclip className="w-5 h-5" />
+                <span>Attach</span>
+              </button>
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Content
+                ref={attachMenuRef}
+                className="bg-(--dc-surface-color) rounded-lg shadow-lg border border-(--dc-border-color) w-48 z-10 py-1 outline-none"
+                side="top"
+                sideOffset={8}
+                align="start"
+              >
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file && onSendImage) {
+                      onSendImage(file, text.trim() || undefined)
+                      setText('')
+                      setIsAttachMenuOpen(false)
+                    }
+                  }}
+                />
+                <input
+                  type="file"
+                  ref={documentFileInputRef}
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file && onSendFile) {
+                      onSendFile(file, text.trim() || undefined)
+                      setText('')
+                      setIsAttachMenuOpen(false)
+                    }
+                  }}
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-[rgb(var(--dc-secondary-bg))] flex items-center space-x-3 outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
+                >
+                  <Icons.image className="w-5 h-5 text-(--dc-text-color-lightest)" />
+                  <span>Photo</span>
+                </button>
+                <button
+                  onClick={() => documentFileInputRef.current?.click()}
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-(--dc-secondary-bg) flex items-center space-x-3 outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
+                >
+                  <Icons.fileText className="w-5 h-5 text-(--dc-text-color-lightest)" />
+                  <span>File</span>
+                </button>
+              </Popover.Content>
+            </Popover.Portal>
+          </Popover.Root>
 
           <div className="flex-1 flex items-start bg-(--dc-secondary-bg) rounded-lg min-w-0 overflow-hidden">
-            <div className="relative flex-1 min-h-12 max-h-32 p-2 overflow-y-auto min-w-0 max-w-full">
-              <div
-                aria-hidden="true"
-                className="text-base whitespace-pre-wrap invisible max-w-full"
-                style={{ width: '100%', maxWidth: '100%', wordBreak: 'break-all', overflowWrap: 'anywhere' }}
-              >
-                {renderHighlightedText()}
-              </div>
-              <textarea
-                ref={textareaRef}
-                value={text}
-                onChange={handleTextChange}
-                onKeyDown={handleKeyDown}
-                placeholder={editingMessage ? 'Edit message...' : 'Message...'}
-                className="absolute inset-0 w-full h-full bg-transparent text-(--dc-text-color) text-base resize-none outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-secondary-bg) px-2 py-2 overflow-x-hidden overflow-y-auto rounded-lg"
-                style={{ maxWidth: '100%', wordBreak: 'break-all', overflowWrap: 'anywhere' }}
-              />
-            </div>
+            <Popover.Root
+              open={isMentioning && filteredMentionUsers.length > 0}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setIsMentioning(false)
+                }
+              }}
+            >
+              <Popover.Anchor asChild>
+                <div className="relative flex-1 min-h-12 max-h-32 p-2 overflow-y-auto min-w-0 max-w-full">
+                  <div
+                    aria-hidden="true"
+                    className="text-base whitespace-pre-wrap invisible max-w-full"
+                    style={{ width: '100%', maxWidth: '100%', wordBreak: 'break-all', overflowWrap: 'anywhere' }}
+                  >
+                    {renderHighlightedText()}
+                  </div>
+                  <textarea
+                    ref={textareaRef}
+                    value={text}
+                    onChange={handleTextChange}
+                    onKeyDown={handleKeyDown}
+                    placeholder={editingMessage ? 'Edit message...' : 'Message...'}
+                    className="absolute inset-0 w-full h-full bg-transparent text-(--dc-text-color) text-base resize-none outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-secondary-bg) px-2 py-2 overflow-x-hidden overflow-y-auto rounded-lg"
+                    style={{ maxWidth: '100%', wordBreak: 'break-all', overflowWrap: 'anywhere' }}
+                  />
+                </div>
+              </Popover.Anchor>
+              <Popover.Portal>
+                <Popover.Content
+                  id="mention-popover"
+                  className="bg-(--dc-surface-color) rounded-lg shadow-lg border border-(--dc-border-color) w-64 z-20 overflow-hidden outline-none"
+                  side="top"
+                  sideOffset={8}
+                  align="start"
+                  onOpenAutoFocus={(e) => e.preventDefault()}
+                >
+                  <ul ref={mentionListRef} className="max-h-60 overflow-y-auto">
+                    {filteredMentionUsers.map((user, index) => (
+                      <li key={user._id}>
+                        <UserMentionItem
+                          user={user}
+                          isHighlighted={index === highlightedMentionIndex}
+                          onSelect={() => handleMentionSelect(user)}
+                          fetchAttachment={fetchAttachment}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </Popover.Content>
+              </Popover.Portal>
+            </Popover.Root>
             <button
               onClick={handleAction}
               disabled={!text.trim()}

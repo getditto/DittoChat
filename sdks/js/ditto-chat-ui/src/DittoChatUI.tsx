@@ -345,18 +345,16 @@ export default function DittoChatUI({
                 onBack={handleBack}
               />
             )}
-            {activeScreen === 'newMessage' && (
-              <NewMessageModal
-                onClose={handleBack}
-                onNewDMCreate={handleNewDMCreate}
-              />
-            )}
-            {activeScreen === 'newRoom' && (
-              <NewRoomModal
-                onClose={handleBack}
-                onCreateRoom={handleNewRoomCreate}
-              />
-            )}
+            <NewMessageModal
+              open={activeScreen === 'newMessage'}
+              onClose={handleBack}
+              onNewDMCreate={handleNewDMCreate}
+            />
+            <NewRoomModal
+              open={activeScreen === 'newRoom'}
+              onClose={handleBack}
+              onCreateRoom={handleNewRoomCreate}
+            />
             {!selectedChat &&
               (activeScreen === 'list' || activeScreen === 'chat') && (
                 <div className="hidden md:flex flex-col items-center justify-center h-full bg-(--dc-surface-color-light) text-(--dc-text-color-lightest)">
