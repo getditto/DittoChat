@@ -2,7 +2,7 @@ import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { clsx } from 'clsx'
 import React from 'react'
 
-import { useThemeClass } from './useThemeClass'
+import { useThemeClass } from '../../hooks/useThemeClass'
 
 // Re-export all primitives except Content
 export const Root = PopoverPrimitive.Root

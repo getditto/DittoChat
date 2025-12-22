@@ -2,8 +2,8 @@ import * as DialogPrimitive from '@radix-ui/react-dialog'
 import clsx from 'clsx'
 import * as React from 'react'
 
+import { useThemeClass } from '../../hooks/useThemeClass'
 import { Icons } from '../Icons'
-import { useThemeClass } from './useThemeClass'
 
 const Root = DialogPrimitive.Root
 

@@ -1,4 +1,4 @@
-import { useTheme } from './ThemeContext'
+import { useState } from 'react'
 
 /**
  * Hook to get the current theme class.
@@ -7,7 +7,7 @@ import { useTheme } from './ThemeContext'
  * @returns 'light' | 'dark' based on the current theme
  */
 export function useThemeClass(): string {
-    const { theme } = useTheme()
-    return theme
+    const [themeName] = useState(() => localStorage.getItem('ditto-web-chat-theme') || 'light')
+    return themeName
 }
 

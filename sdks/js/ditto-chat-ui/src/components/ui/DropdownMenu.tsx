@@ -2,7 +2,7 @@ import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
 import { clsx } from 'clsx'
 import React from 'react'
 
-import { useThemeClass } from './useThemeClass'
+import { useThemeClass } from '../../hooks/useThemeClass'
 
 // Re-export all primitives except Content
 export const Root = DropdownMenuPrimitive.Root
