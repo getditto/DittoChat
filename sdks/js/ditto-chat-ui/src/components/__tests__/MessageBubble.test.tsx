@@ -17,6 +17,82 @@ vi.mock('../QuickReaction', () => ({
   default: () => <div data-testid="quick-reaction" />,
 }))
 
+vi.mock('../ui/Dialog', () => ({
+  Root: ({ children, open }: any) => (open ? <div data-testid="dialog-root">{children}</div> : null),
+  Trigger: ({ children }: any) => children,
+  Portal: ({ children }: any) => children,
+  Overlay: () => null,
+  Content: ({ children }: any) => <div data-testid="dialog-content">{children}</div>,
+  Header: ({ children }: any) => <div>{children}</div>,
+  Title: ({ children }: any) => <div>{children}</div>,
+  Description: ({ children }: any) => <div>{children}</div>,
+  Footer: ({ children }: any) => <div>{children}</div>,
+}))
+
+vi.mock('../ui/DropdownMenu', () => {
+  const React = require('react')
+  const DropdownContext = React.createContext({
+    open: false,
+    setOpen: (v: boolean) => { },
+  })
+
+  return {
+    Root: ({ children, onOpenChange }: any) => {
+      const [open, setOpen] = React.useState(false)
+      const value = React.useMemo(
+        () => ({
+          open,
+          setOpen: (v: boolean) => {
+            setOpen(v)
+            onOpenChange?.(v)
+          },
+        }),
+        [open, onOpenChange],
+      )
+      return (
+        <DropdownContext.Provider value={value}>
+          {children}
+        </DropdownContext.Provider>
+      )
+    },
+    Trigger: ({ children }: any) => {
+      const { open, setOpen } = React.useContext(DropdownContext)
+      const child = React.Children.only(children)
+      return React.cloneElement(child, {
+        onClick: (e: any) => {
+          if (child.props.disabled) {
+            return
+          }
+          child.props.onClick?.(e)
+          setOpen(!open)
+        },
+      })
+    },
+    Portal: ({ children }: any) => {
+      const { open } = React.useContext(DropdownContext)
+      return open ? <>{children}</> : null
+    },
+    Content: ({ children }: any) => (
+      <div data-testid="dropdown-content">{children}</div>
+    ),
+    Item: ({ children, onSelect }: any) => {
+      const { setOpen } = React.useContext(DropdownContext)
+      return (
+        <div
+          onClick={(e) => {
+            e.stopPropagation()
+            onSelect()
+            setOpen(false)
+          }}
+          role="menuitem"
+        >
+          {children}
+        </div>
+      )
+    },
+  }
+})
+
 vi.mock('../../hooks/useImageAttachment')
 
 // Mock dependencies - import after vi.mock to get the mocked version
@@ -134,10 +210,7 @@ describe('MessageBubble', () => {
     expect(reactionButton).toBeInTheDocument()
   })
 
-  it('handles message deletion confirmation', () => {
-    const confirmSpy = vi.spyOn(window, 'confirm')
-    confirmSpy.mockImplementation(() => true)
-
+  it('handles message deletion confirmation', async () => {
     render(
       <MessageBubble
         {...defaultProps}
@@ -150,19 +223,19 @@ describe('MessageBubble', () => {
     const moreButton = screen.getByLabelText('More options')
     fireEvent.click(moreButton)
 
-    const deleteButton = screen.getByText('Delete message')
-    fireEvent.click(deleteButton)
+    const deleteMenuItem = screen.getByText('Delete message')
+    fireEvent.click(deleteMenuItem)
 
-    expect(confirmSpy).toHaveBeenCalled()
+    // Now dialog should be open
+    expect(screen.getByTestId('dialog-root')).toBeInTheDocument()
+
+    const confirmDeleteButton = screen.getByRole('button', { name: 'Delete' })
+    fireEvent.click(confirmDeleteButton)
+
     expect(defaultProps.onDeleteMessage).toHaveBeenCalledWith(mockMessage._id)
-
-    confirmSpy.mockRestore()
   })
 
   it('cancels message deletion', () => {
-    const confirmSpy = vi.spyOn(window, 'confirm')
-    confirmSpy.mockImplementation(() => false)
-
     render(
       <MessageBubble
         {...defaultProps}
@@ -175,13 +248,17 @@ describe('MessageBubble', () => {
     const moreButton = screen.getByLabelText('More options')
     fireEvent.click(moreButton)
 
-    const deleteButton = screen.getByText('Delete message')
-    fireEvent.click(deleteButton)
+    const deleteMenuItem = screen.getByText('Delete message')
+    fireEvent.click(deleteMenuItem)
 
-    expect(confirmSpy).toHaveBeenCalled()
+    // Now dialog should be open
+    expect(screen.getByTestId('dialog-root')).toBeInTheDocument()
+
+    const cancelButton = screen.getByRole('button', { name: 'Cancel' })
+    fireEvent.click(cancelButton)
+
     expect(defaultProps.onDeleteMessage).not.toHaveBeenCalled()
-
-    confirmSpy.mockRestore()
+    expect(screen.queryByTestId('dialog-root')).not.toBeInTheDocument()
   })
 
   it('renders mentions correctly', () => {

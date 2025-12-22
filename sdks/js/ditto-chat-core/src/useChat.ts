@@ -36,6 +36,7 @@ export type ChatStore = RoomSlice &
 
 // Use globalThis to ensure a single store instance across all npm packages
 declare global {
+  // eslint-disable-next-line no-var
    
   var __DITTO_CHAT_STORE__: StoreApi<ChatStore> | undefined
 }
