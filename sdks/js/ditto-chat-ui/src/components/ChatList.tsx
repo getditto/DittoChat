@@ -1,5 +1,4 @@
 import { useDittoChatStore } from '@dittolive/ditto-chat-core'
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import {
   AutoSizer,
@@ -14,6 +13,7 @@ import type { Chat } from '../types'
 import { usePermissions } from '../utils/usePermissions'
 import ChatListItem from './ChatListItem'
 import { Icons } from './Icons'
+import * as DropdownMenu from './ui/DropdownMenu'
 
 interface ChatListProps {
   chats: Chat[]
@@ -37,6 +37,26 @@ function ChatList({
 
   // search state moved outside for brevity - keep your useState if needed
   const [searchTerm, setSearchTerm] = React.useState('')
+
+  // Ref for the button container to measure its width for the dropdown menu
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [menuWidth, setMenuWidth] = useState<number | undefined>(undefined)
+
+  useEffect(() => {
+    const updateWidth = () => {
+      if (containerRef.current) {
+        setMenuWidth(containerRef.current.offsetWidth)
+      }
+    }
+
+    updateWidth()
+    const observer = new ResizeObserver(updateWidth)
+    if (containerRef.current) {
+      observer.observe(containerRef.current)
+    }
+
+    return () => observer.disconnect()
+  }, [])
 
   const filteredChats = useMemo(
     () =>
@@ -97,7 +117,7 @@ function ChatList({
       </header>
       <div className="p-4 space-y-4">
         <div className="relative w-full">
-          <div className="flex w-full">
+          <div ref={containerRef} className="flex w-full group">
             <button
               onClick={() => onNewMessage('newMessage')}
               className={`w-full bg-(--dc-primary-color) text-(--dc-text-on-primary) font-semibold py-3 ${canCreateRoom ? 'rounded-l-xl' : 'rounded-xl'} hover:bg-(--dc-primary-color-hover) outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color) transition-colors`}
@@ -116,12 +136,13 @@ function ChatList({
                 </DropdownMenu.Trigger>
                 <DropdownMenu.Portal>
                   <DropdownMenu.Content
-                    className="min-w-[200px] bg-(--dc-surface-color) rounded-md shadow-lg border border-(--dc-border-color) p-1 z-50"
+                    className="bg-(--dc-surface-color) rounded-md shadow-lg border border-(--dc-border-color) p-1 z-50"
                     sideOffset={8}
                     align="end"
+                    style={{ width: menuWidth }}
                   >
                     <DropdownMenu.Item
-                      className="px-4 py-2 text-sm text-[rgb(var(--dc-text-color-medium))] hover:bg-[rgb(var(--dc-secondary-bg))] rounded outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color) cursor-pointer"
+                      className="px-4 py-2 text-sm text-(--dc-text-color-medium) hover:bg-(--dc-secondary-bg) rounded outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color) cursor-pointer"
                       onSelect={() => onNewMessage('newRoom')}
                     >
                       New Room

@@ -42,6 +42,7 @@ const mockUsers: ChatUser[] = [
 
 describe('NewMessageModal', () => {
   const defaultProps = {
+    open: true,
     onNewDMCreate: vi.fn(),
     onClose: vi.fn(),
   }
@@ -91,7 +92,7 @@ describe('NewMessageModal', () => {
   it('calls onClose when close button is clicked', () => {
     render(<NewMessageModal {...defaultProps} />)
 
-    fireEvent.click(screen.getByRole('button', { name: '' })) // The close button has the icon
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
 
     expect(defaultProps.onClose).toHaveBeenCalled()
   })

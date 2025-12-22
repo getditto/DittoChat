@@ -15,6 +15,7 @@ import ChatView from './components/ChatView'
 import { Icons } from './components/Icons'
 import NewMessageModal from './components/NewMessageModal'
 import NewRoomModal from './components/NewRoomModal'
+import { ThemeProvider } from './components/ui/ThemeProvider'
 import type { Chat, Theme } from './types'
 
 const getSystemTheme = () => {
@@ -302,11 +303,11 @@ export default function DittoChatUI({
       if (window.innerWidth >= 768 && !selectedChat) {
         setActiveScreen('chat')
       }
-    }, [])
+    }, [selectedChat])
 
   return (
-    <div className="dcui-root" style={{ ...themeStyles, height: '100%' }}>
-      <div className={`${themeName} h-full`}>
+    <ThemeProvider theme={themeName as 'light' | 'dark'}>
+      <div className={`dcui-root ${themeName}`} style={{ ...themeStyles, height: '100%' }}>
         <Toaster
           position="top-right"
           richColors
@@ -366,6 +367,6 @@ export default function DittoChatUI({
           </main>
         </div>
       </div>
-    </div>
+    </ThemeProvider>
   )
 }

@@ -8,6 +8,8 @@ import { formatDate } from '../utils'
 import { usePermissions } from '../utils/usePermissions'
 import { Icons } from './Icons'
 import QuickReaction from './QuickReaction'
+import * as Dialog from './ui/Dialog'
+import * as DropdownMenu from './ui/DropdownMenu'
 
 type MessageReaction = {
   id: number
@@ -73,11 +75,10 @@ function FormattedMessage({
     finalParts.push(
       <span
         key={`mention-${index}`}
-        className={`font-semibold ${
-          isOwn
-            ? 'text-(--dc-mention-text-on-primary)'
-            : 'text-(--dc-mention-text)'
-        }`}
+        className={`font-semibold ${isOwn
+          ? 'text-(--dc-mention-text-on-primary)'
+          : 'text-(--dc-mention-text)'
+          }`}
       >
         {text.slice(mention.startIndex, mention.endIndex)}
       </span>,
@@ -156,9 +157,18 @@ function MessageBubble({
   })
 
   const [showLargeImage, setShowLargeImage] = useState(false)
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isActionsVisible, setIsActionsVisible] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [reactions, setReactions] = useState<MessageReaction[]>([])
+
+  const confirmDelete = () => {
+    onDeleteMessage(message._id)
+    setIsDeleteDialogOpen(false)
+  }
+
+  const handleDelete = () => {
+    setIsDeleteDialogOpen(true)
+  }
 
   const hasImage = !!(message.thumbnailImageToken || message.largeImageToken)
   const hasFile = !!message.fileAttachmentToken
@@ -206,12 +216,6 @@ function MessageBubble({
     setShowLargeImage(true)
   }
 
-  const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this message?')) {
-      onDeleteMessage(message._id)
-    }
-  }
-
   const handleAddReactionClick = (emoji: EmojiClickData) => {
     const existingReactionIndex = reactions.findIndex(
       (reaction) =>
@@ -232,305 +236,335 @@ function MessageBubble({
   const alignmentClass = isOwnMessage ? 'items-end' : 'items-start'
 
   return (
-    <div
-      className={`flex flex-col ${alignmentClass}`}
-      onMouseEnter={() => {
-        if (isOwnMessage) {
-          setIsActionsVisible(true)
-        }
-      }}
-      onMouseLeave={() => {
-        if (isOwnMessage) {
-          setIsActionsVisible(false)
-          setIsMenuOpen(false)
-        }
-      }}
-    >
-      {showSenderInfo && (
-        <div
-          className={`flex items-baseline text-xs text-(--dc-text-color-lightest) mb-1 ${
-            isOwnMessage ? 'justify-end' : ''
-          }`}
-        >
-          {(isGroupChat || !isOwnMessage) && (
-            <span className="mr-1">{senderName}</span>
-          )}
-          <span className="mr-1 text-sm">&#183;</span>
-          <span>{formatDate(message.createdOn)}</span>
-          {message.isEdited && !message.isDeleted && (
-            <span className="text-(--dc-text-color-faint) text-xs ml-1">
-              (edited)
-            </span>
-          )}
-        </div>
-      )}
+    <>
+      <Dialog.Root open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <Dialog.Content>
+          <Dialog.Header>
+            <Dialog.Title>Delete Message</Dialog.Title>
+            <Dialog.Description>
+              Are you sure you want to delete this message? This action cannot be undone.
+            </Dialog.Description>
+          </Dialog.Header>
+          <Dialog.Footer>
+            <button
+              onClick={() => setIsDeleteDialogOpen(false)}
+              className="px-4 py-2 border border-(--dc-border-color) rounded-md text-sm font-medium hover:bg-(--dc-secondary-bg) outline-none focus:ring-2 focus:ring-(--dc-ring-color) focus:ring-offset-1 text-(--dc-text-color) transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmDelete}
+              className="px-4 py-2 bg-(--dc-danger-bg) text-(--dc-danger-text) rounded-md text-sm font-medium hover:opacity-90 outline-none focus:ring-2 focus:ring-(--dc-danger-bg) focus:ring-offset-1 transition-colors"
+            >
+              Delete
+            </button>
+          </Dialog.Footer>
+        </Dialog.Content>
+      </Dialog.Root>
 
       <div
-        className={`flex items-center gap-2 ${
-          isOwnMessage ? 'flex-row-reverse' : 'flex-row'
-        }`}
+        className={`flex flex-col ${alignmentClass}`}
+        onMouseEnter={() => {
+          if (isOwnMessage) {
+            setIsActionsVisible(true)
+          }
+        }}
+        onMouseLeave={() => {
+          if (isOwnMessage) {
+            setIsActionsVisible(false)
+          }
+        }}
       >
+        {showSenderInfo && (
+          <div
+            className={`flex items-baseline text-xs text-(--dc-text-color-lightest) mb-1 ${isOwnMessage ? 'justify-end' : ''
+              }`}
+          >
+            {(isGroupChat || !isOwnMessage) && (
+              <span className="mr-1">{senderName}</span>
+            )}
+            <span className="mr-1 text-sm">&#183;</span>
+            <span>{formatDate(message.createdOn)}</span>
+            {message.isEdited && !message.isDeleted && (
+              <span className="text-(--dc-text-color-faint) text-xs ml-1">
+                (edited)
+              </span>
+            )}
+          </div>
+        )}
+
         <div
-          className={`flex flex-col max-w-xs md:max-w-md lg:max-w-lg ${
-            isOwnMessage ? 'items-end' : 'items-start'
-          }`}
+          className={`flex items-center gap-2 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'
+            }`}
         >
-          {hasImage && !message.isDeleted && (
-            <div className={`relative ${hasText ? 'mb-1' : ''}`}>
-              {message.isDeleted ? (
-                <div className="flex items-center justify-center w-48 h-48 rounded-xl bg-[rgb(var(--dc-secondary-bg-hover))]">
-                  <span className="italic text-(--dc-text-color-faint)">
-                    [deleted image]
-                  </span>
-                </div>
-              ) : imageError ? (
-                <div className="flex items-center justify-center w-48 h-48 rounded-xl bg-[rgb(var(--dc-secondary-bg-hover))] text-[rgb(var(--dc-text-color-light))]">
-                  <span>{imageError}</span>
-                </div>
-              ) : thumbnailUrl ? (
-                <div className="relative">
-                  <img
-                    src={thumbnailUrl}
-                    alt="Message attachment"
-                    className="rounded-xl cursor-pointer max-w-full h-auto block"
-                    onClick={handleThumbnailClick}
-                    style={{ maxHeight: '282px' }}
-                  />
-                  {isLoadingLargeImage && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
-                      <div className="text-white text-center">
-                        <div className="text-sm">Loading…</div>
-                        <div className="text-xs">
-                          {Math.round(largeImageProgress * 100)}%
+          <div
+            className={`flex flex-col max-w-xs md:max-w-md lg:max-w-lg ${isOwnMessage ? 'items-end' : 'items-start'
+              }`}
+          >
+            {hasImage && !message.isDeleted && (
+              <div className={`relative ${hasText ? 'mb-1' : ''}`}>
+                {message.isDeleted ? (
+                  <div className="flex items-center justify-center w-48 h-48 rounded-xl bg-[rgb(var(--dc-secondary-bg-hover))]">
+                    <span className="italic text-(--dc-text-color-faint)">
+                      [deleted image]
+                    </span>
+                  </div>
+                ) : imageError ? (
+                  <div className="flex items-center justify-center w-48 h-48 rounded-xl bg-[rgb(var(--dc-secondary-bg-hover))] text-[rgb(var(--dc-text-color-light))]">
+                    <span>{imageError}</span>
+                  </div>
+                ) : thumbnailUrl ? (
+                  <div className="relative">
+                    <img
+                      src={thumbnailUrl}
+                      alt="Message attachment"
+                      className="rounded-xl cursor-pointer max-w-full h-auto block"
+                      onClick={handleThumbnailClick}
+                      style={{ maxHeight: '282px' }}
+                    />
+                    {isLoadingLargeImage && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
+                        <div className="text-white text-center">
+                          <div className="text-sm">Loading…</div>
+                          <div className="text-xs">
+                            {Math.round(largeImageProgress * 100)}%
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center w-48 h-48 rounded-xl bg-[rgb(var(--dc-secondary-bg-hover))]">
-                  <div className="text-[rgb(var(--dc-text-color-light))] text-sm">
-                    {isLoadingThumbnail ? 'Loading…' : 'Preparing image…'}
+                    )}
                   </div>
-                  {thumbnailProgress > 0 && (
-                    <div className="text-[rgb(var(--dc-text-color-light))] text-xs mt-1">
-                      {Math.round(thumbnailProgress * 100)}%
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {hasFile &&
-            (message.isDeleted ? (
-              <div
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl ${bubbleClasses} max-w-xs`}
-              >
-                <span className="italic text-(--dc-text-color-faint)">
-                  [deleted file]
-                </span>
-              </div>
-            ) : (
-              <div
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl ${bubbleClasses} max-w-xs`}
-              >
-                <div className="flex-shrink-0 p-2 bg-(--dc-secondary-bg-hover) rounded-lg">
-                  <Icons.fileText className="w-5 h-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate text-sm">
-                    {message.text || 'File attachment'}
-                  </p>
-                </div>
-                <button
-                  onClick={() => {
-                    if (fetchAttachment && message.fileAttachmentToken) {
-                      fetchAttachment(
-                        message.fileAttachmentToken as unknown as AttachmentToken,
-                        () => {},
-                        (result) => {
-                          if (result.success && result.data) {
-                            const blob = new Blob(
-                              [new Uint8Array(result.data)],
-                              { type: 'application/octet-stream' },
-                            )
-                            const url = URL.createObjectURL(blob)
-                            const a = document.createElement('a')
-                            a.href = url
-                            a.download = message.text || 'download'
-                            document.body.appendChild(a)
-                            a.click()
-                            document.body.removeChild(a)
-                            URL.revokeObjectURL(url)
-                          }
-                        },
-                      )
-                    }
-                  }}
-                  className="p-1.5 hover:bg-(--dc-secondary-bg-hover) rounded-md transition-colors flex-shrink-0 outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
-                  aria-label="Download file"
-                >
-                  <Icons.arrowDown className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-
-          {hasText && (
-            <div className={`px-4 py-2 rounded-xl ${bubbleClasses}`}>
-              <p className="break-words whitespace-pre-wrap">
-                {message.isDeleted ? (
-                  <span className="italic text-(--dc-text-color-faint)">
-                    [deleted message]
-                  </span>
                 ) : (
-                  <FormattedMessage message={message} isOwn={isOwnMessage} />
-                )}
-              </p>
-            </div>
-          )}
-        </div>
-
-        {isOwnMessage && (
-          <div
-            className={`relative flex items-center transition-opacity duration-200 ${
-              isActionsVisible ? 'opacity-100' : 'opacity-0'
-            }`}
-          >
-            {canEditOwnMessage && (
-              <button
-                onClick={() => {
-                  onStartEdit(message)
-                  setIsActionsVisible(false)
-                }}
-                disabled={message.isDeleted || hasImage || hasFile}
-                className="p-1 rounded-full hover:bg-(--dc-secondary-bg-hover) text-(--dc-text-color-lightest) disabled:opacity-50 disabled:cursor-not-allowed outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
-                aria-label="Edit message"
-              >
-                <Icons.edit3 className="w-5 h-5" />
-              </button>
-            )}
-            {(canEditOwnMessage || canDeleteOwnMessage) && (
-              <div className="relative">
-                <button
-                  onClick={() => setIsMenuOpen((p) => !p)}
-                  disabled={message.isDeleted}
-                  className="p-1 rounded-full hover:bg-(--dc-secondary-bg-hover) text-(--dc-text-color-lightest) disabled:opacity-50 disabled:cursor-not-allowed outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
-                  aria-label="More options"
-                >
-                  <Icons.moreHorizontal className="w-5 h-5" />
-                </button>
-                {isMenuOpen && (
-                  <div className="absolute top-full mt-2 right-0 bg-(--dc-surface-color) rounded-lg shadow-lg border border-(--dc-border-color) w-40 z-10 py-1">
-                    {!message.isDeleted &&
-                      canEditOwnMessage &&
-                      !hasImage &&
-                      !hasFile && (
-                        <button
-                          onClick={() => {
-                            onStartEdit(message)
-                            setIsMenuOpen(false)
-                          }}
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-(--dc-secondary-bg) outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
-                        >
-                          Edit message
-                        </button>
-                      )}
-                    {canDeleteOwnMessage && (
-                      <button
-                        onClick={handleDelete}
-                        className="w-full text-left px-4 py-2 text-sm text-(--dc-danger-text) hover:bg-(--dc-secondary-bg) outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
-                      >
-                        Delete message
-                      </button>
+                  <div className="flex flex-col items-center justify-center w-48 h-48 rounded-xl bg-[rgb(var(--dc-secondary-bg-hover))]">
+                    <div className="text-[rgb(var(--dc-text-color-light))] text-sm">
+                      {isLoadingThumbnail ? 'Loading…' : 'Preparing image…'}
+                    </div>
+                    {thumbnailProgress > 0 && (
+                      <div className="text-[rgb(var(--dc-text-color-light))] text-xs mt-1">
+                        {Math.round(thumbnailProgress * 100)}%
+                      </div>
                     )}
                   </div>
                 )}
               </div>
             )}
-          </div>
-        )}
-      </div>
 
-      <div
-        className={`flex items-center space-x-1 mt-1 ${
-          isOwnMessage ? 'justify-end' : ''
-        }`}
-      >
-        {reactions.map((reaction) => {
-          const userHasReacted = reaction.userIds.includes(currentUserId)
-          return (
-            <button
-              key={reaction.emoji}
-              onClick={() =>
-                canRemoveOwnReaction && userHasReacted
-                  ? onRemoveReaction(message, currentUserId, reaction.emoji)
-                  : undefined
-              }
-              disabled={!canRemoveOwnReaction || !userHasReacted}
-              className={`text-xs px-2 py-0.5 rounded-full flex items-center space-x-1 transition-colors ${
-                userHasReacted
-                  ? 'bg-(--dc-primary-color-lighter) border border-(--dc-primary-color-light-border) cursor-pointer'
-                  : 'bg-(--dc-secondary-bg-hover) hover:bg-(--dc-disabled-bg)'
-              } ${!canRemoveOwnReaction && userHasReacted ? 'cursor-not-allowed' : ''}`}
-            >
-              <span>{reaction.emoji}</span>
-              <span
-                className={`font-medium ${
-                  userHasReacted
-                    ? 'text-(--dc-primary-color-dark-text)'
-                    : 'text-(--dc-text-color-light)'
-                }`}
-              >
-                {reaction.userIds.length}
-              </span>
-            </button>
-          )
-        })}
-        {canAddReaction && (
-          <QuickReaction
-            onSelect={handleAddReactionClick}
-            disabled={message.isDeleted}
-            isOwnMessage={isOwnMessage}
-          />
-        )}
-      </div>
-
-      {showLargeImage && (largeImageUrl || thumbnailUrl) && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75"
-          onClick={() => setShowLargeImage(false)}
-        >
-          <div className="relative max-w-4xl max-h-screen p-4">
-            <button
-              className="absolute top-2 right-2 text-white bg-black/50 rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/70"
-              onClick={(e) => {
-                e.stopPropagation()
-                setShowLargeImage(false)
-              }}
-            >
-              ✕
-            </button>
-            <img
-              src={largeImageUrl || thumbnailUrl!}
-              alt="Large view"
-              className="max-w-full max-h-screen rounded"
-              onClick={(e) => e.stopPropagation()}
-            />
-            {isLoadingLargeImage && !largeImageUrl && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded">
-                <div className="text-white text-center">
-                  <div className="text-sm">Loading full image…</div>
-                  <div className="text-xs">
-                    {Math.round(largeImageProgress * 100)}%
-                  </div>
+            {hasFile &&
+              (message.isDeleted ? (
+                <div
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl ${bubbleClasses} max-w-xs`}
+                >
+                  <span className="italic text-(--dc-text-color-faint)">
+                    [deleted file]
+                  </span>
                 </div>
+              ) : (
+                <div
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl ${bubbleClasses} max-w-xs`}
+                >
+                  <div className="flex-shrink-0 p-2 bg-(--dc-secondary-bg-hover) rounded-lg">
+                    <Icons.fileText className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate text-sm">
+                      {message.text || 'File attachment'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (fetchAttachment && message.fileAttachmentToken) {
+                        fetchAttachment(
+                          message.fileAttachmentToken as unknown as AttachmentToken,
+                          () => { },
+                          (result) => {
+                            if (result.success && result.data) {
+                              const blob = new Blob(
+                                [new Uint8Array(result.data)],
+                                { type: 'application/octet-stream' },
+                              )
+                              const url = URL.createObjectURL(blob)
+                              const a = document.createElement('a')
+                              a.href = url
+                              a.download = message.text || 'download'
+                              document.body.appendChild(a)
+                              a.click()
+                              document.body.removeChild(a)
+                              URL.revokeObjectURL(url)
+                            }
+                          },
+                        )
+                      }
+                    }}
+                    className="p-1.5 hover:bg-(--dc-secondary-bg-hover) rounded-md transition-colors flex-shrink-0 outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
+                    aria-label="Download file"
+                  >
+                    <Icons.arrowDown className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+
+            {hasText && (
+              <div className={`px-4 py-2 rounded-xl ${bubbleClasses}`}>
+                <p className="break-words whitespace-pre-wrap">
+                  {message.isDeleted ? (
+                    <span className="italic text-(--dc-text-color-faint)">
+                      [deleted message]
+                    </span>
+                  ) : (
+                    <FormattedMessage message={message} isOwn={isOwnMessage} />
+                  )}
+                </p>
               </div>
             )}
           </div>
+
+          {isOwnMessage && (
+            <div
+              className={`relative flex items-center transition-opacity duration-200 ${isActionsVisible ? 'opacity-100' : 'opacity-0'
+                }`}
+            >
+              {canEditOwnMessage && (
+                <button
+                  onClick={() => {
+                    onStartEdit(message)
+                    setIsActionsVisible(false)
+                  }}
+                  disabled={message.isDeleted || hasImage || hasFile}
+                  className="p-1 rounded-full hover:bg-(--dc-secondary-bg-hover) text-(--dc-text-color-lightest) disabled:opacity-50 disabled:cursor-not-allowed outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
+                  aria-label="Edit message"
+                >
+                  <Icons.edit3 className="w-5 h-5" />
+                </button>
+              )}
+              {(canEditOwnMessage || canDeleteOwnMessage) && (
+                <DropdownMenu.Root
+                  onOpenChange={(open) => {
+                    if (open) {
+                      setIsActionsVisible(true)
+                    } else {
+                      setIsActionsVisible(false)
+                    }
+                  }}
+                >
+                  <DropdownMenu.Trigger asChild>
+                    <button
+                      disabled={message.isDeleted}
+                      onMouseEnter={() => setIsActionsVisible(true)}
+                      className="p-1 rounded-full hover:bg-(--dc-secondary-bg-hover) text-(--dc-text-color-lightest) disabled:opacity-50 disabled:cursor-not-allowed outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
+                      aria-label="More options"
+                    >
+                      <Icons.moreHorizontal className="w-5 h-5" />
+                    </button>
+                  </DropdownMenu.Trigger>
+                  <DropdownMenu.Portal>
+                    <DropdownMenu.Content
+                      className="min-w-[160px] bg-(--dc-surface-color) rounded-lg shadow-lg border border-(--dc-border-color) p-1 z-50"
+                      align="end"
+                      sideOffset={5}
+                    >
+                      {!message.isDeleted &&
+                        canEditOwnMessage &&
+                        !hasImage &&
+                        !hasFile && (
+                          <DropdownMenu.Item
+                            onSelect={() => onStartEdit(message)}
+                            className="w-full text-left px-4 py-2 text-sm hover:bg-(--dc-secondary-bg) outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color) rounded cursor-pointer"
+                          >
+                            Edit message
+                          </DropdownMenu.Item>
+                        )}
+                      {canDeleteOwnMessage && (
+                        <DropdownMenu.Item
+                          onSelect={handleDelete}
+                          className="w-full text-left px-4 py-2 text-sm text-(--dc-danger-text) hover:bg-(--dc-secondary-bg) outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color) rounded cursor-pointer"
+                        >
+                          Delete message
+                        </DropdownMenu.Item>
+                      )}
+                    </DropdownMenu.Content>
+                  </DropdownMenu.Portal>
+                </DropdownMenu.Root>
+              )}
+            </div>
+          )}
         </div>
-      )}
-    </div>
+
+        <div
+          className={`flex items-center space-x-1 mt-1 ${isOwnMessage ? 'justify-end' : ''
+            }`}
+        >
+          {reactions.map((reaction) => {
+            const userHasReacted = reaction.userIds.includes(currentUserId)
+            return (
+              <button
+                key={reaction.emoji}
+                onClick={() =>
+                  canRemoveOwnReaction && userHasReacted
+                    ? onRemoveReaction(message, currentUserId, reaction.emoji)
+                    : undefined
+                }
+                disabled={!canRemoveOwnReaction || !userHasReacted}
+                className={`text-xs px-2 py-0.5 rounded-full flex items-center space-x-1 transition-colors ${userHasReacted
+                  ? 'bg-(--dc-primary-color-lighter) border border-(--dc-primary-color-light-border) cursor-pointer'
+                  : 'bg-(--dc-secondary-bg-hover) hover:bg-(--dc-disabled-bg)'
+                  } ${!canRemoveOwnReaction && userHasReacted ? 'cursor-not-allowed' : ''}`}
+              >
+                <span>{reaction.emoji}</span>
+                <span
+                  className={`font-medium ${userHasReacted
+                    ? 'text-(--dc-primary-color-dark-text)'
+                    : 'text-(--dc-text-color-light)'
+                    }`}
+                >
+                  {reaction.userIds.length}
+                </span>
+              </button>
+            )
+          })}
+          {canAddReaction && (
+            <QuickReaction
+              onSelect={handleAddReactionClick}
+              disabled={message.isDeleted}
+              isOwnMessage={isOwnMessage}
+            />
+          )}
+        </div>
+
+        {showLargeImage && (largeImageUrl || thumbnailUrl) && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/75"
+            onClick={() => setShowLargeImage(false)}
+          >
+            <div className="relative max-w-4xl max-h-screen p-4">
+              <button
+                className="absolute top-2 right-2 text-white bg-black/50 rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/70"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setShowLargeImage(false)
+                }}
+              >
+                ✕
+              </button>
+              <img
+                src={largeImageUrl || thumbnailUrl!}
+                alt="Large view"
+                className="max-w-full max-h-screen rounded"
+                onClick={(e) => e.stopPropagation()}
+              />
+              {isLoadingLargeImage && !largeImageUrl && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded">
+                  <div className="text-white text-center">
+                    <div className="text-sm">Loading full image…</div>
+                    <div className="text-xs">
+                      {Math.round(largeImageProgress * 100)}%
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   )
 }
 

@@ -5,7 +5,6 @@ import {
   type Message,
   useDittoChatStore,
 } from '@dittolive/ditto-chat-core'
-import * as Popover from '@radix-ui/react-popover'
 import { clsx } from 'clsx'
 import React, { useEffect, useRef, useState } from 'react'
 
@@ -13,6 +12,7 @@ import { useImageAttachment } from '../hooks/useImageAttachment'
 import { usePermissions } from '../utils/usePermissions'
 import Avatar from './Avatar'
 import { Icons } from './Icons'
+import * as Popover from './ui/Popover'
 
 interface UserMentionItemProps {
   user: ChatUser

@@ -1,8 +1,8 @@
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react'
-import * as Popover from '@radix-ui/react-popover'
 import { useEffect, useRef, useState } from 'react'
 
 import { Icons } from './Icons'
+import * as Popover from './ui/Popover'
 
 interface QuickReactionProps {
   onSelect: (reaction: EmojiClickData) => void
