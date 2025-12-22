@@ -1,11 +1,11 @@
-import { Ditto, StoreObserver, SyncSubscription } from '@dittolive/ditto'
+import { AttachmentToken, Ditto, StoreObserver, SyncSubscription } from '@dittolive/ditto'
 import { useMemo } from 'react'
 import { useStore } from 'zustand'
 import { useShallow } from 'zustand/react/shallow'
-import { createStore, StoreApi } from 'zustand/vanilla'
+import { createStore,StoreApi } from 'zustand/vanilla'
 
 import { ChatUserSlice, createChatUserSlice } from './slices/useChatUser'
-import { createMessageSlice, MessageSlice } from './slices/useMessages'
+import { AttachmentResult, createMessageSlice, MessageSlice } from './slices/useMessages'
 import { createRBACSlice, RBACSlice } from './slices/useRBAC'
 import { createRoomSlice, RoomSlice } from './slices/useRooms'
 import { RBACConfig } from './types/RBAC'
@@ -30,13 +30,17 @@ export type ChatStore = RoomSlice &
   MessageSlice &
   RBACSlice & {
     activeRoomId: string | number | null
+    fetchAttachment: (
+      token: AttachmentToken,
+      onProgress: (progress: number) => void,
+      onComplete: (result: AttachmentResult) => void,
+    ) => unknown
     setActiveRoomId: (roomId: string | number | null) => void
     chatLogout: () => void
   }
 
 // Use globalThis to ensure a single store instance across all npm packages
 declare global {
-  // eslint-disable-next-line no-var
   var __DITTO_CHAT_STORE__: StoreApi<ChatStore> | undefined
 }
 

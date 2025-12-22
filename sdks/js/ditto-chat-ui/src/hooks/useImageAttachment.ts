@@ -50,7 +50,7 @@ export function useImageAttachment({
   const [error, setError] = useState<string | null>(null)
 
   // Use a stable key for the token to avoid redundant fetches on re-renders
-  const tokenId = token ? (token as any).id || (token as any)._id : null
+  const tokenId = token ? (token as AttachmentToken).id : null
 
   // Cleanup function for object URLs
   useEffect(() => {
@@ -131,10 +131,11 @@ export function useImageAttachment({
 
       // Cleanup: Cancel the fetch if the component unmounts or token changes
       return () => {
-        if (fetcher && typeof (fetcher as any).cancel === 'function') {
+        const fetcherObj = fetcher as unknown as { cancel?: () => void }
+        if (fetcherObj && typeof fetcherObj.cancel === 'function') {
           try {
-            ; (fetcher as any).cancel()
-          } catch (e) {
+            fetcherObj.cancel()
+          } catch {
             // Ignore cancel errors
           }
         }
