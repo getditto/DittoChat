@@ -2,7 +2,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog'
 import clsx from 'clsx'
 import * as React from 'react'
 
-import { useThemeClass } from '../../hooks/useThemeClass'
+import { getThemeClass } from '../../utils'
 import { Icons } from '../Icons'
 
 const Root = DialogPrimitive.Root
@@ -30,7 +30,7 @@ const Content = React.forwardRef<
     React.ComponentRef<typeof DialogPrimitive.Content>,
     React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => {
-    const themeClass = useThemeClass()
+    const themeClass = getThemeClass()
     return (
         <Portal>
             <Overlay />

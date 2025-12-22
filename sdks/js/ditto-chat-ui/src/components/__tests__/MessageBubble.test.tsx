@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react'
+import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import MessageBubble from '../MessageBubble'
 import type { Message, ChatUser, Reaction } from '@dittolive/ditto-chat-core'
@@ -30,10 +31,10 @@ vi.mock('../ui/Dialog', () => ({
 }))
 
 vi.mock('../ui/DropdownMenu', () => {
-  const React = require('react')
   const DropdownContext = React.createContext({
     open: false,
-    setOpen: (v: boolean) => { },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    setOpen: (_v: boolean) => { },
   })
 
   return {

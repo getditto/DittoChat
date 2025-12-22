@@ -2,7 +2,7 @@ import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
 import { clsx } from 'clsx'
 import React from 'react'
 
-import { useThemeClass } from '../../hooks/useThemeClass'
+import { getThemeClass } from '../../utils'
 
 // Re-export all primitives except Content
 export const Root = DropdownMenuPrimitive.Root
@@ -26,7 +26,7 @@ export const Content = React.forwardRef<
     React.ComponentRef<typeof DropdownMenuPrimitive.Content>,
     React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
 >(({ className, ...props }, ref) => {
-    const themeClass = useThemeClass()
+    const themeClass = getThemeClass()
 
     return (
         <DropdownMenuPrimitive.Content

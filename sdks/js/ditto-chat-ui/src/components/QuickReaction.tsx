@@ -1,7 +1,7 @@
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react'
 import { useEffect, useRef, useState } from 'react'
 
-import { useThemeClass } from '../hooks/useThemeClass'
+import { getThemeClass } from '../utils'
 import { Icons } from './Icons'
 import * as Popover from './ui/Popover'
 
@@ -53,7 +53,7 @@ export default function QuickReaction({
     setIsEmojiPickerOpen(false)
   }
 
-  const themeName = useThemeClass()
+  const themeName = getThemeClass()
 
   return (
     <div className="relative">

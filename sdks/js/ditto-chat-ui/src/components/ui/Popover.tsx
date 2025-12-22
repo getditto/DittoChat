@@ -2,7 +2,7 @@ import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { clsx } from 'clsx'
 import React from 'react'
 
-import { useThemeClass } from '../../hooks/useThemeClass'
+import { getThemeClass } from '../../utils'
 
 // Re-export all primitives except Content
 export const Root = PopoverPrimitive.Root
@@ -17,7 +17,7 @@ export const Content = React.forwardRef<
     React.ComponentRef<typeof PopoverPrimitive.Content>,
     React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
 >(({ className, ...props }, ref) => {
-    const themeClass = useThemeClass()
+    const themeClass = getThemeClass()
 
     return (
         <PopoverPrimitive.Content

@@ -24,3 +24,7 @@ export function formatDate(dateInput: Date | string): string {
     })
   }
 }
+
+export function getThemeClass(): string {
+  return localStorage.getItem('ditto-web-chat-theme') || 'light'
+}
