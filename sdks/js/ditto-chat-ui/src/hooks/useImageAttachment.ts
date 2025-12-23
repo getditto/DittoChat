@@ -49,6 +49,9 @@ export function useImageAttachment({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Use a stable key for the token to avoid redundant fetches on re-renders
+  const tokenId = token ? (token as AttachmentToken).id : null
+
   // Cleanup function for object URLs
   useEffect(() => {
     return () => {
@@ -62,25 +65,24 @@ export function useImageAttachment({
   const fetchImage = () => {
     if (!token) {
       setError('No token provided')
-      return
+      return null
     }
 
     if (!fetchAttachment) {
       console.error('fetchAttachment not provided')
       setError('Attachment fetcher missing')
-      return
+      return null
     }
 
     if (isLoading) {
-      console.log('Already loading, skipping duplicate request')
-      return
+      return null
     }
 
     setIsLoading(true)
     setError(null)
     setProgress(0)
 
-    fetchAttachment(
+    const fetcher = fetchAttachment(
       token,
       (progressValue: number) => setProgress(progressValue),
       (result: FetchAttachmentResult) => {
@@ -95,17 +97,24 @@ export function useImageAttachment({
             setError('Failed to render image')
           }
         } else {
-          console.error('Image fetch failed:', result.error)
+          // Only log as warning if it's a "deleted/missing" error which might be expected for old data
+          if (result.error?.message.includes('deleted')) {
+            console.warn(`[useImageAttachment] Image is missing or deleted: ${tokenId}`)
+          } else {
+            console.error('Image fetch failed:', result.error)
+          }
           setError('Failed to load image')
         }
       },
     )
+
+    return fetcher
   }
 
   // Auto-fetch on mount if enabled
   useEffect(() => {
     // If no token, clear the current state immediately
-    if (!token) {
+    if (!tokenId) {
       setImageUrl(null)
       setError(null)
       setProgress(0)
@@ -113,22 +122,36 @@ export function useImageAttachment({
       return
     }
 
-    if (autoFetch && token) {
+    if (autoFetch && tokenId) {
       // Reset state when token changes
       setImageUrl(null)
       setError(null)
       setProgress(0)
-      fetchImage()
+      const fetcher = fetchImage()
+
+      // Cleanup: Cancel the fetch if the component unmounts or token changes
+      return () => {
+        const fetcherObj = fetcher as unknown as { cancel?: () => void }
+        if (fetcherObj && typeof fetcherObj.cancel === 'function') {
+          try {
+            fetcherObj.cancel()
+          } catch {
+            // Ignore cancel errors
+          }
+        }
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, fetchAttachment, autoFetch])
+  }, [tokenId, fetchAttachment, autoFetch])
 
   return {
     imageUrl,
     progress,
     isLoading,
     error,
-    fetchImage,
+    fetchImage: () => {
+      fetchImage()
+    },
   }
 }
 

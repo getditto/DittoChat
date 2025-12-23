@@ -9,6 +9,7 @@ import { Icons } from './Icons'
 interface NewMessageModalProps {
   onNewDMCreate: (user: ChatUser) => void
   onClose: () => void
+  open: boolean
 }
 
 const UserListItem = ({
@@ -29,9 +30,16 @@ const UserListItem = ({
     autoFetch: true,
   })
 
+  const handleClick = () => {
+    onSelect(user)
+  }
+
   return (
-    <li onClick={() => onSelect(user)}>
-      <button className="w-full text-left px-4 py-3 flex items-center space-x-4 hover:bg-(--dc-surface-color-light) transition-colors">
+    <li>
+      <button
+        onClick={handleClick}
+        className="w-full text-left px-4 py-3 flex items-center space-x-4 hover:bg-(--dc-surface-color-light) transition-colors outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
+      >
         <div className="relative">
           <Avatar isUser={true} imageUrl={imageUrl || undefined} />
         </div>
@@ -41,7 +49,7 @@ const UserListItem = ({
   )
 }
 
-function NewMessageModal({ onClose, onNewDMCreate }: NewMessageModalProps) {
+function NewMessageModal({ onClose, onNewDMCreate, open }: NewMessageModalProps) {
   const [searchTerm, setSearchTerm] = useState('')
 
   const users: ChatUser[] = useDittoChatStore((state) =>
@@ -52,13 +60,16 @@ function NewMessageModal({ onClose, onNewDMCreate }: NewMessageModalProps) {
     user.name.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
+  if (!open) { return null }
+
   return (
     <div className="flex flex-col h-full bg-(--dc-surface-color)">
       <header className="flex items-center justify-between p-4 border-b border-(--dc-border-color) flex-shrink-0">
         <h1 className="text-xl font-bold">New Message</h1>
         <button
           onClick={onClose}
-          className="text-(--dc-text-color-lightest) hover:text-(--dc-text-color-medium)"
+          className="text-(--dc-text-color-lightest) hover:text-(--dc-text-color-medium) outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
+          aria-label="Close"
         >
           <Icons.x className="w-6 h-6" />
         </button>
@@ -78,7 +89,11 @@ function NewMessageModal({ onClose, onNewDMCreate }: NewMessageModalProps) {
       <div className="flex-1 overflow-y-auto">
         <ul>
           {filteredUsers.map((user) => (
-            <UserListItem key={user._id} user={user} onSelect={onNewDMCreate} />
+            <UserListItem
+              key={user._id}
+              user={user}
+              onSelect={onNewDMCreate}
+            />
           ))}
         </ul>
       </div>

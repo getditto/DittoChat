@@ -302,71 +302,67 @@ export default function DittoChatUI({
       if (window.innerWidth >= 768 && !selectedChat) {
         setActiveScreen('chat')
       }
-    }, [])
+    }, [selectedChat])
 
   return (
-    <div className="dcui-root" style={{ ...themeStyles, height: '100%' }}>
-      <div className={`${themeName} h-full`}>
-        <Toaster
-          position="top-right"
-          richColors
-          closeButton
-          toastOptions={{
-            duration: 3000,
-          }}
-        />
-        <div className="flex h-full bg-(--dc-surface-color) font-sans text-(--dc-text-color) overflow-hidden">
-          {/* Chat List */}
-          <aside
-            className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--dc-border-color) flex flex-col h-full ${activeScreen !== 'list' && 'hidden'
-              } md:flex`}
-          >
-            {loading ? (
-              <ChatListSkeleton />
-            ) : (
-              <ChatList
-                chats={chats}
-                onSelectChat={handleSelectChat}
-                onNewMessage={handleNewMessage}
-                selectedChatId={selectedChat?.id || ''}
-              />
-            )}
-          </aside>
+    <div className={`dcui-root ${themeName}`} style={{ ...themeStyles, height: '100%' }}>
+      <Toaster
+        position="top-right"
+        richColors
+        closeButton
+        toastOptions={{
+          duration: 3000,
+        }}
+      />
+      <div className="flex h-full bg-(--dc-surface-color) font-sans text-(--dc-text-color) overflow-hidden">
+        {/* Chat List */}
+        <aside
+          className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--dc-border-color) flex flex-col h-full ${activeScreen !== 'list' && 'hidden'
+            } md:flex`}
+        >
+          {loading ? (
+            <ChatListSkeleton />
+          ) : (
+            <ChatList
+              chats={chats}
+              onSelectChat={handleSelectChat}
+              onNewMessage={handleNewMessage}
+              selectedChatId={selectedChat?.id || ''}
+            />
+          )}
+        </aside>
 
-          {/* Main Content Area */}
-          <main
-            className={`w-full flex-1 flex flex-col h-full ${activeScreen === 'list' && 'hidden'
-              } md:flex`}
-          >
-            {activeScreen === 'chat' && selectedChat && (
-              <ChatView
-                key={selectedChat.id}
-                chat={selectedChat}
-                onBack={handleBack}
-              />
+        {/* Main Content Area */}
+        <main
+          className={`w-full flex-1 flex flex-col h-full ${activeScreen === 'list' && 'hidden'
+            } md:flex`}
+        >
+          {activeScreen === 'chat' && selectedChat && (
+            <ChatView
+              key={selectedChat.id}
+              chat={selectedChat}
+              onBack={handleBack}
+            />
+          )}
+          <NewMessageModal
+            open={activeScreen === 'newMessage'}
+            onClose={handleBack}
+            onNewDMCreate={handleNewDMCreate}
+          />
+          <NewRoomModal
+            open={activeScreen === 'newRoom'}
+            onClose={handleBack}
+            onCreateRoom={handleNewRoomCreate}
+          />
+          {!selectedChat &&
+            (activeScreen === 'list' || activeScreen === 'chat') && (
+              <div className="hidden md:flex flex-col items-center justify-center h-full bg-(--dc-surface-color-light) text-(--dc-text-color-lightest)">
+                <Icons.messageCircle className="w-24 h-24 text-(--dc-text-color-disabled) mb-4" />
+                <p className="text-lg font-medium">Select a conversation</p>
+                <p className="text-sm">or start a new message</p>
+              </div>
             )}
-            {activeScreen === 'newMessage' && (
-              <NewMessageModal
-                onClose={handleBack}
-                onNewDMCreate={handleNewDMCreate}
-              />
-            )}
-            {activeScreen === 'newRoom' && (
-              <NewRoomModal
-                onClose={handleBack}
-                onCreateRoom={handleNewRoomCreate}
-              />
-            )}
-            {!selectedChat &&
-              (activeScreen === 'list' || activeScreen === 'chat') && (
-                <div className="hidden md:flex flex-col items-center justify-center h-full bg-(--dc-surface-color-light) text-(--dc-text-color-lightest)">
-                  <Icons.messageCircle className="w-24 h-24 text-(--dc-text-color-disabled) mb-4" />
-                  <p className="text-lg font-medium">Select a conversation</p>
-                  <p className="text-sm">or start a new message</p>
-                </div>
-              )}
-          </main>
-        </div>
+        </main>
       </div>
     </div>
   )

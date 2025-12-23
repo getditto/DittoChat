@@ -54,7 +54,7 @@ export interface MessageSlice {
     token: AttachmentToken,
     onProgress: (progress: number) => void,
     onComplete: (result: AttachmentResult) => void,
-  ) => void
+  ) => unknown
   notificationHandler: ((message: MessageWithUser, room: Room) => void) | null
   registerNotificationHandler: (
     handler: (message: MessageWithUser, room: Room) => void,
@@ -76,7 +76,7 @@ export interface MessageSlice {
   ) => Promise<void>
 }
 
-interface AttachmentResult {
+export interface AttachmentResult {
   success: boolean
   data?: Uint8Array
   metadata?: Record<string, string>
@@ -186,7 +186,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
         const preview = message.text
           ? message.text.substring(0, 30) +
-            (message.text.length > 30 ? '...' : '')
+          (message.text.length > 30 ? '...' : '')
           : 'Sent an attachment'
 
         notificationHandler(title, preview)
@@ -829,6 +829,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
      * @param token - Attachment token from message
      * @param onProgress - Callback receiving progress (0-1)
      * @param onComplete - Callback receiving AttachmentResult
+     * @returns The fetcher object from the SDK for cleanup
      */
     fetchAttachment(token, onProgress, onComplete) {
       if (!ditto) {
@@ -848,7 +849,9 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       }
 
       try {
-        ditto.store.fetchAttachment(token, async (event) => {
+        const tokenId = (token as AttachmentToken).id || JSON.stringify(token)
+
+        const fetcher = ditto.store.fetchAttachment(token, async (event) => {
           switch (event.type) {
             case 'Progress': {
               const progress =
@@ -879,6 +882,8 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
               break
 
             case 'Deleted':
+              // Log locally as warning instead of console error to avoid spamming for old data
+              console.warn(`[useMessages] Attachment reported as DELETED: ${tokenId}`)
               onComplete({
                 success: false,
                 error: new Error('Attachment was deleted'),
@@ -886,6 +891,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
               break
           }
         })
+        return fetcher
       } catch (error) {
         onComplete({
           success: false,
@@ -894,6 +900,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
               ? error
               : new Error('Failed to fetch attachment'),
         })
+        return null
       }
     },
 

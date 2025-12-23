@@ -5,9 +5,10 @@ import { Icons } from './Icons'
 interface NewRoomModalProps {
   onClose: () => void
   onCreateRoom: (roomName: string) => void
+  open: boolean
 }
 
-function NewRoomModal({ onClose, onCreateRoom }: NewRoomModalProps) {
+function NewRoomModal({ onClose, onCreateRoom, open }: NewRoomModalProps) {
   const [roomName, setRoomName] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -17,13 +18,16 @@ function NewRoomModal({ onClose, onCreateRoom }: NewRoomModalProps) {
     }
   }
 
+  if (!open) {return null}
+
   return (
     <div className="flex flex-col h-full bg-(--dc-surface-color)">
       <header className="flex items-center justify-between p-4 border-b border-(--dc-border-color) flex-shrink-0">
         <h1 className="text-xl font-bold">Create New Room</h1>
         <button
           onClick={onClose}
-          className="text-(--dc-text-color-lightest) hover:text-(--dc-text-color-medium)"
+          className="text-(--dc-text-color-lightest) hover:text-(--dc-text-color-medium) outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
+          aria-label="Close"
         >
           <Icons.x className="w-6 h-6" />
         </button>
@@ -50,14 +54,14 @@ function NewRoomModal({ onClose, onCreateRoom }: NewRoomModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-lg text-(--dc-text-color-lighter) font-semibold bg-transparent hover:bg-(--dc-secondary-bg) transition-colors"
+            className="px-4 py-2 rounded-lg text-(--dc-text-color-lighter) font-semibold bg-transparent hover:bg-(--dc-secondary-bg) transition-colors outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={!roomName.trim()}
-            className="px-4 py-2 rounded-lg text-(--dc-text-on-primary) font-semibold bg-(--dc-primary-color) hover:bg-(--dc-primary-color-hover) disabled:bg-(--dc-disabled-bg) transition-colors"
+            className="px-4 py-2 rounded-lg text-(--dc-text-on-primary) font-semibold bg-(--dc-primary-color) hover:bg-(--dc-primary-color-hover) disabled:bg-(--dc-disabled-bg) transition-colors outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
           >
             Create Room
           </button>

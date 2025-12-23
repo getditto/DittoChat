@@ -11,6 +11,7 @@ vi.mock('../Icons', () => ({
 
 describe('NewRoomModal', () => {
   const defaultProps = {
+    open: true,
     onClose: vi.fn(),
     onCreateRoom: vi.fn(),
   }

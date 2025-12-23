@@ -250,7 +250,7 @@ describe('DittoChatUI', () => {
     window.matchMedia = matchMediaMock
 
     render(<DittoChatUI {...defaultProps} theme="auto" />)
-    const rootDiv = document.querySelector('.dcui-root > div')
+    const rootDiv = document.querySelector('.dcui-root')
     expect(rootDiv).toHaveClass('dark')
   })
 

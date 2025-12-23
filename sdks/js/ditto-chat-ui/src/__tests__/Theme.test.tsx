@@ -75,8 +75,8 @@ describe('DittoChatUI Theme Customization', () => {
       <DittoChatUI {...mockProps} theme={customTheme} />,
     )
 
-    // The inner div should have the class 'dark'
-    const themeWrapper = container.querySelector('.dcui-root > div')
+    // The dcui-root element should have the class 'dark'
+    const themeWrapper = container.querySelector('.dcui-root')
     expect(themeWrapper).toHaveClass('dark')
   })
 
@@ -89,7 +89,7 @@ describe('DittoChatUI Theme Customization', () => {
       <DittoChatUI {...mockProps} theme={customTheme} />,
     )
 
-    const themeWrapper = container.querySelector('.dcui-root > div')
+    const themeWrapper = container.querySelector('.dcui-root')
     expect(themeWrapper).toHaveClass('light')
   })
 })

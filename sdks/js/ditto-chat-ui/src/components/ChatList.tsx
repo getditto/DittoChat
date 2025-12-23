@@ -13,6 +13,7 @@ import type { Chat } from '../types'
 import { usePermissions } from '../utils/usePermissions'
 import ChatListItem from './ChatListItem'
 import { Icons } from './Icons'
+import * as DropdownMenu from './ui/DropdownMenu'
 
 interface ChatListProps {
   chats: Chat[]
@@ -27,8 +28,6 @@ function ChatList({
   onNewMessage,
   selectedChatId,
 }: ChatListProps) {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<List | null>(null)
   const users = useDittoChatStore((state) => state.allUsers)
   const currentUserId = useDittoChatStore<string>(
@@ -39,17 +38,24 @@ function ChatList({
   // search state moved outside for brevity - keep your useState if needed
   const [searchTerm, setSearchTerm] = React.useState('')
 
+  // Ref for the button container to measure its width for the dropdown menu
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [menuWidth, setMenuWidth] = useState<number | undefined>(undefined)
+
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsDropdownOpen(false)
+    const updateWidth = () => {
+      if (containerRef.current) {
+        setMenuWidth(containerRef.current.offsetWidth)
       }
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+
+    updateWidth()
+    const observer = new ResizeObserver(updateWidth)
+    if (containerRef.current) {
+      observer.observe(containerRef.current)
+    }
+
+    return () => observer.disconnect()
   }, [])
 
   const filteredChats = useMemo(
@@ -110,8 +116,8 @@ function ChatList({
         <h1 className="text-xl font-semibold">Chats</h1>
       </header>
       <div className="p-4 space-y-4">
-        <div className="relative w-full" ref={dropdownRef}>
-          <div className="flex w-full">
+        <div className="relative w-full">
+          <div ref={containerRef} className="flex w-full group">
             <button
               onClick={() => onNewMessage('newMessage')}
               className={`w-full bg-(--dc-primary-color) text-(--dc-text-on-primary) font-semibold py-3 ${canCreateRoom ? 'rounded-l-xl' : 'rounded-xl'} hover:bg-(--dc-primary-color-hover) outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color) transition-colors`}
@@ -119,38 +125,33 @@ function ChatList({
               New Message
             </button>
             {canCreateRoom && (
-              <button
-                onClick={() => setIsDropdownOpen((prev) => !prev)}
-                aria-haspopup="true"
-                aria-expanded={isDropdownOpen}
-                className="relative inline-flex items-center px-3 py-3 bg-(--dc-primary-color) rounded-r-xl text-(--dc-text-on-primary) hover:bg-(--dc-primary-color-hover) focus:z-10 outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color) border-l border-white/20 transition-colors"
-              >
-                <span className="sr-only">Open options</span>
-                <Icons.chevronDown className="h-5 w-5" aria-hidden="true" />
-              </button>
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger asChild>
+                  <button
+                    className="relative inline-flex items-center px-3 py-3 bg-(--dc-primary-color) rounded-r-xl text-(--dc-text-on-primary) hover:bg-(--dc-primary-color-hover) focus:z-10 outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color) border-l border-white/20 transition-colors"
+                    aria-label="Open options"
+                  >
+                    <Icons.chevronDown className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Portal>
+                  <DropdownMenu.Content
+                    className="bg-(--dc-surface-color) rounded-md shadow-lg border border-(--dc-border-color) p-1 z-50"
+                    sideOffset={8}
+                    align="end"
+                    style={{ width: menuWidth }}
+                  >
+                    <DropdownMenu.Item
+                      className="px-4 py-2 text-sm text-(--dc-text-color-medium) hover:bg-(--dc-secondary-bg) rounded outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color) cursor-pointer"
+                      onSelect={() => onNewMessage('newRoom')}
+                    >
+                      New Room
+                    </DropdownMenu.Item>
+                  </DropdownMenu.Content>
+                </DropdownMenu.Portal>
+              </DropdownMenu.Root>
             )}
           </div>
-          {isDropdownOpen && (
-            <div className="origin-top absolute mt-2 w-full rounded-md shadow-lg bg-(--dc-surface-color) ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
-              <div
-                className="py-1"
-                role="menu"
-                aria-orientation="vertical"
-                aria-labelledby="options-menu"
-              >
-                <button
-                  onClick={() => {
-                    onNewMessage('newRoom')
-                    setIsDropdownOpen(false)
-                  }}
-                  className="block w-full text-left px-4 py-2 text-sm text-[rgb(var(--dc-text-color-medium))] hover:bg-[rgb(var(--dc-secondary-bg))]"
-                  role="menuitem"
-                >
-                  New Room
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="relative">

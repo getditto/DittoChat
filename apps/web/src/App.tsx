@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react'
 import type { Theme } from '../../../sdks/js/ditto-chat-ui/dist/types'
 
 const myTheme: Theme = {
-  variant: 'dark',
+  variant: 'light',
 
   // Primary Palette
   primaryColor: '#6366f1', // Indigo 500
