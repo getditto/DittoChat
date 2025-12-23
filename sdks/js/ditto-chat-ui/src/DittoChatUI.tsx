@@ -157,7 +157,7 @@ export default function DittoChatUI({
     setChats([...chatsWithMessages, ...chatsWithoutMessages])
   }, [rooms, latestMessages, users])
 
-  // EFFECT 1: This effect sets up the listener for OS theme changes.
+  // This effect sets up the listener for OS theme changes.
   useEffect(() => {
     const mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)')
 

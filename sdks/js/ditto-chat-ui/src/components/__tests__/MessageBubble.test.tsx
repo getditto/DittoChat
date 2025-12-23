@@ -625,7 +625,7 @@ describe('MessageBubble', () => {
     }
 
     render(
-      <div onClick={() => console.log('background click')}>
+      <div>
         <MessageBubble {...defaultProps} message={imageMessage} />
       </div>,
     )

@@ -59,7 +59,6 @@ export function useDittoChat(params: DittoConfParams) {
   const store = useMemo(() => {
     // Check global instance first
     if (!globalThis.__DITTO_CHAT_STORE__) {
-      console.log('Creating NEW global chatStore instance')
       globalThis.__DITTO_CHAT_STORE__ = createStore<ChatStore>()(
         (set, get) => ({
           ...createRoomSlice(set, get, params),
@@ -87,9 +86,7 @@ export function useDittoChat(params: DittoConfParams) {
           },
         }),
       )
-    } else {
-      console.log('Reusing EXISTING global chatStore instance')
-    }
+    } 
     return globalThis.__DITTO_CHAT_STORE__
   }, [params])
 

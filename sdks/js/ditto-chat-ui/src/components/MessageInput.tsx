@@ -190,7 +190,7 @@ function MessageInput({
     const newText = e.target.value
     const oldText = text
 
-    // --- Part 1: Update existing mention positions based on text changes ---
+    // Part 1: Update existing mention positions based on text changes
 
     // Find the starting index of the change by comparing old and new text from the beginning.
     let changeStartIndex = 0
@@ -253,7 +253,7 @@ function MessageInput({
     setMentions(updatedMentions)
     setText(newText)
 
-    // --- Part 2: Check if a new mention is being typed ---
+    // Part 2: Check if a new mention is being typed
 
     // Only allow mentions if user has permission
     if (!canMentionUsers) {
@@ -302,7 +302,7 @@ function MessageInput({
       return
     }
 
-    // --- Part 1: Identify the mention query and construct the new text ---
+    // Part 1: Identify the mention query and construct the new text
 
     const currentText = text
     const cursorPosition = textarea.selectionStart
@@ -327,7 +327,7 @@ function MessageInput({
     // Add a space after the mention for a better typing experience.
     const newText = `${textBeforeQuery}${mentionText} ${textAfterQuery}`
 
-    // --- Part 2: Create the new mention object and update existing ones ---
+    // Part 2: Create the new mention object and update existing ones
 
     // The new mention object to be stored, with its exact position.
     const newMention: Mention = {
@@ -361,7 +361,7 @@ function MessageInput({
     setText(newText)
     setIsMentioning(false)
 
-    // --- Part 3: Update the textarea cursor position ---
+    // Part 3: Update the textarea cursor position
 
     // Move the cursor to after the inserted mention and the added space.
     const newCursorPosition = queryStartIndex + mentionText.length + 1

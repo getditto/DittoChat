@@ -170,9 +170,6 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       shouldNotify(message, room) &&
       notificationHandler
     ) {
-      // Trigger notification handler if registered (for browser notifications and toasts)
-      // _get().notificationHandler?.({ message, user, id: message._id }, room);
-
       // Trigger toast notification if not viewing this room
       const activeRoomId = _get().activeRoomId
       if (activeRoomId !== room._id) {
@@ -882,8 +879,6 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
               break
 
             case 'Deleted':
-              // Log locally as warning instead of console error to avoid spamming for old data
-              console.warn(`[useMessages] Attachment reported as DELETED: ${tokenId}`)
               onComplete({
                 success: false,
                 error: new Error('Attachment was deleted'),
@@ -950,7 +945,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       const originalMessage = roomMessages[index].message
       const previousReactions = originalMessage.reactions || []
 
-      // Phase 1: Optimistic update - immediately update UI state
+      // Optimistic update - immediately update UI state
       // This provides instant feedback to the user without waiting for DB operations
       _set((state: ChatStore) =>
         produce(state, (draft) => {
@@ -958,7 +953,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         }),
       )
 
-      // Phase 2: Async DB persistence with automatic rollback on failure
+      // Async DB persistence with automatic rollback on failure
       // Using setTimeout(0) to defer DB operations without blocking the UI
       setTimeout(async () => {
         try {
