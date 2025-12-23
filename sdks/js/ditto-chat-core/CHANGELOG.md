@@ -1,5 +1,11 @@
 # @dittolive/ditto-chat-core
 
+## 0.1.2
+
+### Patch Changes
+
+- 5c05b55: Fixed Attachment Error on initial render
+
 ## 0.1.1
 
 ### Patch Changes
