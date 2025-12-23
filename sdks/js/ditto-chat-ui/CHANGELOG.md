@@ -1,5 +1,17 @@
 # @dittolive/ditto-chat-ui
 
+## 0.1.2
+
+### Patch Changes
+
+- 5c05b55: - Replaced the existing UI components in `ditto-chat-ui` to use Radix components
+  - Radix UI Components used:
+    - Dialog - `@radix-ui/react-dialog`
+    - Dropdown Menu - `@radix-ui/react-dropdown-menu`
+    - Popover - `@radix-ui/react-popover`
+- Updated dependencies [5c05b55]
+  - @dittolive/ditto-chat-core@0.1.2
+
 ## 0.1.1
 
 ### Patch Changes
