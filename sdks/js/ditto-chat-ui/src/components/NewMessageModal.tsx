@@ -49,7 +49,11 @@ const UserListItem = ({
   )
 }
 
-function NewMessageModal({ onClose, onNewDMCreate, open }: NewMessageModalProps) {
+function NewMessageModal({
+  onClose,
+  onNewDMCreate,
+  open,
+}: NewMessageModalProps) {
   const [searchTerm, setSearchTerm] = useState('')
 
   const users: ChatUser[] = useDittoChatStore((state) =>
@@ -60,7 +64,9 @@ function NewMessageModal({ onClose, onNewDMCreate, open }: NewMessageModalProps)
     user.name.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
-  if (!open) { return null }
+  if (!open) {
+    return null
+  }
 
   return (
     <div className="flex flex-col h-full bg-(--dc-surface-color)">
@@ -89,11 +95,7 @@ function NewMessageModal({ onClose, onNewDMCreate, open }: NewMessageModalProps)
       <div className="flex-1 overflow-y-auto">
         <ul>
           {filteredUsers.map((user) => (
-            <UserListItem
-              key={user._id}
-              user={user}
-              onSelect={onNewDMCreate}
-            />
+            <UserListItem key={user._id} user={user} onSelect={onNewDMCreate} />
           ))}
         </ul>
       </div>

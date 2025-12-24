@@ -19,7 +19,10 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@dittolive/ditto-chat-core': resolve(__dirname, '../ditto-chat-core/src/index.ts'),
+      '@dittolive/ditto-chat-core': resolve(
+        __dirname,
+        '../ditto-chat-core/src/index.ts',
+      ),
       '@dittolive/ditto-chat-ui': resolve(__dirname, 'src/index.tsx'),
     },
   },

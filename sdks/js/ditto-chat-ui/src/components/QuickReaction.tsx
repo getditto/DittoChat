@@ -57,7 +57,10 @@ export default function QuickReaction({
 
   return (
     <div className="relative">
-      <Popover.Root open={isEmojiPickerOpen} onOpenChange={setIsEmojiPickerOpen}>
+      <Popover.Root
+        open={isEmojiPickerOpen}
+        onOpenChange={setIsEmojiPickerOpen}
+      >
         <Popover.Trigger asChild>
           <button
             ref={triggerRef}

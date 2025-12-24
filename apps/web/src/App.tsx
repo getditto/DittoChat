@@ -170,7 +170,14 @@ const DittoChatUIWrapper = () => {
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 0,
+        }}
+      >
         {viewMode === 'chat' && (
           <DittoChatUI
             ditto={ditto?.ditto as Ditto}

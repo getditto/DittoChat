@@ -97,12 +97,6 @@ export function useImageAttachment({
             setError('Failed to render image')
           }
         } else {
-          // Only log as warning if it's a "deleted/missing" error which might be expected for old data
-          if (result.error?.message.includes('deleted')) {
-            console.warn(`[useImageAttachment] Image is missing or deleted: ${tokenId}`)
-          } else {
-            console.error('Image fetch failed:', result.error)
-          }
           setError('Failed to load image')
         }
       },

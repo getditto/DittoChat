@@ -18,7 +18,9 @@ function NewRoomModal({ onClose, onCreateRoom, open }: NewRoomModalProps) {
     }
   }
 
-  if (!open) {return null}
+  if (!open) {
+    return null
+  }
 
   return (
     <div className="flex flex-col h-full bg-(--dc-surface-color)">
