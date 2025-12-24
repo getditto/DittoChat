@@ -846,8 +846,6 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
       }
 
       try {
-        const tokenId = (token as AttachmentToken).id || JSON.stringify(token)
-
         const fetcher = ditto.store.fetchAttachment(token, async (event) => {
           switch (event.type) {
             case 'Progress': {
