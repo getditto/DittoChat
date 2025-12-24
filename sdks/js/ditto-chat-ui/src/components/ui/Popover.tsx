@@ -14,18 +14,18 @@ export const Arrow = PopoverPrimitive.Arrow
 
 // Wrap Content to add dcui-root class and theme class for CSS variable inheritance
 export const Content = React.forwardRef<
-    React.ComponentRef<typeof PopoverPrimitive.Content>,
-    React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
+  React.ComponentRef<typeof PopoverPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
 >(({ className, ...props }, ref) => {
-    const themeClass = getThemeClass()
+  const themeClass = getThemeClass()
 
-    return (
-        <PopoverPrimitive.Content
-            ref={ref}
-            className={clsx('dcui-root', themeClass, className)}
-            {...props}
-        />
-    )
+  return (
+    <PopoverPrimitive.Content
+      ref={ref}
+      className={clsx('dcui-root', themeClass, className)}
+      {...props}
+    />
+  )
 })
 
 Content.displayName = 'PopoverContent'

@@ -1,11 +1,20 @@
-import { AttachmentToken, Ditto, StoreObserver, SyncSubscription } from '@dittolive/ditto'
+import {
+  AttachmentToken,
+  Ditto,
+  StoreObserver,
+  SyncSubscription,
+} from '@dittolive/ditto'
 import { useMemo } from 'react'
 import { useStore } from 'zustand'
 import { useShallow } from 'zustand/react/shallow'
-import { createStore,StoreApi } from 'zustand/vanilla'
+import { createStore, StoreApi } from 'zustand/vanilla'
 
 import { ChatUserSlice, createChatUserSlice } from './slices/useChatUser'
-import { AttachmentResult, createMessageSlice, MessageSlice } from './slices/useMessages'
+import {
+  AttachmentResult,
+  createMessageSlice,
+  MessageSlice,
+} from './slices/useMessages'
 import { createRBACSlice, RBACSlice } from './slices/useRBAC'
 import { createRoomSlice, RoomSlice } from './slices/useRooms'
 import { RBACConfig } from './types/RBAC'
@@ -47,10 +56,7 @@ declare global {
 export function cancelSubscriptionOrObserver(
   subscription: SyncSubscription | StoreObserver | null,
 ) {
-  if (
-    subscription &&
-    !subscription.isCancelled
-  ) {
+  if (subscription && !subscription.isCancelled) {
     subscription.cancel()
   }
 }
@@ -86,7 +92,7 @@ export function useDittoChat(params: DittoConfParams) {
           },
         }),
       )
-    } 
+    }
     return globalThis.__DITTO_CHAT_STORE__
   }, [params])
 

@@ -75,10 +75,11 @@ function FormattedMessage({
     finalParts.push(
       <span
         key={`mention-${index}`}
-        className={`font-semibold ${isOwn
-          ? 'text-(--dc-mention-text-on-primary)'
-          : 'text-(--dc-mention-text)'
-          }`}
+        className={`font-semibold ${
+          isOwn
+            ? 'text-(--dc-mention-text-on-primary)'
+            : 'text-(--dc-mention-text)'
+        }`}
       >
         {text.slice(mention.startIndex, mention.endIndex)}
       </span>,
@@ -237,12 +238,16 @@ function MessageBubble({
 
   return (
     <>
-      <Dialog.Root open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <Dialog.Root
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
         <Dialog.Content>
           <Dialog.Header>
             <Dialog.Title>Delete Message</Dialog.Title>
             <Dialog.Description>
-              Are you sure you want to delete this message? This action cannot be undone.
+              Are you sure you want to delete this message? This action cannot
+              be undone.
             </Dialog.Description>
           </Dialog.Header>
           <Dialog.Footer>
@@ -277,8 +282,9 @@ function MessageBubble({
       >
         {showSenderInfo && (
           <div
-            className={`flex items-baseline text-xs text-(--dc-text-color-lightest) mb-1 ${isOwnMessage ? 'justify-end' : ''
-              }`}
+            className={`flex items-baseline text-xs text-(--dc-text-color-lightest) mb-1 ${
+              isOwnMessage ? 'justify-end' : ''
+            }`}
           >
             {(isGroupChat || !isOwnMessage) && (
               <span className="mr-1">{senderName}</span>
@@ -294,12 +300,14 @@ function MessageBubble({
         )}
 
         <div
-          className={`flex items-center gap-2 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'
-            }`}
+          className={`flex items-center gap-2 ${
+            isOwnMessage ? 'flex-row-reverse' : 'flex-row'
+          }`}
         >
           <div
-            className={`flex flex-col max-w-xs md:max-w-md lg:max-w-lg ${isOwnMessage ? 'items-end' : 'items-start'
-              }`}
+            className={`flex flex-col max-w-xs md:max-w-md lg:max-w-lg ${
+              isOwnMessage ? 'items-end' : 'items-start'
+            }`}
           >
             {hasImage && !message.isDeleted && (
               <div className={`relative ${hasText ? 'mb-1' : ''}`}>
@@ -374,7 +382,7 @@ function MessageBubble({
                       if (fetchAttachment && message.fileAttachmentToken) {
                         fetchAttachment(
                           message.fileAttachmentToken as unknown as AttachmentToken,
-                          () => { },
+                          () => {},
                           (result) => {
                             if (result.success && result.data) {
                               const blob = new Blob(
@@ -419,8 +427,9 @@ function MessageBubble({
 
           {isOwnMessage && (
             <div
-              className={`relative flex items-center transition-opacity duration-200 ${isActionsVisible ? 'opacity-100' : 'opacity-0'
-                }`}
+              className={`relative flex items-center transition-opacity duration-200 ${
+                isActionsVisible ? 'opacity-100' : 'opacity-0'
+              }`}
             >
               {canEditOwnMessage && (
                 <button
@@ -489,8 +498,9 @@ function MessageBubble({
         </div>
 
         <div
-          className={`flex items-center space-x-1 mt-1 ${isOwnMessage ? 'justify-end' : ''
-            }`}
+          className={`flex items-center space-x-1 mt-1 ${
+            isOwnMessage ? 'justify-end' : ''
+          }`}
         >
           {reactions.map((reaction) => {
             const userHasReacted = reaction.userIds.includes(currentUserId)
@@ -503,17 +513,19 @@ function MessageBubble({
                     : undefined
                 }
                 disabled={!canRemoveOwnReaction || !userHasReacted}
-                className={`text-xs px-2 py-0.5 rounded-full flex items-center space-x-1 transition-colors ${userHasReacted
-                  ? 'bg-(--dc-primary-color-lighter) border border-(--dc-primary-color-light-border) cursor-pointer'
-                  : 'bg-(--dc-secondary-bg-hover) hover:bg-(--dc-disabled-bg)'
-                  } ${!canRemoveOwnReaction && userHasReacted ? 'cursor-not-allowed' : ''}`}
+                className={`text-xs px-2 py-0.5 rounded-full flex items-center space-x-1 transition-colors ${
+                  userHasReacted
+                    ? 'bg-(--dc-primary-color-lighter) border border-(--dc-primary-color-light-border) cursor-pointer'
+                    : 'bg-(--dc-secondary-bg-hover) hover:bg-(--dc-disabled-bg)'
+                } ${!canRemoveOwnReaction && userHasReacted ? 'cursor-not-allowed' : ''}`}
               >
                 <span>{reaction.emoji}</span>
                 <span
-                  className={`font-medium ${userHasReacted
-                    ? 'text-(--dc-primary-color-dark-text)'
-                    : 'text-(--dc-text-color-light)'
-                    }`}
+                  className={`font-medium ${
+                    userHasReacted
+                      ? 'text-(--dc-primary-color-dark-text)'
+                      : 'text-(--dc-text-color-light)'
+                  }`}
                 >
                   {reaction.userIds.length}
                 </span>

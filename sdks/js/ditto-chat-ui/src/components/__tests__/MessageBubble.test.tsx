@@ -19,11 +19,14 @@ vi.mock('../QuickReaction', () => ({
 }))
 
 vi.mock('../ui/Dialog', () => ({
-  Root: ({ children, open }: any) => (open ? <div data-testid="dialog-root">{children}</div> : null),
+  Root: ({ children, open }: any) =>
+    open ? <div data-testid="dialog-root">{children}</div> : null,
   Trigger: ({ children }: any) => children,
   Portal: ({ children }: any) => children,
   Overlay: () => null,
-  Content: ({ children }: any) => <div data-testid="dialog-content">{children}</div>,
+  Content: ({ children }: any) => (
+    <div data-testid="dialog-content">{children}</div>
+  ),
   Header: ({ children }: any) => <div>{children}</div>,
   Title: ({ children }: any) => <div>{children}</div>,
   Description: ({ children }: any) => <div>{children}</div>,
@@ -34,7 +37,7 @@ vi.mock('../ui/DropdownMenu', () => {
   const DropdownContext = React.createContext({
     open: false,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    setOpen: (_v: boolean) => { },
+    setOpen: (_v: boolean) => {},
   })
 
   return {

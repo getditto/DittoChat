@@ -79,6 +79,7 @@ The `DittoChatUI` component offers a flexible theming system that supports both 
 ### Predefined Modes
 
 You can set the `theme` prop to one of the following strings:
+
 - `"light"`: Forces light mode (default).
 - `"dark"`: Forces dark mode.
 - `"auto"`: Automatically follows the system's color scheme preference.
@@ -178,9 +179,9 @@ If no `notificationHandler` is provided, the component uses Sonner's `toast.info
 You can provide a custom handler to integrate with your preferred toast/notification library:
 
 ```javascript
-import { toast } from 'sonner';
+import { toast } from 'sonner'
 
-<DittoChatUI
+;<DittoChatUI
   ditto={ditto}
   userCollectionKey="my-users"
   userId="user123"
@@ -199,9 +200,9 @@ For more examples and details about notification events, see the [DittoChatCore 
 To render a specific comment thread (generated room) separately from the main chat list, you can use the `ChatView` component directly.
 
 ```javascript
-import { ChatView } from '@dittolive/ditto-chat-ui';
+import { ChatView } from '@dittolive/ditto-chat-ui'
 
-<ChatView
+;<ChatView
   roomId={commentRoomId} // ID of the generated room (e.g., "comments-doc-123")
   messagesId="messages" // Collection ID to store messages
   onBack={() => console.log('Back clicked')} // Optional back button handler

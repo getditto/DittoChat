@@ -170,7 +170,6 @@ describe('ChatList', () => {
   // Note: Closing dropdown on outside click is handled by Radix internally
   // We don't need to test Radix's implementation details
 
-
   it('shows empty list when search yields no results', () => {
     render(<ChatList {...defaultProps} />)
     const searchInput = screen.getByPlaceholderText('Search')

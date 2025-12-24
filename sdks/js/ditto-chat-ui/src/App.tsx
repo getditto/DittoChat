@@ -59,7 +59,7 @@ function App() {
         ditto.startSync()
         return ditto
       }}
-    /* initOptions={initOptions} */
+      /* initOptions={initOptions} */
     >
       {({ loading, error }) => {
         if (loading) {
