@@ -95,5 +95,6 @@ This will prompt you to select which packages are affected and describe your cha
 ### Release Process
 
 Releases are automated via GitHub Actions:
+
 1. When changesets are merged to `main`, a "Version Packages" PR is automatically created
 2. Merging the "Version Packages" PR publishes the packages to NPM

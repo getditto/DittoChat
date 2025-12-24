@@ -318,7 +318,6 @@ describe('MessageInput', () => {
   // Note: Closing menus on outside click is handled by Radix Popover internally
   // We don't need to test Radix's implementation details
 
-
   it('disables mentions when canMentionUsers permission is false', () => {
     vi.mocked(usePermissions).mockReturnValue({
       canCreateRoom: true,
