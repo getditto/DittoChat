@@ -152,7 +152,7 @@ describe('useImageAttachment', () => {
   })
 
   it('prevents duplicate fetch when already loading', async () => {
-    mockFetchAttachment.mockImplementation(() => {})
+    mockFetchAttachment.mockImplementation(() => { })
 
     const { result } = renderHook(() =>
       useImageAttachment({
@@ -171,5 +171,35 @@ describe('useImageAttachment', () => {
 
     expect(result.current.isLoading).toBe(true)
     expect(mockFetchAttachment).toHaveBeenCalledTimes(1)
+  })
+  it('retries on failure and eventually succeeds', async () => {
+    let attempts = 0
+    mockFetchAttachment.mockImplementation(
+      (_token, _onProgress, onComplete) => {
+        attempts++
+        if (attempts < 3) {
+          onComplete({ success: false, error: new Error('Transient error') })
+        } else {
+          onComplete({ success: true, data: new Uint8Array([1, 2, 3]) })
+        }
+      },
+    )
+
+    const { result } = renderHook(() =>
+      useImageAttachment({
+        token: mockToken,
+        fetchAttachment: mockFetchAttachment,
+        retryDelay: 10, // Fast retries for testing
+      }),
+    )
+
+    // Wait for the final successful result
+    await waitFor(() => {
+      expect(result.current.imageUrl).toBe('blob:mock-url')
+      expect(result.current.isLoading).toBe(false)
+      expect(result.current.error).toBeNull()
+    }, { timeout: 2000 })
+
+    expect(mockFetchAttachment).toHaveBeenCalledTimes(3)
   })
 })
