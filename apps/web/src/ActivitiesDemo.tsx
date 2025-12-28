@@ -80,17 +80,14 @@ export default function ActivitiesDemo() {
     }
 
     return (
-      // Wrap in web-chat-root and theme class to apply correct styles
-      <div className="web-chat-root" style={{ height: '100%' }}>
-        <div className="light h-full">
-          <div className="flex flex-col h-full bg-(--surface-color) font-sans text-(--text-color)">
-            <ChatView
-              chat={chat}
-              onBack={handleBack}
-              roomId={selectedActivity.commentRoomId}
-              messagesId="messages"
-            />
-          </div>
+      <div className="dcui-root light" style={{ height: '100%' }}>
+        <div className="flex flex-col h-full bg-(--dc-surface-color) font-sans text-(--dc-text-color) overflow-hidden">
+          <ChatView
+            chat={chat}
+            onBack={handleBack}
+            roomId={selectedActivity.commentRoomId}
+            messagesId="messages"
+          />
         </div>
       </div>
     )

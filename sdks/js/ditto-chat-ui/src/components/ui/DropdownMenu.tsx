@@ -23,18 +23,18 @@ export const Arrow = DropdownMenuPrimitive.Arrow
 
 // Wrap Content to add dcui-root class and theme class for CSS variable inheritance
 export const Content = React.forwardRef<
-    React.ComponentRef<typeof DropdownMenuPrimitive.Content>,
-    React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
+  React.ComponentRef<typeof DropdownMenuPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
 >(({ className, ...props }, ref) => {
-    const themeClass = getThemeClass()
+  const themeClass = getThemeClass()
 
-    return (
-        <DropdownMenuPrimitive.Content
-            ref={ref}
-            className={clsx('dcui-root', themeClass, className)}
-            {...props}
-        />
-    )
+  return (
+    <DropdownMenuPrimitive.Content
+      ref={ref}
+      className={clsx('dcui-root', themeClass, className)}
+      {...props}
+    />
+  )
 })
 
 Content.displayName = 'DropdownMenuContent'

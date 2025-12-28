@@ -68,20 +68,31 @@ The `DittoChatUI` component accepts the following props:
 - `ditto`: (Required) An initialized Ditto instance. This is used to connect to the Ditto mesh network and manage chat data.
 - `userCollectionKey`: (Required) A string representing the key for the Ditto collection where user information is stored.
 - `userId`: (Required) A string representing the ID of the current user.
-- `theme`: (Optional) Theme mode - `"light"`, `"dark"`, or `"auto"`. Default is `"light"`. When set to `"auto"`, the theme follows the system preference.
+- `theme`: (Optional) Theme configuration. Can be a mode string (`"light"`, `"dark"`, or `"auto"`) or a custom `Theme` object. Default is `"light"`.
 - `rbacConfig`: (Optional) Role-Based Access Control configuration object to control user permissions. See the [RBAC section in DittoChatCore](../ditto-chat-core/README.md#role-based-access-control-rbac) for available permissions and detailed documentation.
 - `notificationHandler`: (Optional) A callback function to handle chat notifications. Receives `title` and `description` parameters. If not provided, the component uses a default toast notification handler. See the [Notifications section](#notifications) for more details.
 
 ## Theming
 
-The `DittoChatUI` component offers a flexible theming system that supports both light and dark modes, as well as granular customization of colors.
+The `DittoChatUI` component offers a flexible theming system that supports both predefined modes and granular customization through a theme object.
 
-### Theme Object
+### Predefined Modes
 
-You can pass a `theme` object to the `DittoChatUI` component to override specific colors. The `Theme` interface includes the following properties:
+You can set the `theme` prop to one of the following strings:
+
+- `"light"`: Forces light mode (default).
+- `"dark"`: Forces dark mode.
+- `"auto"`: Automatically follows the system's color scheme preference.
+
+### Custom Theme Object
+
+For more granular control, you can pass a `Theme` object to the `theme` prop. This allows you to override specific colors while maintaining the base theme structure.
+
+#### Theme Interface
 
 ```typescript
 export interface Theme {
+  /** Base variant to use as a starting point */
   variant?: 'light' | 'dark'
 
   // Primary Palette
@@ -114,8 +125,9 @@ export interface Theme {
   textColorFaint?: string
   textColorDisabled?: string
 
-  // Borders
+  // Borders & Focus
   borderColor?: string
+  ringColor?: string
 
   // Status & Actions
   editBg?: string
@@ -128,6 +140,24 @@ export interface Theme {
   successBg?: string
   successText?: string
 }
+```
+
+#### Example Usage
+
+```tsx
+const customTheme: Theme = {
+  variant: 'light',
+  primaryColor: '#6366f1', // Custom Indigo
+  surfaceColor: '#111827', // Darker surface
+  textColor: '#ffffff',
+}
+
+<DittoChatUI
+  ditto={ditto}
+  userId="user123"
+  userCollectionKey="users"
+  theme={customTheme}
+/>
 ```
 
 ### CSS Variables
@@ -150,6 +180,7 @@ You can provide a custom handler to integrate with your preferred toast/notifica
 
 ```javascript
 import { toast } from 'sonner'
+
 ;<DittoChatUI
   ditto={ditto}
   userCollectionKey="my-users"
@@ -171,7 +202,6 @@ To render a specific comment thread (generated room) separately from the main ch
 ```javascript
 import { ChatView } from '@dittolive/ditto-chat-ui'
 
-// ...
 ;<ChatView
   roomId={commentRoomId} // ID of the generated room (e.g., "comments-doc-123")
   messagesId="messages" // Collection ID to store messages

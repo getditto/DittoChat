@@ -46,7 +46,6 @@ function ChatListItem({
     otherUserId = otherUser?._id
 
     chatName = otherUser?.name || 'Unknown User'
-    //TODO: Implement user status
     otherUserIsActive = false
   }
 

@@ -133,7 +133,6 @@ function ChatView({
     scrollToBottom()
   }, [messages.length])
 
-  // TODO: When the user opens/views the room, mark it as read (update subscription timestamp)
   useEffect(() => {
     if (!room?._id) {
       return
@@ -220,7 +219,6 @@ function ChatView({
     )
     otherUserId = otherUser?._id
     chatName = otherUser?.name || 'Unknown User'
-    // TODO: Implement user status
     otherUserIsActive = false
   }
 
@@ -314,7 +312,6 @@ function ChatView({
       </div>
       <MessageInput
         onSendMessage={(content: string, mentions: Mention[] = []) => {
-          //TODO: Refactor room null check
           if (room) {
             createMessage(room, content, mentions).catch(console.error)
           }

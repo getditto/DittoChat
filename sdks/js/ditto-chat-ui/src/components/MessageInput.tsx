@@ -190,7 +190,7 @@ function MessageInput({
     const newText = e.target.value
     const oldText = text
 
-    // --- Part 1: Update existing mention positions based on text changes ---
+    // Part 1: Update existing mention positions based on text changes
 
     // Find the starting index of the change by comparing old and new text from the beginning.
     let changeStartIndex = 0
@@ -253,7 +253,7 @@ function MessageInput({
     setMentions(updatedMentions)
     setText(newText)
 
-    // --- Part 2: Check if a new mention is being typed ---
+    // Part 2: Check if a new mention is being typed
 
     // Only allow mentions if user has permission
     if (!canMentionUsers) {
@@ -302,7 +302,7 @@ function MessageInput({
       return
     }
 
-    // --- Part 1: Identify the mention query and construct the new text ---
+    // Part 1: Identify the mention query and construct the new text
 
     const currentText = text
     const cursorPosition = textarea.selectionStart
@@ -327,7 +327,7 @@ function MessageInput({
     // Add a space after the mention for a better typing experience.
     const newText = `${textBeforeQuery}${mentionText} ${textAfterQuery}`
 
-    // --- Part 2: Create the new mention object and update existing ones ---
+    // Part 2: Create the new mention object and update existing ones
 
     // The new mention object to be stored, with its exact position.
     const newMention: Mention = {
@@ -361,7 +361,7 @@ function MessageInput({
     setText(newText)
     setIsMentioning(false)
 
-    // --- Part 3: Update the textarea cursor position ---
+    // Part 3: Update the textarea cursor position
 
     // Move the cursor to after the inserted mention and the added space.
     const newCursorPosition = queryStartIndex + mentionText.length + 1
@@ -420,7 +420,6 @@ function MessageInput({
     return <>{finalParts}</>
   }
 
-
   return (
     <div className="p-4 bg-(--dc-surface-color) border-t border-(--dc-border-color) mt-auto flex-shrink-0 w-full">
       <div className="relative w-full">
@@ -444,11 +443,12 @@ function MessageInput({
         )}
 
         <div className="flex items-start space-x-3 w-full">
-          <Popover.Root open={isAttachMenuOpen} onOpenChange={setIsAttachMenuOpen}>
+          <Popover.Root
+            open={isAttachMenuOpen}
+            onOpenChange={setIsAttachMenuOpen}
+          >
             <Popover.Trigger asChild>
-              <button
-                className="flex-shrink-0 flex items-center space-x-2 px-3 py-2 rounded-full bg-(--dc-secondary-bg) hover:bg-(--dc-secondary-bg-hover) text-(--dc-text-color-lighter) font-medium outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
-              >
+              <button className="flex-shrink-0 flex items-center space-x-2 px-3 py-2 rounded-full bg-(--dc-secondary-bg) hover:bg-(--dc-secondary-bg-hover) text-(--dc-text-color-lighter) font-medium outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)">
                 <Icons.paperclip className="w-5 h-5" />
                 <span>Attach</span>
               </button>
@@ -520,7 +520,12 @@ function MessageInput({
                   <div
                     aria-hidden="true"
                     className="text-base whitespace-pre-wrap invisible max-w-full"
-                    style={{ width: '100%', maxWidth: '100%', wordBreak: 'break-all', overflowWrap: 'anywhere' }}
+                    style={{
+                      width: '100%',
+                      maxWidth: '100%',
+                      wordBreak: 'break-all',
+                      overflowWrap: 'anywhere',
+                    }}
                   >
                     {renderHighlightedText()}
                   </div>
@@ -529,9 +534,15 @@ function MessageInput({
                     value={text}
                     onChange={handleTextChange}
                     onKeyDown={handleKeyDown}
-                    placeholder={editingMessage ? 'Edit message...' : 'Message...'}
+                    placeholder={
+                      editingMessage ? 'Edit message...' : 'Message...'
+                    }
                     className="absolute inset-0 w-full h-full bg-transparent text-(--dc-text-color) text-base resize-none outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-secondary-bg) px-2 py-2 overflow-x-hidden overflow-y-auto rounded-lg"
-                    style={{ maxWidth: '100%', wordBreak: 'break-all', overflowWrap: 'anywhere' }}
+                    style={{
+                      maxWidth: '100%',
+                      wordBreak: 'break-all',
+                      overflowWrap: 'anywhere',
+                    }}
                   />
                 </div>
               </Popover.Anchor>
