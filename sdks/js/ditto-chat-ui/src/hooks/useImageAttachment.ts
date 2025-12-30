@@ -18,6 +18,7 @@ interface UseImageAttachmentOptions {
   token: AttachmentToken | null
   fetchAttachment?: FetchAttachmentFn
   autoFetch?: boolean
+  retryDelay?: number
 }
 
 interface UseImageAttachmentReturn {
@@ -43,6 +44,7 @@ export function useImageAttachment({
   token,
   fetchAttachment,
   autoFetch = true,
+  retryDelay = 500,
 }: UseImageAttachmentOptions): UseImageAttachmentReturn {
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [progress, setProgress] = useState(0)
@@ -61,8 +63,11 @@ export function useImageAttachment({
     }
   }, [imageUrl])
 
+  const MAX_RETRIES = 3
+  const INITIAL_RETRY_DELAY = retryDelay
+
   // Fetch function
-  const fetchImage = () => {
+  const fetchImage = (currentRetry = 0) => {
     if (!token) {
       setError('No token provided')
       return null
@@ -74,20 +79,22 @@ export function useImageAttachment({
       return null
     }
 
-    if (isLoading) {
+    if (isLoading && currentRetry === 0) {
       return null
     }
 
     setIsLoading(true)
     setError(null)
-    setProgress(0)
+    if (currentRetry === 0) {
+      setProgress(0)
+    }
 
     const fetcher = fetchAttachment(
       token,
       (progressValue: number) => setProgress(progressValue),
       (result: FetchAttachmentResult) => {
-        setIsLoading(false)
         if (result.success && result.data) {
+          setIsLoading(false)
           try {
             const blob = toBlobFromUint8(result.data, 'image/jpeg')
             const url = URL.createObjectURL(blob)
@@ -98,6 +105,30 @@ export function useImageAttachment({
           }
         } else {
           setError('Failed to load image')
+
+          // Check if we should retry
+          if (currentRetry < MAX_RETRIES) {
+            const nextRetry = currentRetry + 1
+            const delay = INITIAL_RETRY_DELAY * Math.pow(2, currentRetry)
+
+            console.warn(
+              `Attachment fetch failed, retrying in ${delay}ms (attempt ${nextRetry}/${MAX_RETRIES})...`,
+              result.error,
+            )
+
+            // Clear loading while waiting for retry
+            setIsLoading(false)
+
+            setTimeout(() => {
+              fetchImage(nextRetry)
+            }, delay)
+          } else {
+            setIsLoading(false)
+            console.error(
+              `Failed to fetch attachment after ${MAX_RETRIES} retries:`,
+              result.error,
+            )
+          }
         }
       },
     )
