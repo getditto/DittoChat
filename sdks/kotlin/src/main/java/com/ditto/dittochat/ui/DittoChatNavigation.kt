@@ -1,29 +1,34 @@
 package com.ditto.dittochat.ui
 
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
 @Composable
 fun DittoChatNavigation(
-    dittoChatUI: DittoChatUI,
     chatScreenViewModel: ChatScreenViewModel,
-    roomsListScreenViewModel: RoomsListScreenViewModel
+    roomsListScreenViewModel: RoomsListScreenViewModel,
+    dittoChatUI: DittoChatUI,
+    navController: NavHostController
 ) {
-    val navController = rememberNavController()
 
     NavHost(
         navController = navController,
         startDestination = "rooms"
     ) {
         composable("rooms") {
-            dittoChatUI.RoomsListView(navController, roomsListScreenViewModel)
+            dittoChatUI.RoomsListView(roomsListScreenViewModel) {
+                navController.navigate(it)
+            }
         }
 
         composable("chat/{roomId}") { backStackEntry ->
             val roomId = backStackEntry.arguments?.getString("roomId") ?: return@composable
             dittoChatUI.ChatRoomView(
+                chatScreenViewModel,
                 roomId = roomId,
                 onNavigateBack = { navController.popBackStack() },
                 chatScreenViewModel = chatScreenViewModel

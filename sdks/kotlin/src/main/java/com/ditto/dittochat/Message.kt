@@ -8,7 +8,7 @@ data class Message(
     val id: String = UUID.randomUUID().toString(),
 
     @SerializedName("createdOn")
-    var createdOn: Date = Date(),
+    var createdOn: String,
 
     @SerializedName("roomId")
     val roomId: String,
@@ -36,7 +36,7 @@ data class Message(
 
     fun toDocument(): Map<String, Any?> = mapOf(
         Constants.DB_ID_KEY to id,
-        Constants.CREATED_ON_KEY to DateUtils.toISOString(createdOn),
+        Constants.CREATED_ON_KEY to createdOn,
         Constants.ROOM_ID_KEY to roomId,
         Constants.TEXT_KEY to text,
         Constants.USER_ID_KEY to userId,

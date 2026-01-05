@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.ditto.dittochat.DateUtils
 import com.ditto.dittochat.Message
 import com.ditto.dittochat.MessageWithUser
 
@@ -72,7 +73,7 @@ fun MessageBubble(
         }
 
         Text(
-            text = formatTime(message.createdOn),
+            text = formatTime(DateUtils.fromISOString(message.createdOn)!!),
             style = MaterialTheme.typography.labelSmall,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp)
         )

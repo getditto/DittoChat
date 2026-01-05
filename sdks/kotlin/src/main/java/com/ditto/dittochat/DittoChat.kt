@@ -5,7 +5,6 @@ import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow
 import java.util.Date
 import java.util.UUID
-import javax.inject.Inject
 import javax.inject.Singleton
 
 interface DittoChat {
@@ -14,6 +13,9 @@ interface DittoChat {
     fun setCurrentUser(config: UserConfig)
 
     val publicRoomsFlow: kotlinx.coroutines.flow.Flow<List<Room>>
+
+    val localStore: LocalData
+    val p2pStore: DittoData
     suspend fun readRoomById(id: String): Room
     fun allUsersFlow(): kotlinx.coroutines.flow.Flow<List<ChatUser>>
 
@@ -21,26 +23,10 @@ interface DittoChat {
     fun logout()
 }
 
-@Singleton
 class DittoChatImpl(
-    private val localStore: LocalData,
-    private val p2pStore: DittoData
+    override val localStore: LocalData,
+    override val p2pStore: DittoData
 ) : DittoChat {
-
-    constructor(context: Context, config: ChatConfig) : this(
-        localStore = LocalDataImpl(context, Gson()),
-        p2pStore = DittoDataImpl(
-            privateStore = LocalDataImpl(context, Gson()),
-            ditto = config.ditto,
-            gson = Gson(),
-            usersCollection = config.usersCollection,
-            chatRetentionPolicy = config.retentionPolicy
-        )
-    ) {
-        config.userId?.let {
-            setCurrentUser(UserConfig(it))
-        }
-    }
 
     override val publicRoomsFlow: Flow<List<Room>>
         get() = p2pStore.publicRoomsFlow
