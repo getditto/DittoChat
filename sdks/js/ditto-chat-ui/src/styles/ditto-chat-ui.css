@@ -1,0 +1,153 @@
+/* Ditto Chat UI CSS */
+/* These variables are scoped to .dcui-root and only affect chat UI components */
+
+.web-height {
+  height: var(--visible-chat-container-vh, 100vh) !important;
+}
+
+.dcui-root {
+  /* Primary color scheme */
+  --dc-primary-color: #50c0ff;
+  --dc-primary-color-hover: #007cb4;
+  --dc-primary-color-focus: #0094d5;
+  --dc-primary-color-light: #50c0ff1c;
+  --dc-primary-color-lighter: #eaf4ff;
+  --dc-primary-color-light-border: #91d0ff;
+  --dc-primary-color-dark-text: #00527c;
+  --dc-text-on-primary: #ffffff;
+
+  /* Mention colors */
+  --dc-mention-text: #50c0ff;
+  --dc-mention-text-on-primary: #a8d8ff;
+
+  /* Surface & Background colors */
+  --dc-surface-color: #ffffff;
+  --dc-surface-color-light: #f7f7f7;
+  --dc-secondary-bg: #f7f7f7;
+  --dc-secondary-bg-hover: #f3f3f3;
+  --dc-disabled-bg: #d4d4d4;
+
+  /* Text colors */
+  --dc-text-color: #1a1a1a;
+  --dc-text-color-medium: #2b2b2b;
+  --dc-text-color-light: #3d3d3d;
+  --dc-text-color-lighter: #616161;
+  --dc-text-color-lightest: #8a8a8a;
+  --dc-text-color-faint: #b5b5b5;
+  --dc-text-color-disabled: #cccccc;
+
+  /* Border color */
+  --dc-border-color: #0000001c;
+
+  /* Focus ring color */
+  --dc-ring-color: #0094d5;
+
+  /* Semantic/Status colors */
+  --dc-edit-bg: #eaf4ff;
+  --dc-edit-text: #00527c;
+  --dc-info-icon-color: #0094d5;
+  --dc-notification-badge-bg: #e51c00;
+  --dc-active-status-bg: #2ed389;
+  --dc-danger-text: #e51c00;
+  --dc-danger-bg: #ffedec;
+  --dc-success-bg: #cdfee1;
+  --dc-success-text: #0c5132;
+}
+
+.dcui-root.light {
+  /* Primary color scheme */
+  --dc-primary-color: #50c0ff;
+  --dc-primary-color-hover: #007cb4;
+  --dc-primary-color-focus: #0094d5;
+  --dc-primary-color-light: #50c0ff1c;
+  --dc-primary-color-lighter: #eaf4ff;
+  --dc-primary-color-light-border: #91d0ff;
+  --dc-primary-color-dark-text: #00527c;
+  --dc-text-on-primary: #ffffff;
+
+  /* Mention colors */
+  --dc-mention-text: #50c0ff;
+  --dc-mention-text-on-primary: #a8d8ff;
+
+  /* Surface & Background colors */
+  --dc-surface-color: #ffffff;
+  --dc-surface-color-light: #f7f7f7;
+  --dc-secondary-bg: #f7f7f7;
+  --dc-secondary-bg-hover: #f3f3f3;
+  --dc-disabled-bg: #d4d4d4;
+
+  /* Text colors */
+  --dc-text-color: #1a1a1a;
+  --dc-text-color-medium: #2b2b2b;
+  --dc-text-color-light: #3d3d3d;
+  --dc-text-color-lighter: #616161;
+  --dc-text-color-lightest: #8a8a8a;
+  --dc-text-color-faint: #b5b5b5;
+  --dc-text-color-disabled: #cccccc;
+
+  /* Border color */
+  --dc-border-color: #0000001c;
+
+  /* Focus ring color */
+  --dc-ring-color: #0094d5;
+
+  /* Semantic/Status colors */
+  --dc-edit-bg: #eaf4ff;
+  --dc-edit-text: #00527c;
+  --dc-info-icon-color: #0094d5;
+  --dc-notification-badge-bg: #e51c00;
+  --dc-active-status-bg: #2ed389;
+  --dc-danger-text: #e51c00;
+  --dc-danger-bg: #ffedec;
+  --dc-success-bg: #cdfee1;
+  --dc-success-text: #0c5132;
+}
+
+.dcui-root.dark {
+  /* Primary color scheme */
+  --dc-primary-color: #007cb4;
+  --dc-primary-color-hover: #00679b;
+  --dc-primary-color-focus: #0094d5;
+  --dc-primary-color-light: #007cb42b;
+  --dc-primary-color-lighter: #eaf4ff;
+  --dc-primary-color-light-border: #91d0ff;
+  --dc-primary-color-dark-text: #00527c;
+  --dc-text-on-primary: #ffffff;
+
+  /* Mention colors */
+  --dc-mention-text: #50c0ff;
+  --dc-mention-text-on-primary: #a8d8ff;
+
+  /* Surface & Background colors */
+  --dc-surface-color: #1a1a1a;
+  --dc-surface-color-light: #2b2b2b;
+  --dc-secondary-bg: #2b2b2b;
+  --dc-secondary-bg-hover: #3d3d3d;
+  --dc-disabled-bg: #616161;
+
+  /* Text colors */
+  --dc-text-color: #ffffff;
+  --dc-text-color-medium: #fdfdfd;
+  --dc-text-color-light: #fafafa;
+  --dc-text-color-lighter: #cccccc;
+  --dc-text-color-lightest: #b5b5b5;
+  --dc-text-color-faint: #8a8a8a;
+  --dc-text-color-disabled: #616161;
+
+  /* Border color */
+  --dc-border-color: #ffffff0f;
+
+  /* Focus ring color */
+  --dc-ring-color: #0094d5;
+
+  /* Semantic/Status colors */
+  --dc-edit-bg: #00527c;
+  --dc-edit-text: #c0e1ff;
+  --dc-info-icon-color: #0094d5;
+  --dc-notification-badge-bg: #e51c00;
+  --dc-active-status-bg: #2ed389;
+  --dc-danger-text: #fec3c1;
+  --dc-danger-bg: #8e1f0b;
+  --dc-success-bg: #0a550d;
+  --dc-success-text: #92fec2;
+}

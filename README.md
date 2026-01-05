@@ -23,10 +23,11 @@
 
 </div>
 
-A suite of SDKs that provides UI components and data models to quickly build a 
+A suite of SDKs that provides UI components and data models to quickly build a
 peer-to-peer chat application using the Ditto Platform.
 
 ## Features
+
 - Real-time, peer-to-peer chat
 
 - Group chat and private messaging
@@ -61,16 +62,39 @@ peer-to-peer chat application using the Ditto Platform.
 
 The JavaScript implementation consists of two packages:
 
-**[@dittolive/ditto-chat-core](./sdks/js/DittoChatCore/README.md)** - Core data models and React hooks for real-time chat functionalities
+**[@dittolive/ditto-chat-core](./sdks/js/ditto-chat-core/README.md)** - Core data models and React hooks for real-time chat functionalities
+
 ```bash
 npm install @dittolive/ditto-chat-core
 # or
 yarn add @dittolive/ditto-chat-core
 ```
 
-**[@dittolive/ditto-chat-ui](./sdks/js/DittoChatUI/README.md)** - Ready-to-use React components for building chat UIs
+**[@dittolive/ditto-chat-ui](./sdks/js/ditto-chat-ui/README.md)** - Ready-to-use React components for building chat UIs
+
 ```bash
 npm install @dittolive/ditto-chat-ui
 # or
 yarn add @dittolive/ditto-chat-ui
 ```
+
+## Publishing
+
+This monorepo uses [Changesets](https://github.com/changesets/changesets) for version management and publishing.
+
+### For Contributors
+
+When making changes to the packages, please create a changeset to document your changes:
+
+```bash
+npm run changeset
+```
+
+This will prompt you to select which packages are affected and describe your changes.
+
+### Release Process
+
+Releases are automated via GitHub Actions:
+
+1. When changesets are merged to `main`, a "Version Packages" PR is automatically created
+2. Merging the "Version Packages" PR publishes the packages to NPM

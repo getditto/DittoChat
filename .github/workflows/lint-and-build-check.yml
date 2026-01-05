@@ -1,0 +1,41 @@
+name: Check Lint and Build on PR
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  release:
+    name: Check Lint and Build on PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+        # This is requried to run before lint check in the ditto-chat-ui package
+        # else lint will fail due to missing types from ditto-chat-core dist
+      - name: Build Ditto Chat Core
+        run: npm run build --workspace=sdks/js/ditto-chat-core
+
+      - name: Run Linting
+        run: npm run lint
+
+      - name: Build Packages
+        run: npm run build
