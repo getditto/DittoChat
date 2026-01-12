@@ -94,6 +94,9 @@ struct MessageBubbleView: View {
             return Color(.systemFill)
         }
         #endif
+        if let colorHex = dittoChat.primaryColor, let color = Color(hex: colorHex) {
+            return color
+        }
         return Color.accentColor
     }
 
@@ -291,12 +294,12 @@ struct MessageBubbleView: View {
 
     private func canEdit() -> Bool {
         guard !isEditing else { return false }
-        return isSelfUser && !isImageMessage
+        return isSelfUser && !isImageMessage && dittoChat.hasAdminPrivileges
     }
         
     private func canDelete() -> Bool {
         guard !isEditing else { return false }
-        return isSelfUser
+        return isSelfUser && dittoChat.hasAdminPrivileges
     }
 
     // for previewing

@@ -64,16 +64,25 @@ public struct ChatConfig {
     public var usersCollection: String
     public var userId: String?
     public var acceptLargeImages: Bool
+    public var primaryColor: String?
+    public var hasAdminPrivileges: Bool
 
     public init(
-        ditto: Ditto, retentionPolicy: ChatRetentionPolicy = .init(days: 30), usersCollection: String = "users", 
-        userId: String? = nil, acceptLargeImages: Bool = true
+        ditto: Ditto,
+        retentionPolicy: ChatRetentionPolicy = .init(days: 30),
+        usersCollection: String = "users", 
+        userId: String? = nil,
+        acceptLargeImages: Bool = true,
+        primaryColor: String? = nil,
+        hasAdminPrivileges: Bool = false
     ) {
         self.ditto = ditto
         self.retentionPolicy = retentionPolicy
         self.usersCollection = usersCollection
         self.userId = userId
         self.acceptLargeImages = acceptLargeImages
+        self.primaryColor = primaryColor
+        self.hasAdminPrivileges = hasAdminPrivileges
     }
 }
 
@@ -90,13 +99,18 @@ public struct ChatRetentionPolicy {
 public class DittoChat: DittoSwiftChat, ObservableObject {
     @Published private(set) public var publicRoomsPublisher: AnyPublisher<[Room], Never>
     public var retentionPolicy: ChatRetentionPolicy = .init(days: 30)
-    public var acceptLargeImages: Bool = true
+    public var acceptLargeImages: Bool
+    public var primaryColor: String?
+    public var hasAdminPrivileges: Bool
 
     private var localStore: LocalDataInterface
     internal var p2pStore: DittoDataInterface
 
     public init(config: ChatConfig) {
         let localStore: LocalService = LocalService()
+        self.acceptLargeImages = config.acceptLargeImages
+        self.primaryColor = config.primaryColor
+        self.hasAdminPrivileges = config.hasAdminPrivileges
         self.localStore = localStore
         self.p2pStore = DittoService(privateStore: localStore, ditto: config.ditto, usersCollection: config.usersCollection, chatRetentionPolicy: config.retentionPolicy)
         self.publicRoomsPublisher = p2pStore.publicRoomsPublisher.eraseToAnyPublisher()

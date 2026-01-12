@@ -12,7 +12,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 fun CreateRoomDialog(
     onDismiss: () -> Unit,
     onCreate: (String) -> Unit,
-    viewModel: RoomEditViewModel = hiltViewModel()
+    viewModel: RoomEditViewModel
 ) {
     val roomName by viewModel.roomName.collectAsState()
     val isCreating by viewModel.isCreating.collectAsState()

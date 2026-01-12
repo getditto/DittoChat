@@ -41,18 +41,20 @@ object DittoChatModule {
 
     internal fun provideDittoChat(
         localStore: LocalData,
-        p2pStore: DittoData
+        p2pStore: DittoData,
+        dittoChatConfig: ChatConfig
     ): DittoChat {
-        return DittoChatImpl(localStore, p2pStore)
+        return DittoChatImpl(dittoChatConfig, localStore, p2pStore)
     }
 
-    fun provideDittoChatUI(ditto: Ditto, localData: LocalData): DittoChatUI {
+    fun provideDittoChatUI(ditto: Ditto, localData: LocalData, dittoChatConfig: ChatConfig): DittoChatUI {
         return DittoChatUI(provideDittoChat(
             localData,
             provideDittoDataInterface(
                 localData,
                 ditto
-            )
+            ),
+            dittoChatConfig
         ))
     }
 }

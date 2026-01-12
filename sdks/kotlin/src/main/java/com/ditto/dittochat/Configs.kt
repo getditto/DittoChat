@@ -5,7 +5,9 @@ data class ChatConfig(
     val retentionPolicy: ChatRetentionPolicy = ChatRetentionPolicy(days = 30),
     val usersCollection: String = "users",
     val userId: String? = "ditto-system-user-id",
-    val acceptLargeImages: Boolean = true
+    val acceptLargeImages: Boolean = true,
+    val primaryColor: String? = null,
+    val hasAdminPrivileges: Boolean = false
 )
 
 data class ChatRetentionPolicy(

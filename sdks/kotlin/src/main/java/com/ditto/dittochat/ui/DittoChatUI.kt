@@ -1,14 +1,7 @@
 package com.ditto.dittochat.ui
 
-import android.content.Context
 import androidx.compose.runtime.Composable
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import com.ditto.dittochat.ChatConfig
 import com.ditto.dittochat.DittoChat
-import com.ditto.dittochat.DittoChatImpl
-import com.ditto.dittochat.DittoData
 import com.ditto.dittochat.UserConfig
 
 class DittoChatUI(
@@ -18,11 +11,13 @@ class DittoChatUI(
     @Composable
     fun RoomsListView(
         viewModel: RoomsListScreenViewModel,
+        editViewModel: RoomEditViewModel,
         navigateToChat: (String) -> Unit,
     ) {
         RoomsListScreen(
             onNavigateToChat = navigateToChat,
-            viewModel = viewModel
+            viewModel = viewModel,
+            roomEditViewModel = editViewModel,
         )
     }
 
