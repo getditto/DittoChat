@@ -231,7 +231,8 @@ extension DittoService {
                     """
         let args: [String: Any?] = [
             "roomId": room.id,
-            "date": retentionDaysAgo.ISO8601Format()
+            "date": retentionDaysAgo.ISO8601Format(),
+            "dateMs": retentionDaysAgo.timeIntervalSince1970 * 1000
         ]
 
         return ditto.store.observePublisher(query: query, arguments: args, mapTo: Message.self)
