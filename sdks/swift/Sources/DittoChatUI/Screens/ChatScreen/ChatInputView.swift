@@ -12,6 +12,7 @@ import DittoChatCore
 struct ChatInputView: View {
     @Binding var text: String
     var onSendButtonTappedCallback: (() -> Void)? = nil
+    var primaryColor: Color = .blue
 
     var body: some View {
         HStack(alignment: .bottom) {
