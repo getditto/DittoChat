@@ -5,13 +5,15 @@ import kotlinx.coroutines.launch
 import java.util.*
 import com.ditto.dittochat.ChatUser
 import com.ditto.dittochat.Constants
+import com.ditto.dittochat.DittoChat
 import com.ditto.dittochat.DittoData
 import com.ditto.dittochat.Room
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 
 class RoomsListScreenViewModel(
-    private val dittoData: DittoData
+    val dittoChat: DittoChat,
+    val dittoData: DittoData
 ) {
 
     private val _publicRooms = MutableStateFlow<List<Room>>(emptyList())

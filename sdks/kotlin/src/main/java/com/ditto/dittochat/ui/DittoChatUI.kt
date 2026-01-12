@@ -11,11 +11,13 @@ class DittoChatUI(
     @Composable
     fun RoomsListView(
         viewModel: RoomsListScreenViewModel,
+        editViewModel: RoomEditViewModel,
         navigateToChat: (String) -> Unit,
     ) {
         RoomsListScreen(
             onNavigateToChat = navigateToChat,
-            viewModel = viewModel
+            viewModel = viewModel,
+            roomEditViewModel = editViewModel,
         )
     }
 
