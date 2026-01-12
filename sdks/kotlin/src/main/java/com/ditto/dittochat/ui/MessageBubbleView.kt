@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.ditto.dittochat.DateUtils
 import com.ditto.dittochat.Message
 import com.ditto.dittochat.MessageWithUser
+import parseHexColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,7 +23,9 @@ fun MessageBubble(
     currentUserId: String?,
     onEditClick: (Message) -> Unit,
     onDeleteClick: (Message) -> Unit,
-    onImageClick: (Message) -> Unit
+    onImageClick: (Message) -> Unit,
+    hasAdminPrivileges: Boolean = false,
+    primaryColor: String? = null
 ) {
     val message = messageWithUser.message
     val user = messageWithUser.user
@@ -50,7 +53,7 @@ fun MessageBubble(
             shape = MessageBubbleShape(isCurrentUser),
             colors = CardDefaults.cardColors(
                 containerColor = if (isCurrentUser)
-                    MaterialTheme.colorScheme.primary
+                    primaryColor?.parseHexColor() ?: MaterialTheme.colorScheme.primary
                 else
                     MaterialTheme.colorScheme.surfaceVariant
             )
@@ -92,7 +95,7 @@ fun MessageBubble(
                 )
             }
 
-            if (isCurrentUser && !message.isImageMessage) {
+            if (isCurrentUser && !message.isImageMessage && hasAdminPrivileges) {
                 DropdownMenuItem(
                     text = { Text("Edit") },
                     onClick = {
@@ -102,7 +105,7 @@ fun MessageBubble(
                 )
             }
 
-            if (isCurrentUser) {
+            if (isCurrentUser && hasAdminPrivileges) {
                 DropdownMenuItem(
                     text = { Text("Delete") },
                     onClick = {

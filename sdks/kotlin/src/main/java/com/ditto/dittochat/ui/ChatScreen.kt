@@ -19,10 +19,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ditto.dittochat.DittoChat
 import com.ditto.dittochat.DittoData
 import kotlinx.coroutines.launch
+import parseHexColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,7 +86,10 @@ fun ChatScreen(
                     text = inputText,
                     onTextChange = viewModel::updateInputText,
                     onSendClick = viewModel::sendMessage,
-                    onCameraClick = { imagePicker.launch("image/*") }
+                    onCameraClick = { imagePicker.launch("image/*") },
+                    primaryColor =
+                        viewModel.dittoChat.dittoChatConfig.primaryColor?.parseHexColor()
+                            ?: MaterialTheme.colorScheme.primary
                 )
             }
         }
@@ -105,7 +110,9 @@ fun ChatScreen(
                         currentUserId = currentUser?.id,
                         onEditClick = { viewModel.startEditMessage(it) },
                         onDeleteClick = { viewModel.deleteMessage(it) },
-                        onImageClick = { viewModel.showAttachment(it) }
+                        onImageClick = { viewModel.showAttachment(it) },
+                        hasAdminPrivileges = viewModel.dittoChat.dittoChatConfig.hasAdminPrivileges,
+                        primaryColor = viewModel.dittoChat.dittoChatConfig.primaryColor
                     )
                 }
             }

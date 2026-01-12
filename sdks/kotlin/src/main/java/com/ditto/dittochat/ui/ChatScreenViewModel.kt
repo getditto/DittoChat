@@ -18,7 +18,7 @@ import kotlinx.coroutines.withContext
 // ChatScreenViewModel.kt
 class ChatScreenViewModel(
     private val dittoData: DittoData,
-    private val dittoChat: DittoChat
+    internal val dittoChat: DittoChat
 ) {
 
     private val _room = MutableStateFlow<Room?>(null)

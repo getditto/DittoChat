@@ -20,7 +20,8 @@ fun ChatInputBar(
     text: String,
     onTextChange: (String) -> Unit,
     onSendClick: () -> Unit,
-    onCameraClick: () -> Unit
+    onCameraClick: () -> Unit,
+    primaryColor: Color
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -53,7 +54,7 @@ fun ChatInputBar(
                     .size(40.dp)
                     .padding(4.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary)
+                    .background(primaryColor)
             ) {
                 Icon(
                     Icons.Default.Send,

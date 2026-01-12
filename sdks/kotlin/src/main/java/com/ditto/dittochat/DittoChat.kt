@@ -13,6 +13,7 @@ interface DittoChat {
     fun setCurrentUser(config: UserConfig)
 
     val publicRoomsFlow: kotlinx.coroutines.flow.Flow<List<Room>>
+    val dittoChatConfig: ChatConfig
 
     val localStore: LocalData
     val p2pStore: DittoData
@@ -24,6 +25,7 @@ interface DittoChat {
 }
 
 class DittoChatImpl(
+    override val dittoChatConfig: ChatConfig,
     override val localStore: LocalData,
     override val p2pStore: DittoData
 ) : DittoChat {
