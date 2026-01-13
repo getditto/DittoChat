@@ -226,7 +226,7 @@ extension DittoService {
         let retentionDaysAgo = Date().addingTimeInterval(-retentionDaysDouble * 24 * 60 * 60)
         let query = """
                     SELECT * FROM COLLECTION `\(room.messagesId)` (\(thumbnailImageTokenKey) ATTACHMENT, \(largeImageTokenKey) ATTACHMENT)
-                    WHERE roomId == :roomId AND createdOn >= :date OR timeMs >= :dateMs OR b >= :dateMs
+                    WHERE roomId == :roomId AND createdOn >= :date
                     ORDER BY \(createdOnKey) ASC
                     """
         let args: [String: Any?] = [

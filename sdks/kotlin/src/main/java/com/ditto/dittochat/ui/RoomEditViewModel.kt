@@ -9,10 +9,12 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.ditto.dittochat.DittoChat
 import com.ditto.dittochat.RoomConfig
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 class RoomEditViewModel(
     private val dittoChat: DittoChat
-) : ViewModel() {
+) {
 
     private val _roomName = MutableStateFlow("")
     val roomName: StateFlow<String> = _roomName.asStateFlow()
@@ -29,7 +31,7 @@ class RoomEditViewModel(
     fun createRoom(onSuccess: () -> Unit) {
         if (_roomName.value.isEmpty()) return
 
-        viewModelScope.launch {
+        CoroutineScope(Dispatchers.Main).launch {
             _isCreating.value = true
             try {
                 dittoChat.createRoom(
