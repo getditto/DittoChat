@@ -226,13 +226,12 @@ extension DittoService {
         let retentionDaysAgo = Date().addingTimeInterval(-retentionDaysDouble * 24 * 60 * 60)
         let query = """
                     SELECT * FROM COLLECTION `\(room.messagesId)` (\(thumbnailImageTokenKey) ATTACHMENT, \(largeImageTokenKey) ATTACHMENT)
-                    WHERE roomId == :roomId AND createdOn >= :date OR timeMs >= :dateMs OR b >= :dateMs
+                    WHERE roomId == :roomId AND createdOn >= :date
                     ORDER BY \(createdOnKey) ASC
                     """
         let args: [String: Any?] = [
             "roomId": room.id,
-            "date": retentionDaysAgo.ISO8601Format(),
-            "dateMs": retentionDaysAgo.timeIntervalSince1970 * 1000
+            "date": retentionDaysAgo.ISO8601Format()
         ]
 
         return ditto.store.observePublisher(query: query, arguments: args, mapTo: Message.self)
