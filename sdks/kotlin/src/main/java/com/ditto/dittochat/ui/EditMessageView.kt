@@ -27,7 +27,8 @@ fun EditingBottomBar(
     text: String,
     onTextChange: (String) -> Unit,
     onSave: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    primaryColor: Color
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -71,7 +72,7 @@ fun EditingBottomBar(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary)
+                        .background(primaryColor)
                 ) {
                     Icon(
                         Icons.Default.Send,
