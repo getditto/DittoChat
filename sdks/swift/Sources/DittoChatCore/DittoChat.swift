@@ -165,6 +165,7 @@ public class DittoChat: DittoSwiftChat, ObservableObject {
         rolesCancellable = p2pStore.ditto.store
             .observePublisher(
                 query: "SELECT * FROM `roles` WHERE email = :email",
+                arguments: ["email": email],
                 mapTo: AdminRole.self
             )
             .catch { error in
