@@ -95,13 +95,27 @@ public struct ChatRetentionPolicy {
     }
 }
 
+struct AdminRole: DittoDecodable {
+    init(value: [String : Any?]) {
+        _id = value["_id"] as? String
+        email = value["email"] as? String
+    }
+
+    public var _id: String?
+    public var email: String?
+}
+
 @MainActor
 public class DittoChat: DittoSwiftChat, ObservableObject {
     @Published private(set) public var publicRoomsPublisher: AnyPublisher<[Room], Never>
     public var retentionPolicy: ChatRetentionPolicy = .init(days: 30)
     public var acceptLargeImages: Bool
     public var primaryColor: String?
-    public var hasAdminPrivileges: Bool = false
+    public var hasAdminPrivileges: Bool {
+        return !roles.isEmpty
+    }
+    private var rolesCancellable: AnyCancellable?
+    private var roles: [AdminRole] = []
 
     private var localStore: LocalDataInterface
     internal var p2pStore: DittoDataInterface
@@ -118,14 +132,12 @@ public class DittoChat: DittoSwiftChat, ObservableObject {
             self.setCurrentUser(withConfig: UserConfig(id: userId))
         }
         if let email = config.userEmail {
-            Task {
-                do {
-                    self.hasAdminPrivileges = try await getAdminAccess(
-                        email: email
-                    )
-                } catch {
-                    // TODO: Handle errors
-                }
+            do {
+                try setupRolesSubscription(
+                    email: email
+                )
+            } catch {
+                // TODO: Handle errors
             }
         }
     }
@@ -144,11 +156,22 @@ public class DittoChat: DittoSwiftChat, ObservableObject {
         return room
     }
 
-    func getAdminAccess(email: String) async throws -> Bool {
-        return try await p2pStore.ditto.store.execute(
+    func setupRolesSubscription(email: String) throws {
+        try p2pStore.ditto.sync.registerSubscription(
             query: "SELECT * FROM `roles` WHERE email = :email",
             arguments: ["email": email]
-        ).items.count > 0
+        )
+
+        rolesCancellable = p2pStore.ditto.store
+            .observePublisher(
+                query: "SELECT * FROM `roles` WHERE email = :email",
+                mapTo: AdminRole.self
+            )
+            .catch { error in
+                assertionFailure("ERROR with \(#function)" + error.localizedDescription)
+                return Empty<[AdminRole], Never>()
+            }
+            .assign(to: \.roles, on: self)
     }
 
     public func allUsersPublisher() -> AnyPublisher<[ChatUser], Never> {
