@@ -112,7 +112,7 @@ struct MessageEditView: View {
             ChatInputView(
                 text: $viewModel.editText,
                 onSendButtonTappedCallback: viewModel.saveEdit,
-                primaryColor: Color(hex: dittoChat.primaryColor) ?? .blue
+                primaryColor: Color(hex: dittoChat.primaryColor ?? "") ?? .blue
             )
         }
         #if !os(tvOS)
