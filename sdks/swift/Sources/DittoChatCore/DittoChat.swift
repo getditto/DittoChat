@@ -63,26 +63,26 @@ public struct ChatConfig {
     public var retentionPolicy: ChatRetentionPolicy
     public var usersCollection: String
     public var userId: String?
+    public var userEmail: String?
     public var acceptLargeImages: Bool
     public var primaryColor: String?
-    public var hasAdminPrivileges: Bool
 
     public init(
         ditto: Ditto,
         retentionPolicy: ChatRetentionPolicy = .init(days: 30),
         usersCollection: String = "users", 
         userId: String? = nil,
+        userEmail: String? = nil,
         acceptLargeImages: Bool = true,
-        primaryColor: String? = nil,
-        hasAdminPrivileges: Bool = false
+        primaryColor: String? = nil
     ) {
         self.ditto = ditto
         self.retentionPolicy = retentionPolicy
         self.usersCollection = usersCollection
         self.userId = userId
+        self.userEmail = userEmail
         self.acceptLargeImages = acceptLargeImages
         self.primaryColor = primaryColor
-        self.hasAdminPrivileges = hasAdminPrivileges
     }
 }
 
@@ -95,13 +95,27 @@ public struct ChatRetentionPolicy {
     }
 }
 
+struct AdminRole: DittoDecodable {
+    init(value: [String : Any?]) {
+        _id = value["_id"] as? String
+        email = value["email"] as? String
+    }
+
+    public var _id: String?
+    public var email: String?
+}
+
 @MainActor
 public class DittoChat: DittoSwiftChat, ObservableObject {
     @Published private(set) public var publicRoomsPublisher: AnyPublisher<[Room], Never>
     public var retentionPolicy: ChatRetentionPolicy = .init(days: 30)
     public var acceptLargeImages: Bool
     public var primaryColor: String?
-    public var hasAdminPrivileges: Bool
+    public var hasAdminPrivileges: Bool {
+        return !roles.isEmpty
+    }
+    private var rolesCancellable: AnyCancellable?
+    private var roles: [AdminRole] = []
 
     private var localStore: LocalDataInterface
     internal var p2pStore: DittoDataInterface
@@ -110,13 +124,21 @@ public class DittoChat: DittoSwiftChat, ObservableObject {
         let localStore: LocalService = LocalService()
         self.acceptLargeImages = config.acceptLargeImages
         self.primaryColor = config.primaryColor
-        self.hasAdminPrivileges = config.hasAdminPrivileges
         self.localStore = localStore
         self.p2pStore = DittoService(privateStore: localStore, ditto: config.ditto, usersCollection: config.usersCollection, chatRetentionPolicy: config.retentionPolicy)
         self.publicRoomsPublisher = p2pStore.publicRoomsPublisher.eraseToAnyPublisher()
         self.retentionPolicy = config.retentionPolicy
         if let userId = config.userId {
             self.setCurrentUser(withConfig: UserConfig(id: userId))
+        }
+        if let email = config.userEmail {
+            do {
+                try setupRolesSubscription(
+                    email: email
+                )
+            } catch {
+                // TODO: Handle errors
+            }
         }
     }
 
@@ -132,6 +154,24 @@ public class DittoChat: DittoSwiftChat, ObservableObject {
         }
 
         return room
+    }
+
+    func setupRolesSubscription(email: String) throws {
+        try p2pStore.ditto.sync.registerSubscription(
+            query: "SELECT * FROM `roles` WHERE email = :email",
+            arguments: ["email": email]
+        )
+
+        rolesCancellable = p2pStore.ditto.store
+            .observePublisher(
+                query: "SELECT * FROM `roles` WHERE email = :email",
+                mapTo: AdminRole.self
+            )
+            .catch { error in
+                assertionFailure("ERROR with \(#function)" + error.localizedDescription)
+                return Empty<[AdminRole], Never>()
+            }
+            .assign(to: \.roles, on: self)
     }
 
     public func allUsersPublisher() -> AnyPublisher<[ChatUser], Never> {
