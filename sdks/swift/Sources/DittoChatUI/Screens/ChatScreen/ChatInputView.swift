@@ -31,7 +31,7 @@ struct ChatInputView: View {
                     Image(systemName: arrowUpKey)
                         .padding(.all, 5)
                         .foregroundColor(Color.white)
-                        .background(.blue)
+                        .background(primaryColor)
                         .clipShape(Circle())
                 }
                 .padding(4)
