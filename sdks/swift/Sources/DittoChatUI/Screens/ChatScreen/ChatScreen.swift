@@ -92,9 +92,7 @@ public struct ChatScreen: View {
                 ChatInputView(
                     text: $viewModel.inputText,
                     onSendButtonTappedCallback: viewModel.sendMessage,
-                    primaryColor: Color(
-                        hex: dittoChat.primaryColor ?? ""
-                    ) ?? .blue
+                    dittoChat: dittoChat
                 )
                 .padding(.leading, 0)
             }
