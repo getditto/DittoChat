@@ -12,7 +12,7 @@ import DittoChatCore
 struct ChatInputView: View {
     @Binding var text: String
     var onSendButtonTappedCallback: (() -> Void)? = nil
-    var primaryColor: Color = .blue
+    let dittoChat: DittoChat
 
     var body: some View {
         HStack(alignment: .bottom) {
@@ -31,7 +31,7 @@ struct ChatInputView: View {
                     Image(systemName: arrowUpKey)
                         .padding(.all, 5)
                         .foregroundColor(Color.white)
-                        .background(primaryColor)
+                        .background(backgroundColor)
                         .clipShape(Circle())
                 }
                 .padding(4)
@@ -46,12 +46,20 @@ struct ChatInputView: View {
             Spacer(minLength: 12)
         }
     }
+
+    private var backgroundColor: Color {
+        if let colorHex = dittoChat.primaryColor, let color = Color(hex: colorHex) {
+            return color
+        }
+        return Color.blue
+    }
 }
 
 #if DEBUG
+import DittoSwift
 struct ChatInputView_Previews: PreviewProvider {
     static var previews: some View {
-        ChatInputView(text: .constant("Hello how are you this fine evening?")) { /*for previews only*/ }
+        ChatInputView(text: .constant("Hello how are you this fine evening?"), dittoChat: DittoChat(config: ChatConfig(ditto: Ditto())))
     }
 }
 #endif
