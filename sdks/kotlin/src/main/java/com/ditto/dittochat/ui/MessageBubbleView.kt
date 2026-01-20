@@ -41,7 +41,8 @@ fun MessageBubble(
     ) {
         if (!isCurrentUser) {
             Row(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                modifier = Modifier
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -74,27 +75,12 @@ fun MessageBubble(
             onClick = { showMenu = true },
             modifier = Modifier
                 .widthIn(max = 280.dp)
-                .padding(horizontal = 4.dp)
-                .shadow(
-                    elevation = 2.dp,
-                    shape = RoundedCornerShape(
-                        topStart = if (isCurrentUser) 16.dp else 4.dp,
-                        topEnd = if (isCurrentUser) 4.dp else 16.dp,
-                        bottomStart = 16.dp,
-                        bottomEnd = 16.dp
-                    )
-                ),
-            shape = RoundedCornerShape(
-                topStart = if (isCurrentUser) 16.dp else 4.dp,
-                topEnd = if (isCurrentUser) 4.dp else 16.dp,
-                bottomStart = 16.dp,
-                bottomEnd = 16.dp
-            ),
+                .padding(horizontal = 4.dp),
+            shape = RoundedCornerShape(topStart = if (!isCurrentUser) 0.dp else 4.dp, topEnd = if (isCurrentUser) 0.dp else 4.dp, bottomEnd = 4.dp, bottomStart = 4.dp),
             color = if (isCurrentUser)
                 primaryColor ?: Color(0xFF4F46E5)
             else
-                Color.White,
-            tonalElevation = 0.dp
+                Color.White
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
                 if (message.thumbnailImageToken != null) {
