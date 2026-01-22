@@ -157,12 +157,12 @@ public class DittoChat: DittoSwiftChat, ObservableObject {
     }
 
     func setupRolesSubscription(email: String) throws {
-        try p2pStore.ditto.sync.registerSubscription(
+        try p2pStore.ditto?.sync.registerSubscription(
             query: "SELECT * FROM `roles` WHERE email = :email",
             arguments: ["email": email]
         )
 
-        rolesCancellable = p2pStore.ditto.store
+        rolesCancellable = p2pStore.ditto?.store
             .observePublisher(
                 query: "SELECT * FROM `roles` WHERE email = :email",
                 arguments: ["email": email],
@@ -286,7 +286,7 @@ extension DittoChat {
     internal func attachmentPublisher(
         for token: DittoAttachmentToken,
         in collectionId: String
-    ) -> DittoSwift.DittoStore.FetchAttachmentPublisher {
+    ) -> DittoSwift.DittoStore.FetchAttachmentPublisher? {
         p2pStore.attachmentPublisher(for: token, in: collectionId)
     }
 
@@ -299,8 +299,8 @@ extension DittoChat {
         token: [String : Any],
         deliverOn queue: DispatchQueue = .main,
         onFetchEvent: @escaping (DittoAttachmentFetchEvent) -> Void
-    ) throws -> DittoAttachmentFetcher {
-        try p2pStore.ditto.store.fetchAttachment(token: token, deliverOn: queue, onFetchEvent: onFetchEvent)
+    ) throws -> DittoAttachmentFetcher? {
+        try p2pStore.ditto?.store.fetchAttachment(token: token, deliverOn: queue, onFetchEvent: onFetchEvent)
     }
 }
 
