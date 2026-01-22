@@ -59,7 +59,7 @@ public struct UserConfig {
 }
 
 public struct ChatConfig {
-    public var ditto: Ditto
+    public weak var ditto: Ditto?
     public var retentionPolicy: ChatRetentionPolicy
     public var usersCollection: String
     public var userId: String?
