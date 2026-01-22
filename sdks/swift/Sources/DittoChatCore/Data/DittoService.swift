@@ -22,7 +22,7 @@ class DittoService: DittoDataInterface {
     private var privateRoomMessagesSubscriptions = [String: DittoSyncSubscription]()
     private var publicRoomMessagesSubscriptions = [String: DittoSyncSubscription]()
 
-    var ditto: Ditto?
+    weak var ditto: Ditto?
     private let usersKey: String
     private var privateStore: LocalDataInterface
     private var chatRetentionPolicy: ChatRetentionPolicy
