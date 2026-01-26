@@ -2,9 +2,14 @@ package com.ditto.dittochat
 
 import android.content.Context
 import com.google.gson.Gson
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.Flow
 import java.util.Date
 import java.util.UUID
+import javax.inject.Inject
 import javax.inject.Singleton
 
 interface DittoChat {
@@ -12,20 +17,31 @@ interface DittoChat {
     suspend fun createMessage(config: MessageConfig)
     fun setCurrentUser(config: UserConfig)
 
-    val publicRoomsFlow: kotlinx.coroutines.flow.Flow<List<Room>>
-    val dittoChatConfig: ChatConfig
+    val publicRoomsFlow: Flow<List<Room>>
+    val hasAdminPrivileges: Boolean
+    val retentionPolicy: ChatRetentionPolicy
+    val acceptLargeImages: Boolean
+    val primaryColor: String?
 
     val localStore: LocalData
     val p2pStore: DittoData
     suspend fun readRoomById(id: String): Room
-    fun allUsersFlow(): kotlinx.coroutines.flow.Flow<List<ChatUser>>
+    fun allUsersFlow(): Flow<List<ChatUser>>
 
     suspend fun updateRoom(room: Room)
     fun logout()
 }
 
-class DittoChatImpl(
-    override val dittoChatConfig: ChatConfig,
+@Singleton
+class DittoChatImpl private constructor(
+    private val ditto: live.ditto.Ditto?,
+    override val retentionPolicy: ChatRetentionPolicy,
+    private val usersCollection: String,
+    private val userId: String?,
+    private val userEmail: String?,
+    override val hasAdminPrivileges: Boolean,
+    override val acceptLargeImages: Boolean,
+    override val primaryColor: String?,
     override val localStore: LocalData,
     override val p2pStore: DittoData
 ) : DittoChat {
@@ -38,6 +54,13 @@ class DittoChatImpl(
         set(value) {
             localStore.currentUserId = value
         }
+
+    init {
+        userId?.let { setCurrentUser(UserConfig(it)) }
+        userEmail?.let {
+            // Setup roles subscription if needed
+        }
+    }
 
     override suspend fun createRoom(config: RoomConfig): String {
         val room = p2pStore.createRoom(config.id, config.name, config.isGenerated)
@@ -143,4 +166,91 @@ class DittoChatImpl(
 
     val peerKeyString: String
         get() = p2pStore.peerKeyString
+
+    // Builder Pattern
+    class Builder @Inject constructor(
+        private val localStore: LocalData
+    ) {
+        private var ditto: live.ditto.Ditto? = null
+        var retentionPolicy: ChatRetentionPolicy = ChatRetentionPolicy(days = 30)
+            private set
+        var usersCollection: String = "users"
+            private set
+        var userId: String? = null
+            private set
+        var hasAdminPrivileges: Boolean = false
+            private set
+        var userEmail: String? = null
+            private set
+        var acceptLargeImages: Boolean = true
+            private set
+        var primaryColor: String? = null
+            private set
+
+        fun setDitto(ditto: live.ditto.Ditto) = apply {
+            this.ditto = ditto
+        }
+
+        fun setRetentionPolicy(policy: ChatRetentionPolicy) = apply {
+            this.retentionPolicy = policy
+        }
+
+        fun setRetentionDays(days: Int) = apply {
+            this.retentionPolicy = ChatRetentionPolicy(days = days)
+        }
+
+        fun setUsersCollection(collection: String) = apply {
+            this.usersCollection = collection
+        }
+
+        fun setUserId(id: String?) = apply {
+            this.userId = id
+        }
+
+        fun setUserEmail(email: String?) = apply {
+            this.userEmail = email
+        }
+
+        fun setHasAdminPrivileges(hasAdminPrivileges: Boolean) = apply {
+            this.hasAdminPrivileges = hasAdminPrivileges
+        }
+
+        fun setAcceptLargeImages(accept: Boolean) = apply {
+            this.acceptLargeImages = accept
+        }
+
+        fun setPrimaryColor(color: String?) = apply {
+            this.primaryColor = color
+        }
+
+        fun build(): DittoChatImpl {
+            requireNotNull(ditto) { "Ditto instance is required" }
+
+            val dittoStore = DittoDataImpl(
+                privateStore = localStore,
+                ditto = ditto!!,
+                usersCollection = usersCollection,
+                chatRetentionPolicy = retentionPolicy
+            )
+
+            return DittoChatImpl(
+                ditto = ditto,
+                retentionPolicy = retentionPolicy,
+                usersCollection = usersCollection,
+                userId = userId,
+                userEmail = userEmail,
+                hasAdminPrivileges = hasAdminPrivileges,
+                acceptLargeImages = acceptLargeImages,
+                primaryColor = primaryColor,
+                localStore = localStore,
+                p2pStore = dittoStore
+            )
+        }
+    }
+
+    companion object {
+        fun builder(localStore: LocalData): Builder {
+            return Builder(localStore)
+        }
+    }
 }

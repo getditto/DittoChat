@@ -12,17 +12,14 @@ import UIKit
 
 @MainActor
 public protocol DittoSwiftChat {
-    // Create
     func createRoom(withConfig: RoomConfig) async throws -> String
     func createMessage(withConfig: MessageConfig) async throws
     func setCurrentUser(withConfig: UserConfig)
 
-    // Read
     var publicRoomsPublisher: AnyPublisher<[Room], Never> { get }
     func readRoomById(id: String) async throws -> Room
     func allUsersPublisher() -> AnyPublisher<[ChatUser], Never>
 
-    // Update
     func updateRoom(room: Room) async throws
 
     func logout()
@@ -58,38 +55,10 @@ public struct UserConfig {
     }
 }
 
-public struct ChatConfig {
-    public weak var ditto: Ditto?
-    public var retentionPolicy: ChatRetentionPolicy
-    public var usersCollection: String
-    public var userId: String?
-    public var userEmail: String?
-    public var acceptLargeImages: Bool
-    public var primaryColor: String?
-
-    public init(
-        ditto: Ditto,
-        retentionPolicy: ChatRetentionPolicy = .init(days: 30),
-        usersCollection: String = "users", 
-        userId: String? = nil,
-        userEmail: String? = nil,
-        acceptLargeImages: Bool = true,
-        primaryColor: String? = nil
-    ) {
-        self.ditto = ditto
-        self.retentionPolicy = retentionPolicy
-        self.usersCollection = usersCollection
-        self.userId = userId
-        self.userEmail = userEmail
-        self.acceptLargeImages = acceptLargeImages
-        self.primaryColor = primaryColor
-    }
-}
-
 // TODO: Hook this up to actually work
 public struct ChatRetentionPolicy {
     public var days: Int
-    
+
     public init(days: Int) {
         self.days = days
     }
@@ -118,31 +87,36 @@ public class DittoChat: DittoSwiftChat, ObservableObject {
     private var roles: [AdminRole] = []
 
     private var localStore: LocalDataInterface
-    internal var p2pStore: DittoDataInterface
+     var p2pStore: DittoDataInterface
 
-    public init(config: ChatConfig) {
+    init(
+        ditto: Ditto?,
+        retentionPolicy: ChatRetentionPolicy,
+        usersCollection: String,
+        userId: String?,
+        userEmail: String?,
+        acceptLargeImages: Bool,
+        primaryColor: String?
+    ) {
         let localStore: LocalService = LocalService()
-        self.acceptLargeImages = config.acceptLargeImages
-        self.primaryColor = config.primaryColor
+        self.acceptLargeImages = acceptLargeImages
+        self.primaryColor = primaryColor
         self.localStore = localStore
-        self.p2pStore = DittoService(privateStore: localStore, ditto: config.ditto, usersCollection: config.usersCollection, chatRetentionPolicy: config.retentionPolicy)
+        self.p2pStore = DittoService(privateStore: localStore, ditto: ditto, usersCollection: usersCollection, chatRetentionPolicy: retentionPolicy)
         self.publicRoomsPublisher = p2pStore.publicRoomsPublisher.eraseToAnyPublisher()
-        self.retentionPolicy = config.retentionPolicy
-        if let userId = config.userId {
+        self.retentionPolicy = retentionPolicy
+        if let userId = userId {
             self.setCurrentUser(withConfig: UserConfig(id: userId))
         }
-        if let email = config.userEmail {
+        if let email = userEmail {
             do {
-                try setupRolesSubscription(
-                    email: email
-                )
+                try setupRolesSubscription(email: email)
             } catch {
                 // TODO: Handle errors
             }
         }
     }
 
-    // MARK: Carry over from previous public things
     public var currentUserId: String? {
         get { localStore.currentUserId }
         set { localStore.currentUserId = newValue }
@@ -179,7 +153,6 @@ public class DittoChat: DittoSwiftChat, ObservableObject {
         p2pStore.allUsersPublisher()
     }
 
-    // MARK: Create
     public func createRoom(withConfig config: RoomConfig) async throws -> String {
         guard let id = await self.createRoom(id: config.id, name: config.name, isGenerated: config.isGenerated) else {
             throw AppError.unknown("room not found")
@@ -207,7 +180,6 @@ public class DittoChat: DittoSwiftChat, ObservableObject {
         self.readMessagesForUser(user: user)
     }
 
-    // MARK: Update
     public func updateRoom(room: Room) throws {
         self.updateRoom(room)
     }
@@ -219,14 +191,106 @@ public class DittoChat: DittoSwiftChat, ObservableObject {
     }
 }
 
-extension DittoChat {
-    // MARK: Ditto Public Rooms
+public class DittoChatBuilder {
+    private var ditto: Ditto?
+    private var retentionPolicy: ChatRetentionPolicy = .init(days: 30)
+    private var usersCollection: String = "users"
+    private var userId: String?
+    private var userEmail: String?
+    private var acceptLargeImages: Bool = true
+    private var primaryColor: String?
 
-    internal func room(for room: Room) async -> Room? {
+    public init() {}
+
+    @discardableResult
+    public func setDitto(_ ditto: Ditto) -> DittoChatBuilder {
+        self.ditto = ditto
+        return self
+    }
+
+    @discardableResult
+    public func setRetentionPolicy(_ policy: ChatRetentionPolicy) -> DittoChatBuilder {
+        self.retentionPolicy = policy
+        return self
+    }
+
+    @discardableResult
+    public func setRetentionDays(_ days: Int) -> DittoChatBuilder {
+        self.retentionPolicy = ChatRetentionPolicy(days: days)
+        return self
+    }
+
+    @discardableResult
+    public func setUsersCollection(_ collection: String) -> DittoChatBuilder {
+        self.usersCollection = collection
+        return self
+    }
+
+    @discardableResult
+    public func setUserId(_ id: String?) -> DittoChatBuilder {
+        self.userId = id
+        return self
+    }
+
+    @discardableResult
+    public func setUserEmail(_ email: String?) -> DittoChatBuilder {
+        self.userEmail = email
+        return self
+    }
+
+    @discardableResult
+    public func setAcceptLargeImages(_ accept: Bool) -> DittoChatBuilder {
+        self.acceptLargeImages = accept
+        return self
+    }
+
+    @discardableResult
+    public func setPrimaryColor(_ color: String?) -> DittoChatBuilder {
+        self.primaryColor = color
+        return self
+    }
+
+    @MainActor public func build() throws -> DittoChat {
+        guard let ditto = ditto else {
+            throw BuilderError.missingRequiredField("ditto")
+        }
+
+        return DittoChat(
+            ditto: ditto,
+            retentionPolicy: retentionPolicy,
+            usersCollection: usersCollection,
+            userId: userId,
+            userEmail: userEmail,
+            acceptLargeImages: acceptLargeImages,
+            primaryColor: primaryColor
+        )
+    }
+
+    public enum BuilderError: Error {
+        case missingRequiredField(String)
+
+        var localizedDescription: String {
+            switch self {
+            case .missingRequiredField(let field):
+                return "Missing required field: \(field)"
+            }
+        }
+    }
+}
+
+extension DittoChat {
+    public static func builder() -> DittoChatBuilder {
+        return DittoChatBuilder()
+    }
+}
+
+extension DittoChat {
+
+     func room(for room: Room) async -> Room? {
         await p2pStore.room(for: room)
     }
 
-    internal func findPublicRoomById(id: String) async -> Room? {
+     func findPublicRoomById(id: String) async -> Room? {
         await p2pStore.findPublicRoomById(id: id)
     }
 
@@ -238,26 +302,25 @@ extension DittoChat {
         p2pStore.archiveRoom(room)
     }
 
-    internal func unarchiveRoom(_ room: Room) {
+     func unarchiveRoom(_ room: Room) {
         p2pStore.unarchiveRoom(room)
     }
 
-    internal func archivedPublicRoomsPublisher() -> AnyPublisher<[Room], Never> {
+     func archivedPublicRoomsPublisher() -> AnyPublisher<[Room], Never> {
         localStore.archivedPublicRoomsPublisher
     }
 
-    internal func readMessagesForRoom(room: Room) {
+     func readMessagesForRoom(room: Room) {
         // TODO: Implement
     }
 
-    internal func readMessagesForUser(user: ChatUser) {
+     func readMessagesForUser(user: ChatUser) {
         // TODO: Implement
     }
 }
 
 @MainActor
 extension DittoChat {
-    // MARK: Messages
 
     public func createMessage(for room: Room, text: String) {
         p2pStore.createMessage(for: room, text: text)
@@ -283,14 +346,14 @@ extension DittoChat {
         p2pStore.messagesPublisher(for: room, retentionDays: retentionDays)
     }
 
-    internal func attachmentPublisher(
+    func attachmentPublisher(
         for token: DittoAttachmentToken,
         in collectionId: String
     ) -> DittoSwift.DittoStore.FetchAttachmentPublisher? {
         p2pStore.attachmentPublisher(for: token, in: collectionId)
     }
 
-    internal func createUpdateMessage(document: [String: Any?]) {
+    func createUpdateMessage(document: [String: Any?]) {
         p2pStore.createUpdateMessage(document: document)
     }
 
@@ -305,9 +368,8 @@ extension DittoChat {
 }
 
 extension DittoChat {
-    // MARK: Users
 
-    internal var currentUserIdPublisher: AnyPublisher<String?, Never> {
+    var currentUserIdPublisher: AnyPublisher<String?, Never> {
         localStore.currentUserIdPublisher
     }
 
@@ -315,7 +377,7 @@ extension DittoChat {
         p2pStore.currentUserPublisher()
     }
 
-    internal func addUser(_ usr: ChatUser) {
+     func addUser(_ usr: ChatUser) {
         p2pStore.addUser(usr)
     }
 
@@ -327,11 +389,11 @@ extension DittoChat {
         }
     }
 
-    internal func updateRoom(_ room: Room) {
+     func updateRoom(_ room: Room) {
         // TODO: Implement
     }
 
-    internal func saveCurrentUser(name: String) {
+     func saveCurrentUser(name: String) {
         if currentUserId == nil {
             let userId = UUID().uuidString
             currentUserId = userId
@@ -344,7 +406,7 @@ extension DittoChat {
     }
 
     @available(*, deprecated, renamed: "saveCurrentUser(name:)", message: "First and last name are no needed. Use name instead")
-    internal func saveCurrentUser(firstName: String, lastName: String) {
+     func saveCurrentUser(firstName: String, lastName: String) {
         if currentUserId == nil {
             let userId = UUID().uuidString
             currentUserId = userId
@@ -356,24 +418,24 @@ extension DittoChat {
         p2pStore.addUser(user)
     }
 
-    internal func setCurrentUser(id: String) {
+     func setCurrentUser(id: String) {
         currentUserId = id
     }
 }
 
 extension DittoChat {
-    internal var sdkVersion: String {
+     var sdkVersion: String {
         p2pStore.sdkVersion
     }
 
-    internal var appInfo: String {
+     var appInfo: String {
         let name = Bundle.main.appName
         let version = Bundle.main.appVersion
         let build = Bundle.main.appBuild
         return "\(name) \(version) build \(build)"
     }
 
-    internal var peerKeyString: String {
+     var peerKeyString: String {
         p2pStore.peerKeyString
     }
 }

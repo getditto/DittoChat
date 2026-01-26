@@ -9,7 +9,7 @@ import live.ditto.*
 import java.util.*
 import javax.inject.Inject
 
-class DittoDataImpl(
+internal class DittoDataImpl(
     private val privateStore: LocalData,
     override val ditto: Ditto,
     private val gson: Gson = Gson(),

@@ -54,12 +54,3 @@ struct ChatInputView: View {
         return Color.blue
     }
 }
-
-#if DEBUG
-import DittoSwift
-struct ChatInputView_Previews: PreviewProvider {
-    static var previews: some View {
-        ChatInputView(text: .constant("Hello how are you this fine evening?"), dittoChat: DittoChat(config: ChatConfig(ditto: Ditto())))
-    }
-}
-#endif
