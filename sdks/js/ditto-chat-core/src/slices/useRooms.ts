@@ -49,6 +49,13 @@ function handleRoomsObserverResult(
   observerResult: QueryResult<Room>,
 ) {
   if (observerResult.items.length === 0) {
+    _set((state: ChatStore) => {
+      return produce(state, (draft) => {
+        draft.roomsLoading = false
+        draft.messagesLoading = false
+        return draft
+      })
+    })
     return
   }
   const rooms = observerResult.items.map((doc) => {
