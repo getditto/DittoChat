@@ -11,21 +11,12 @@ import { toast, Toaster } from 'sonner'
 
 import ChatList from './components/ChatList'
 import ChatListSkeleton from './components/ChatListSkeleton'
+import { ChatThemeProvider } from './components/ChatThemeProvider'
 import ChatView from './components/ChatView'
 import { Icons } from './components/Icons'
 import NewMessageModal from './components/NewMessageModal'
 import NewRoomModal from './components/NewRoomModal'
 import type { Chat, Theme } from './types'
-
-const getSystemTheme = () => {
-  if (
-    window.matchMedia &&
-    window.matchMedia('(prefers-color-scheme: dark)').matches
-  ) {
-    return 'dark'
-  }
-  return 'light'
-}
 
 export default function DittoChatUI({
   ditto,
@@ -54,13 +45,6 @@ export default function DittoChatUI({
   const createRoom = useDittoChatStore((state) => state.createRoom)
   const rooms: Room[] = useDittoChatStore((state) => state.rooms)
   const users: ChatUser[] = useDittoChatStore((state) => state.allUsers)
-  const [themeName, setThemeName] = useState(
-    typeof theme === 'string'
-      ? theme === 'auto'
-        ? getSystemTheme()
-        : theme
-      : theme.variant || 'light',
-  )
   const currentUser: ChatUser | null = useDittoChatStore(
     (state) => state.currentUser,
   )
@@ -157,90 +141,6 @@ export default function DittoChatUI({
     setChats([...chatsWithMessages, ...chatsWithoutMessages])
   }, [rooms, latestMessages, users])
 
-  // This effect sets up the listener for OS theme changes.
-  useEffect(() => {
-    const mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)')
-
-    const handleChange = (e: MediaQueryListEvent) => {
-      const newTheme = e.matches ? 'dark' : 'light'
-      setThemeName(newTheme)
-    }
-
-    if (theme === 'auto') {
-      mediaQueryList.addEventListener('change', handleChange)
-    } else {
-      mediaQueryList.removeEventListener('change', handleChange)
-      if (typeof theme === 'object') {
-        setThemeName(theme.variant || 'light')
-      } else {
-        setThemeName(theme)
-      }
-    }
-    // This is the cleanup function that will be called when the component unmounts
-    return () => {
-      mediaQueryList.removeEventListener('change', handleChange)
-    }
-  }, [theme])
-
-  const themeStyles = useMemo(() => {
-    if (typeof theme !== 'object') {
-      return {}
-    }
-
-    const styles: React.CSSProperties = {}
-    const mapping: Record<string, string> = {
-      primaryColor: '--dc-primary-color',
-      primaryColorHover: '--dc-primary-color-hover',
-      primaryColorFocus: '--dc-primary-color-focus',
-      primaryColorLight: '--dc-primary-color-light',
-      primaryColorLighter: '--dc-primary-color-lighter',
-      primaryColorLightBorder: '--dc-primary-color-light-border',
-      primaryColorDarkText: '--dc-primary-color-dark-text',
-      textOnPrimary: '--dc-text-on-primary',
-      mentionText: '--dc-mention-text',
-      mentionTextOnPrimary: '--dc-mention-text-on-primary',
-      surfaceColor: '--dc-surface-color',
-      surfaceColorLight: '--dc-surface-color-light',
-      secondaryBg: '--dc-secondary-bg',
-      secondaryBgHover: '--dc-secondary-bg-hover',
-      disabledBg: '--dc-disabled-bg',
-      textColor: '--dc-text-color',
-      textColorMedium: '--dc-text-color-medium',
-      textColorLight: '--dc-text-color-light',
-      textColorLighter: '--dc-text-color-lighter',
-      textColorLightest: '--dc-text-color-lightest',
-      textColorFaint: '--dc-text-color-faint',
-      textColorDisabled: '--dc-text-color-disabled',
-      borderColor: '--dc-border-color',
-      ringColor: '--dc-ring-color',
-      editBg: '--dc-edit-bg',
-      editText: '--dc-edit-text',
-      infoIconColor: '--dc-info-icon-color',
-      notificationBadgeBg: '--dc-notification-badge-bg',
-      activeStatusBg: '--dc-active-status-bg',
-      dangerText: '--dc-danger-text',
-      dangerBg: '--dc-danger-bg',
-      successBg: '--dc-success-bg',
-      successText: '--dc-success-text',
-    }
-
-    Object.keys(theme).forEach((key) => {
-      if (key in mapping) {
-        // @ts-expect-error - key is a valid key of Theme
-        styles[mapping[key]] = theme[key as keyof Theme]
-      }
-    })
-
-    return styles
-  }, [theme])
-
-  useEffect(() => {
-    localStorage.setItem('ditto-web-chat-theme', themeName)
-    return () => {
-      localStorage.removeItem('ditto-web-chat-theme')
-    }
-  }, [themeName])
-
   const handleSelectChat = (chat: Chat) => {
     setSelectedChat(chat)
     setActiveScreen('chat')
@@ -304,10 +204,7 @@ export default function DittoChatUI({
   }, [selectedChat])
 
   return (
-    <div
-      className={`dcui-root ${themeName}`}
-      style={{ ...themeStyles, height: '100%' }}
-    >
+    <ChatThemeProvider theme={theme} style={{ height: '100%' }}>
       <Toaster
         position="top-right"
         richColors
@@ -319,7 +216,7 @@ export default function DittoChatUI({
       <div className="flex h-full bg-(--dc-surface-color) font-sans text-(--dc-text-color) overflow-hidden">
         {/* Chat List */}
         <aside
-          className={`w-full md:w-[420px] md:flex-shrink-0 border-r border-(--dc-border-color) flex flex-col h-full ${
+          className={`w-full md:w-105 md:shrink-0 border-r border-(--dc-border-color) flex flex-col h-full ${
             activeScreen !== 'list' && 'hidden'
           } md:flex`}
         >
@@ -368,6 +265,6 @@ export default function DittoChatUI({
             )}
         </main>
       </div>
-    </div>
+    </ChatThemeProvider>
   )
 }
