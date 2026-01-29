@@ -1,4 +1,4 @@
-name: Publish Android Library to Maven Central
+name: Publish to Maven Central
 
 on:
   release:
@@ -12,10 +12,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -34,33 +32,24 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Publishing version: $VERSION"
 
-      - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v6
-        with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.GPG_PASSWORD }}
-
       - name: Make gradlew executable
         run: chmod +x ./sdks/kotlin/gradlew
 
-      - name: Build library
-        working-directory: ./sdks/kotlin
-        run: ./gradlew clean build
-
       - name: Publish to Maven Central
         working-directory: ./sdks/kotlin
-        run: ./gradlew publishToMavenCentral --no-configuration-cache
+        run: ./gradlew publishAndReleaseToMavenCentral --no-configuration-cache
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_PRIVATE_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_PASSWORD }}
+          VERSION: ${{ steps.version.outputs.version }}
 
       - name: Create deployment summary
         run: |
-          echo "## 🚀 Android Library Published" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚀 Published to Maven Central" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Group ID:** com.ditto" >> $GITHUB_STEP_SUMMARY
+          echo "**Artifact:** com.ditto:dittochat:${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "View at: https://central.sonatype.com/namespace/com.ditto" >> $GITHUB_STEP_SUMMARY
+          echo "View at: https://central.sonatype.com/artifact/com.ditto/dittochat/${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
