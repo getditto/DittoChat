@@ -49,7 +49,7 @@ jobs:
 
       - name: Publish to Maven Central
         working-directory: ./sdks/kotlin
-        run: ./gradlew publishAllPublicationsToMavenCentral --no-configuration-cache
+        run: ./gradlew publishToMavenCentral --no-configuration-cache
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_PASSWORD }}
