@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.compose.compiler)
     id("maven-publish")
+    id("signing")
 }
 
 android {
@@ -16,6 +17,9 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+        aarMetadata {
+            minCompileSdk = 24
+        }
     }
 
     buildTypes {
@@ -38,7 +42,12 @@ android {
         jvmToolchain(21)
     }
     publishing {
-        singleVariant("release") {}
+        publishing {
+            singleVariant("release") {
+                withSourcesJar()
+                withJavadocJar()
+            }
+        }
     }
 }
 
@@ -82,26 +91,24 @@ dependencies {
 
 publishing {
     publications {
-        register<MavenPublication>("release") {
+        create<MavenPublication>("release") {
             groupId = "com.ditto"
             artifactId = "dittochat"
-            version = "1.0.0"
+            version = System.getenv("VERSION") ?: "1.0.0"
 
             afterEvaluate {
                 from(components["release"])
             }
 
             pom {
-                name.set("DittoChat")
-                description.set("A Kotlin Android SDK for Ditto Chat")
+                name.set("Ditto Chat Android")
+                description.set("A Ditto Chat Library for Android")
                 url.set("https://github.com/getditto/DittoChat")
 
-                developers {
-                    developer {
-                        id.set("bmalumphy")
-                        name.set("Bryan Malumphy")
-                        email.set("bryan.malumphy@ditto.com")
-                    }
+                scm {
+                    connection.set("scm:git:git://github.com/getditto/DittoChat.git")
+                    developerConnection.set("scm:git:ssh://github.com:getditto/DittoChat.git")
+                    url.set("https://github.com/getditto/DittoChat/tree/main")
                 }
             }
         }
@@ -109,8 +116,26 @@ publishing {
 
     repositories {
         maven {
-            name = "DittoChat"
-            url = uri("${project.buildDir}/dittoChat")
+            name = "MavenCentral"
+            url = uri("https://central.sonatype.com/api/v1/publisher")
+            credentials {
+                username = findProperty("mavenCentralUsername")?.toString()
+                    ?: System.getenv("ORG_GRADLE_PROJECT_mavenCentralUsername")
+                password = findProperty("mavenCentralPassword")?.toString()
+                    ?: System.getenv("ORG_GRADLE_PROJECT_mavenCentralPassword")
+            }
         }
+    }
+}
+
+signing {
+    val signingKey = findProperty("signingInMemoryKey")?.toString()
+        ?: System.getenv("ORG_GRADLE_PROJECT_signingInMemoryKey")
+    val signingPassword = findProperty("signingInMemoryKeyPassword")?.toString()
+        ?: System.getenv("ORG_GRADLE_PROJECT_signingInMemoryKeyPassword")
+
+    if (signingKey != null && signingPassword != null) {
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign(publishing.publications)
     }
 }
