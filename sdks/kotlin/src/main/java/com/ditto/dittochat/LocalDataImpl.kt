@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import androidx.core.content.edit
 
-class LocalDataImpl(
+internal class LocalDataImpl(
     private val context: Context,
     private val gson: Gson
 ) : LocalData {

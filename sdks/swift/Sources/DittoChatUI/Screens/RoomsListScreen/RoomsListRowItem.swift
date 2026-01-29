@@ -94,21 +94,3 @@ class RoomsListRowItemViewModel: ObservableObject {
         return currentUser.mentions[room.id]?.count ?? 0
     }
 }
-
-#if DEBUG
-import DittoSwift
-struct RoomsListRowItem_Previews: PreviewProvider {
-    static var previews: some View {
-        RoomsListRowItem(
-            room: Room(
-                id: "id123",
-                name: "My Room",
-                messagesId: "msgId123",
-                userId: "some user"
-            ),
-            dittoChat: DittoChat(config: ChatConfig(ditto: Ditto(), usersCollection: "users")),
-            retentionDays: 365
-        )
-    }
-}
-#endif

@@ -72,7 +72,7 @@ internal fun RoomsListScreen(
                         Surface(
                             modifier = Modifier.size(48.dp),
                             shape = CircleShape,
-                            color = viewModel.dittoChat.dittoChatConfig.primaryColor ?: Color(0xFF4F46E5),
+                            color = Color(viewModel.dittoChat.primaryColor?.toInt() ?: 0xFF4F46E5.toInt()),
                             onClick = { viewModel.showCreateRoomDialog() }
                         ) {
                             Box(contentAlignment = Alignment.Center) {

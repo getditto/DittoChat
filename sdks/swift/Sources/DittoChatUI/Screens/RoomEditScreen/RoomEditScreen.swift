@@ -62,14 +62,3 @@ struct RoomEditScreen: View {
         }
     }
 }
-
-#if DEBUG
-import DittoSwift
-struct RoomEditScreen_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            RoomEditScreen(dittoChat: DittoChat(config: ChatConfig(ditto: Ditto(), usersCollection: "users")))
-        }
-    }
-}
-#endif

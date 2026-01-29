@@ -25,8 +25,12 @@ public protocol DittoChatViews {
 public class DittoChatUI: DittoChatViews {
     public var dittoChat: DittoChat
 
-    public init(chatConfig: ChatConfig) {
-        dittoChat = DittoChat(config: chatConfig)
+    public init() {
+        do {
+            dittoChat = try DittoChat.builder().build()
+        } catch {
+            fatalError(error.localizedDescription)
+        }
     }
 
     public func roomView(room: Room, retentionDays: Int? = nil) throws -> ChatScreen {

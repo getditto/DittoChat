@@ -177,15 +177,3 @@ public struct ChatScreen: View {
         proxy.scrollTo(viewModel.messagesWithUsers.last?.id)
     }
 }
-
-#if DEBUG
-import DittoSwift
-struct ChatScreen_Previews: PreviewProvider {
-    static var previews: some View {
-        ChatScreen(
-            room: Room(id: "abc", name: "My Room", messagesId: "def", userId: "test"),
-            dittoChat: DittoChat(config: ChatConfig(ditto: Ditto(), usersCollection: "users")), retentionDays: 365
-        )
-    }
-}
-#endif

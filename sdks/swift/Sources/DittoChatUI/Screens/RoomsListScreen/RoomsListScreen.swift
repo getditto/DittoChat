@@ -84,14 +84,3 @@ public struct RoomsListScreen: View {
         }
     }
 }
-
-#if DEBUG
-import DittoSwift
-struct RoomsListScreen_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationView {
-            RoomsListScreen(dittoChat: DittoChat(config: ChatConfig(ditto: Ditto(), usersCollection: "users")))
-        }
-    }
-}
-#endif

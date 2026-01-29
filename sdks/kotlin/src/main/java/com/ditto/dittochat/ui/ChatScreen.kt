@@ -134,7 +134,7 @@ fun ChatScreen(
                         onTextChange = viewModel::updateInputText,
                         onSave = viewModel::saveEditedMessage,
                         onCancel = viewModel::cancelEdit,
-                        primaryColor = viewModel.dittoChat.dittoChatConfig.primaryColor ?: Color(0xFF4F46E5)
+                        primaryColor = Color(viewModel.dittoChat.primaryColor?.toInt() ?: 0xFF4F46E5.toInt())
                     )
                 } else {
                     ChatInputBar(
@@ -142,7 +142,7 @@ fun ChatScreen(
                         onTextChange = viewModel::updateInputText,
                         onSendClick = viewModel::sendMessage,
                         onCameraClick = { imagePicker.launch("image/*") },
-                        primaryColor = viewModel.dittoChat.dittoChatConfig.primaryColor ?: Color(0xFF4F46E5)
+                        primaryColor = Color(viewModel.dittoChat.primaryColor?.toInt() ?: 0xFF4F46E5.toInt())
                     )
                 }
             }
@@ -170,8 +170,8 @@ fun ChatScreen(
                             onEditClick = { viewModel.startEditMessage(it) },
                             onDeleteClick = { viewModel.deleteMessage(it) },
                             onImageClick = { viewModel.showAttachment(it) },
-                            hasAdminPrivileges = viewModel.dittoChat.dittoChatConfig.hasAdminPrivileges,
-                            primaryColor = viewModel.dittoChat.dittoChatConfig.primaryColor
+                            hasAdminPrivileges = viewModel.dittoChat.hasAdminPrivileges,
+                            primaryColor = Color(viewModel.dittoChat.primaryColor?.toInt() ?: 0xFF4F46E5.toInt())
                         )
                     }
                 }
