@@ -1,5 +1,13 @@
 # @dittolive/ditto-chat-ui
 
+## 0.1.3
+
+### Patch Changes
+
+- 8f48e20: Fixed loading state logic and refactored theming into reusable ChatThemeProvider component. Includes code cleanup, removal of unused code, and documentation improvements.
+- Updated dependencies [8f48e20]
+  - @dittolive/ditto-chat-core@0.1.3
+
 ## 0.1.2
 
 ### Patch Changes

@@ -3,6 +3,11 @@ name: OWASP Dependency Check
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'sdks/js/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/owasp-check.yml'
 
 permissions:
   contents: read
