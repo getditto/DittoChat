@@ -117,7 +117,7 @@ publishing {
     repositories {
         maven {
             name = "central"
-            url = uri("https://central.sonatype.com/api/v1/publisher/upload")
+            url = uri("https://central.sonatype.com/api/v1/publisher/deployments")
             credentials {
                 username = findProperty("mavenCentralUsername")?.toString()
                     ?: System.getenv("ORG_GRADLE_PROJECT_mavenCentralUsername")
