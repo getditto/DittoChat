@@ -80,7 +80,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
 }
 
-val publishVersion = System.getenv("VERSION") ?: "1.0.0"
+val publishVersion = "1.0.0"
 
 mavenPublishing {
     // Configure which Sonatype instance to use
