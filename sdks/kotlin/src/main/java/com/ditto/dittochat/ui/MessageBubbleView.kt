@@ -3,13 +3,16 @@ package com.ditto.dittochat.ui
 import android.graphics.Bitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ditto.dittochat.DateUtils
 import com.ditto.dittochat.Message
@@ -37,25 +40,47 @@ fun MessageBubble(
         horizontalAlignment = if (isCurrentUser) Alignment.End else Alignment.Start
     ) {
         if (!isCurrentUser) {
-            Text(
-                text = user.name,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Surface(
+                    modifier = Modifier.size(24.dp),
+                    shape = CircleShape,
+                    color = Color(0xFFE5E7EB)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = user.name.firstOrNull()?.uppercase() ?: "?",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF6B7280)
+                            )
+                        )
+                    }
+                }
+                Text(
+                    text = user.name,
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF4B5563)
+                    )
+                )
+            }
         }
 
-        Card(
+        Surface(
             onClick = { showMenu = true },
             modifier = Modifier
                 .widthIn(max = 280.dp)
-                .padding(horizontal = 8.dp),
-            shape = MessageBubbleShape(isCurrentUser),
-            colors = CardDefaults.cardColors(
-                containerColor = if (isCurrentUser)
-                    primaryColor ?: Color.Cyan
-                else
-                    MaterialTheme.colorScheme.surfaceVariant
-            )
+                .padding(horizontal = 4.dp),
+            shape = RoundedCornerShape(topStart = if (!isCurrentUser) 0.dp else 4.dp, topEnd = if (isCurrentUser) 0.dp else 4.dp, bottomEnd = 4.dp, bottomStart = 4.dp),
+            color = if (isCurrentUser)
+                primaryColor ?: Color(0xFF4F46E5)
+            else
+                Color.White
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
                 if (message.thumbnailImageToken != null) {
@@ -63,12 +88,16 @@ fun MessageBubble(
                         message = message,
                         onClick = { onImageClick(message) }
                     )
+                    if (message.text?.isNotEmpty() == true) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
 
                 if (message.text?.isNotEmpty() == true) {
                     Text(
                         text = message.text!!,
-                        color = if (isCurrentUser) Color.White else Color.Unspecified
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (isCurrentUser) Color.White else Color(0xFF1A1A2E)
                     )
                 }
             }
@@ -76,8 +105,10 @@ fun MessageBubble(
 
         Text(
             text = formatTime(DateUtils.fromISOString(message.createdOn)!!),
-            style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp)
+            style = MaterialTheme.typography.labelSmall.copy(
+                color = Color(0xFF9CA3AF)
+            ),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
         )
 
         DropdownMenu(
@@ -125,20 +156,19 @@ fun MessageImage(
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
     var progress by remember { mutableStateOf(0f) }
 
-    // In real implementation, would load image from attachment token
     Box(
         modifier = Modifier
-            .size(140.dp, 120.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(Color.Gray.copy(alpha = 0.3f))
+            .size(200.dp, 160.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFFF3F4F6))
     ) {
         if (bitmap != null) {
-            // Display image
-            // Implementation would use Coil or similar to display bitmap
+            // Display image - implementation would use Coil or similar
         } else {
             CircularProgressIndicator(
                 progress = progress,
-                modifier = Modifier.align(Alignment.Center)
+                modifier = Modifier.align(Alignment.Center),
+                color = Color(0xFF4F46E5)
             )
         }
     }
