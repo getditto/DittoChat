@@ -18,12 +18,13 @@ import {
 import { createRBACSlice, RBACSlice } from './slices/useRBAC'
 import { createRoomSlice, RoomSlice } from './slices/useRooms'
 import { RBACConfig } from './types/RBAC'
+import type { RetentionConfig } from './types/Retention'
 
 export type DittoConfParams = {
   ditto: Ditto | null
   userId: string
   userCollectionKey: string
-  retentionDays?: number
+  retention?: RetentionConfig
   rbacConfig?: RBACConfig
   notificationHandler?: (title: string, description: string) => void
 }

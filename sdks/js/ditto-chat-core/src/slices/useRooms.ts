@@ -9,11 +9,12 @@ import { v4 as uuidv4 } from 'uuid'
 import { StoreApi } from 'zustand'
 
 import ChatUser from '../types/ChatUser'
+import type { RetentionConfig } from '../types/Retention'
 import Room from '../types/Room'
 import { ChatStore, CreateSlice, DittoConfParams } from '../useChat'
 
 export interface CreateRoomOptions {
-  retentionDays?: number
+  retention?: RetentionConfig
   isGenerated?: boolean
 }
 
@@ -112,7 +113,7 @@ function handleRoomsObserverResult(
  * @param params.collectionId - Collection to store the room ("rooms" or "dm_rooms")
  * @param params.messagesId - Collection for the room's messages ("messages" or "dm_messages")
  * @param params.participants - Optional array of user IDs (required for DM rooms)
- * @param params.retentionDays - Optional custom retention period for messages
+ * @param params.retention - Optional custom retention configuration for messages
  * @param params.isGenerated - Optional flag marking room as generated (hidden from main list)
  * @param params.id - Optional custom room ID (defaults to UUID)
  * @returns The created room object, or undefined if creation fails
@@ -124,7 +125,7 @@ async function createRoomBase({
   collectionId,
   messagesId,
   participants = [],
-  retentionDays,
+  retention,
   isGenerated = false,
   id,
 }: {
@@ -134,7 +135,7 @@ async function createRoomBase({
   collectionId: 'rooms' | 'dm_rooms'
   messagesId: 'messages' | 'dm_messages'
   participants?: string[]
-  retentionDays?: number
+  retention?: RetentionConfig
   isGenerated?: boolean
   id?: string
 }) {
@@ -154,7 +155,7 @@ async function createRoomBase({
       createdBy: currentUserId,
       createdOn: new Date().toISOString(),
       participants: participants || undefined,
-      ...(retentionDays !== undefined && { retentionDays }),
+      ...(retention !== undefined && { retention }),
     }
 
     const query = `INSERT INTO \`${collectionId}\` DOCUMENTS (:newDoc) ON ID CONFLICT DO UPDATE`
@@ -201,7 +202,7 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
      *    - Delegates to createRoomBase with appropriate parameters
      *    - Sets collectionId to "rooms" for regular rooms
      *    - Sets messagesId to "messages" collection
-     *    - Passes through optional retentionDays parameter
+     *    - Passes through optional retention configuration
      *
      * This approach ensures:
      * - RBAC integration prevents unauthorized room creation
@@ -210,7 +211,7 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
      *
      * @param name - Display name for the new room
      * @param options - Optional configuration for the room
-     * @param options.retentionDays - Optional custom message retention period (overrides global default)
+     * @param options.retention - Optional custom message retention configuration (overrides global default)
      * @param options.isGenerated - Optional flag to mark room as generated (hidden from main list)
      * @returns Promise resolving to the created Room object, or undefined if permission denied
      */
@@ -228,7 +229,7 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
         name,
         collectionId: 'rooms',
         messagesId: 'messages',
-        retentionDays: options?.retentionDays,
+        retention: options?.retention,
         isGenerated: options?.isGenerated ?? false,
       })
     },

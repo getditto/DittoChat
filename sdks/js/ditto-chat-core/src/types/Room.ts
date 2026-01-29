@@ -1,3 +1,5 @@
+import type { RetentionConfig } from './Retention'
+
 interface Room {
   _id: string
   name: string
@@ -7,7 +9,7 @@ interface Room {
   createdOn: string
   isGenerated: boolean
   participants?: string[]
-  retentionDays?: number
+  retention?: RetentionConfig
 }
 
 export default Room

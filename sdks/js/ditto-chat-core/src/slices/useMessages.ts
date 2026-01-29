@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid'
 import ChatUser from '../types/ChatUser'
 import Message, { Mention, Reaction } from '../types/Message'
 import MessageWithUser from '../types/MessageWithUser'
+import type { RetentionConfig } from '../types/Retention'
 import Room from '../types/Room'
 import { ChatStore, CreateSlice } from '../useChat'
 
@@ -18,7 +19,7 @@ export interface MessageSlice {
   messageObserversByRoom: Record<string, StoreObserver | null>
   messageSubscriptionsByRoom: Record<string, SyncSubscription | null>
   messagesLoading: boolean
-  messagesPublisher: (room: Room, retentionDays?: number) => Promise<void>
+  messagesPublisher: (room: Room, retention?: RetentionConfig) => Promise<void>
   /**
    * Subscribe to messages for a specific room on-demand.
    * Used for generated rooms (comment rooms) that need dynamic subscriptions.
@@ -26,7 +27,7 @@ export interface MessageSlice {
   subscribeToRoomMessages: (
     roomId: string,
     messagesId: string,
-    retentionDays?: number,
+    retention?: RetentionConfig,
   ) => Promise<void>
   /**
    * Unsubscribe from messages for a specific room.
@@ -94,7 +95,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
     ditto,
     userId,
     userCollectionKey,
-    retentionDays: globalRetentionDays,
+    retention: globalRetention,
     notificationHandler,
   },
 ) => {
@@ -407,9 +408,9 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
      * 5. Triggers notifications for new messages from other users
      *
      * @param room - Room to subscribe to messages for
-     * @param retentionDays - Optional override for message retention period
+     * @param retention - Optional override for message retention configuration
      */
-    async messagesPublisher(room: Room, retentionDays?: number) {
+    async messagesPublisher(room: Room, retention?: RetentionConfig) {
       if (!ditto) {
         return
       }
@@ -419,22 +420,40 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         return
       }
 
-      const effectiveRetentionDays =
-        retentionDays ??
-        room.retentionDays ??
-        globalRetentionDays ??
-        DEFAULT_RETENTION_DAYS
+      // Check if retention should be indefinite (priority: param > room > global)
+      const retainIndefinitely =
+        retention?.retainIndefinitely ??
+        room.retention?.retainIndefinitely ??
+        globalRetention?.retainIndefinitely ??
+        false
 
-      const retentionDate = new Date(
-        Date.now() - effectiveRetentionDays * 24 * 60 * 60 * 1000,
-      )
-      const query = `SELECT * FROM COLLECTION ${room.messagesId} (thumbnailImageToken ATTACHMENT, largeImageToken ATTACHMENT, fileAttachmentToken ATTACHMENT)
-        WHERE roomId = :roomId AND createdOn >= :date AND isArchived = false
-        ORDER BY createdOn ASC`
+      let query: string
+      let args: Record<string, string>
 
-      const args = {
-        roomId: room._id,
-        date: retentionDate.toISOString(),
+      if (retainIndefinitely) {
+        query = `SELECT * FROM COLLECTION ${room.messagesId} (thumbnailImageToken ATTACHMENT, largeImageToken ATTACHMENT, fileAttachmentToken ATTACHMENT)
+          WHERE roomId = :roomId AND isArchived = false
+          ORDER BY createdOn ASC`
+        args = {
+          roomId: room._id,
+        }
+      } else {
+        const effectiveRetentionDays =
+          retention?.days ??
+          room.retention?.days ??
+          globalRetention?.days ??
+          DEFAULT_RETENTION_DAYS
+
+        const retentionDate = new Date(
+          Date.now() - effectiveRetentionDays * 24 * 60 * 60 * 1000,
+        )
+        query = `SELECT * FROM COLLECTION ${room.messagesId} (thumbnailImageToken ATTACHMENT, largeImageToken ATTACHMENT, fileAttachmentToken ATTACHMENT)
+          WHERE roomId = :roomId AND createdOn >= :date AND isArchived = false
+          ORDER BY createdOn ASC`
+        args = {
+          roomId: room._id,
+          date: retentionDate.toISOString(),
+        }
       }
 
       try {
@@ -501,12 +520,12 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
      *
      * @param roomId - Room ID to subscribe to
      * @param messagesId - Collection ID for messages ("messages" or "dm_messages")
-     * @param retentionDays - Optional message retention override
+     * @param retention - Optional message retention configuration override
      */
     async subscribeToRoomMessages(
       roomId: string,
       messagesId: string,
-      retentionDays?: number,
+      retention?: RetentionConfig,
     ) {
       if (!ditto) {
         return
@@ -517,20 +536,38 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         return
       }
 
-      const effectiveRetentionDays =
-        retentionDays ?? globalRetentionDays ?? DEFAULT_RETENTION_DAYS
+      // Check if retention should be indefinite (priority: param > global)
+      const retainIndefinitely =
+        retention?.retainIndefinitely ??
+        globalRetention?.retainIndefinitely ??
+        false
 
-      const retentionDate = new Date(
-        Date.now() - effectiveRetentionDays * 24 * 60 * 60 * 1000,
-      )
+      let query: string
+      let args: Record<string, string>
 
-      const query = `SELECT * FROM COLLECTION ${messagesId} (thumbnailImageToken ATTACHMENT, largeImageToken ATTACHMENT, fileAttachmentToken ATTACHMENT)
-        WHERE roomId = :roomId AND createdOn >= :date AND isArchived = false
-        ORDER BY createdOn ASC`
+      if (retainIndefinitely) {
+        // Build query without date filter for indefinite retention
+        query = `SELECT * FROM COLLECTION ${messagesId} (thumbnailImageToken ATTACHMENT, largeImageToken ATTACHMENT, fileAttachmentToken ATTACHMENT)
+          WHERE roomId = :roomId AND isArchived = false
+          ORDER BY createdOn ASC`
+        args = {
+          roomId,
+        }
+      } else {
+        // Extract days with priority: param > global > default (30)
+        const effectiveRetentionDays =
+          retention?.days ?? globalRetention?.days ?? DEFAULT_RETENTION_DAYS
 
-      const args = {
-        roomId,
-        date: retentionDate.toISOString(),
+        const retentionDate = new Date(
+          Date.now() - effectiveRetentionDays * 24 * 60 * 60 * 1000,
+        )
+        query = `SELECT * FROM COLLECTION ${messagesId} (thumbnailImageToken ATTACHMENT, largeImageToken ATTACHMENT, fileAttachmentToken ATTACHMENT)
+          WHERE roomId = :roomId AND createdOn >= :date AND isArchived = false
+          ORDER BY createdOn ASC`
+        args = {
+          roomId,
+          date: retentionDate.toISOString(),
+        }
       }
 
       try {

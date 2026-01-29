@@ -23,6 +23,7 @@ export default function DittoChatUI({
   userCollectionKey,
   userId,
   theme = 'light',
+  retention,
   rbacConfig,
   notificationHandler,
 }: DittoConfParams & { theme: 'light' | 'dark' | 'auto' | Theme }) {
@@ -30,6 +31,7 @@ export default function DittoChatUI({
     ditto,
     userCollectionKey,
     userId,
+    retention,
     rbacConfig,
     notificationHandler: notificationHandler
       ? notificationHandler
@@ -243,6 +245,7 @@ export default function DittoChatUI({
               key={selectedChat.id}
               chat={selectedChat}
               onBack={handleBack}
+              retention={retention}
             />
           )}
           <NewMessageModal
