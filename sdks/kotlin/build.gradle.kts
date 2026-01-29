@@ -116,8 +116,8 @@ publishing {
 
     repositories {
         maven {
-            name = "MavenCentral"
-            url = uri("https://central.sonatype.com/api/v1/publisher")
+            name = "central"
+            url = uri("https://central.sonatype.com/api/v1/publisher/upload")
             credentials {
                 username = findProperty("mavenCentralUsername")?.toString()
                     ?: System.getenv("ORG_GRADLE_PROJECT_mavenCentralUsername")
@@ -138,4 +138,8 @@ signing {
         useInMemoryPgpKeys(signingKey, signingPassword)
         sign(publishing.publications)
     }
+}
+
+tasks.register("publishToMavenCentral") {
+    dependsOn("publishReleasePublicationToCentralRepository")
 }
