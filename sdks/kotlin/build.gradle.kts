@@ -40,12 +40,6 @@ android {
     kotlin {
         jvmToolchain(21)
     }
-    publishing {
-        singleVariant("release") {
-            withSourcesJar()
-            withJavadocJar()
-        }
-    }
 }
 
 dependencies {
