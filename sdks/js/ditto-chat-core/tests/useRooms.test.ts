@@ -73,18 +73,18 @@ describe('useRooms Slice', () => {
       )
     })
 
-    it('creates room with retention days', async () => {
+    it('creates room with retention config', async () => {
       const roomName = 'Temporary Room'
-      const retentionDays = 7
+      const retention = { retainIndefinitely: false, days: 7 }
 
-      await store.getState().createRoom(roomName, { retentionDays })
+      await store.getState().createRoom(roomName, { retention })
 
       expect(mockDitto.store.execute).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO `rooms`'),
         expect.objectContaining({
           newDoc: expect.objectContaining({
             name: roomName,
-            retentionDays: 7,
+            retention: { retainIndefinitely: false, days: 7 },
           }),
         }),
       )
@@ -185,10 +185,10 @@ describe('useRooms Slice', () => {
       )
     })
 
-    it('creates room with both isGenerated and retentionDays', async () => {
+    it('creates room with both isGenerated and retention config', async () => {
       await store.getState().createRoom('Temp Comments', {
         isGenerated: true,
-        retentionDays: 30,
+        retention: { retainIndefinitely: false, days: 30 },
       })
 
       expect(mockDitto.store.execute).toHaveBeenCalledWith(
@@ -197,10 +197,43 @@ describe('useRooms Slice', () => {
           newDoc: expect.objectContaining({
             name: 'Temp Comments',
             isGenerated: true,
-            retentionDays: 30,
+            retention: { retainIndefinitely: false, days: 30 },
           }),
         }),
       )
+    })
+
+    it('creates room with indefinite retention', async () => {
+      await store.getState().createRoom('Permanent Room', {
+        retention: { retainIndefinitely: true },
+      })
+
+      expect(mockDitto.store.execute).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT INTO `rooms`'),
+        expect.objectContaining({
+          newDoc: expect.objectContaining({
+            name: 'Permanent Room',
+            retention: { retainIndefinitely: true },
+          }),
+        }),
+      )
+    })
+
+    it('creates room without retention config (uses default)', async () => {
+      await store.getState().createRoom('Default Room')
+
+      expect(mockDitto.store.execute).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT INTO `rooms`'),
+        expect.objectContaining({
+          newDoc: expect.objectContaining({
+            name: 'Default Room',
+          }),
+        }),
+      )
+
+      // Verify retention is not included in the document
+      const call = mockDitto.store.execute.mock.calls[0]
+      expect(call[1].newDoc.retention).toBeUndefined()
     })
   })
 

@@ -967,8 +967,10 @@ describe('useMessages Slice', () => {
       expect(messages[0].message.text).toBe('Incoming!')
     })
 
-    it('uses custom retention days', async () => {
-      await store.getState().messagesPublisher(mockRoom, 7)
+    it('uses custom retention config', async () => {
+      await store
+        .getState()
+        .messagesPublisher(mockRoom, { retainIndefinitely: false, days: 7 })
 
       expect(mockDitto.sync.registerSubscription).toHaveBeenCalledWith(
         expect.stringContaining(
@@ -981,14 +983,55 @@ describe('useMessages Slice', () => {
       )
     })
 
-    it('uses room retention days', async () => {
-      const roomWithRetention = { ...mockRoom, retentionDays: 14 }
+    it('uses room retention configuration', async () => {
+      const roomWithRetention = {
+        ...mockRoom,
+        retention: { retainIndefinitely: false, days: 14 },
+      }
       mockDitto.store.execute.mockResolvedValueOnce({
         items: [{ value: roomWithRetention }],
       })
 
       await store.getState().messagesPublisher(roomWithRetention)
       expect(mockDitto.sync.registerSubscription).toHaveBeenCalled()
+    })
+
+    it('supports indefinite retention with retainIndefinitely flag', async () => {
+      mockDitto.sync.registerSubscription.mockClear()
+
+      const roomWithIndefiniteRetention = {
+        ...mockRoom,
+        retention: { retainIndefinitely: true },
+      }
+
+      await store.getState().messagesPublisher(roomWithIndefiniteRetention)
+
+      const calls = mockDitto.sync.registerSubscription.mock.calls
+      const query = calls[calls.length - 1][0]
+      expect(query).not.toContain('createdOn >=')
+      expect(query).toContain('WHERE roomId = :roomId AND isArchived = false')
+    })
+
+    it('supports parameter override for indefinite retention', async () => {
+      mockDitto.sync.registerSubscription.mockClear()
+
+      await store
+        .getState()
+        .messagesPublisher(mockRoom, { retainIndefinitely: true })
+
+      const calls = mockDitto.sync.registerSubscription.mock.calls
+      const query = calls[calls.length - 1][0]
+      expect(query).not.toContain('createdOn >=')
+    })
+
+    it('defaults to 30 days when no retention config provided', async () => {
+      mockDitto.sync.registerSubscription.mockClear()
+
+      await store.getState().messagesPublisher(mockRoom)
+
+      const calls = mockDitto.sync.registerSubscription.mock.calls
+      const query = calls[calls.length - 1][0]
+      expect(query).toContain('createdOn >= :date')
     })
 
     it('does not create duplicate subscription', async () => {

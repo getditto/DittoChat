@@ -5,6 +5,7 @@ import {
   type Message,
   type MessageWithUser,
   type Reaction,
+  type RetentionConfig,
   useDittoChatStore,
 } from '@dittolive/ditto-chat-core'
 import { EmojiClickData } from 'emoji-picker-react'
@@ -32,12 +33,18 @@ interface ChatViewProps {
    * Defaults to "messages" if not provided.
    */
   messagesId?: string
+  /**
+   * Optional retention configuration override for this specific chat view.
+   * If provided, overrides the global and room-level retention settings.
+   */
+  retention?: RetentionConfig
 }
 function ChatView({
   chat,
   onBack,
   roomId,
   messagesId = 'messages',
+  retention,
 }: ChatViewProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [editingMessage, setEditingMessage] = useState<Message | null>(null)
@@ -108,9 +115,14 @@ function ChatView({
     if (roomId) {
       // Capture roomId in closure to ensure cleanup has correct value
       const currentRoomId = roomId
-      subscribeToRoomMessages(currentRoomId, messagesId).catch((err) => {
-        console.error(`[ChatView] Error subscribing to ${currentRoomId}:`, err)
-      })
+      subscribeToRoomMessages(currentRoomId, messagesId, retention).catch(
+        (err) => {
+          console.error(
+            `[ChatView] Error subscribing to ${currentRoomId}:`,
+            err,
+          )
+        },
+      )
 
       return () => {
         try {
@@ -123,7 +135,13 @@ function ChatView({
         }
       }
     }
-  }, [roomId, messagesId, subscribeToRoomMessages, unsubscribeFromRoomMessages])
+  }, [
+    roomId,
+    messagesId,
+    retention,
+    subscribeToRoomMessages,
+    unsubscribeFromRoomMessages,
+  ])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
