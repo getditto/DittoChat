@@ -102,6 +102,26 @@ mavenPublishing {
         inceptionYear.set("2025")
         url.set("https://github.com/getditto/dittochat/")
 
+        licenses {
+            license {
+                name.set("MIT")
+                url.set("https://github.com/getditto/DittoChat/blob/main/sdks/swift/LICENSE")
+            }
+        }
+
+        developers {
+            developer {
+                id.set("bryan.malumphy")
+                name.set("Bryan Malumphy")
+                email.set("bryan.malumphy@ditto.com")
+            }
+            developer {
+                id.set("erik.everson")
+                name.set("Erik Everson")
+                email.set("erik.everson@ditto.com")
+            }
+        }
+
         scm {
             url.set("https://github.com/getditto/DittoChat/")
             connection.set("scm:git:git://github.com/getditto/DittoChat.git")
