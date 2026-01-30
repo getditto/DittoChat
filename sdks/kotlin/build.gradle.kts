@@ -1,10 +1,13 @@
+import java.util.Base64
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.compose.compiler)
-    id("com.vanniktech.maven.publish") version "0.28.0"
+    id("com.vanniktech.maven.publish") version "0.36.0"
 }
 
 android {
@@ -84,7 +87,7 @@ val publishVersion = "1.0.0"
 
 mavenPublishing {
     // Configure which Sonatype instance to use
-    publishToMavenCentral("CENTRAL_PORTAL")
+    publishToMavenCentral(true)
 
     // Enable GPG signing for all publications
     signAllPublications()
@@ -97,7 +100,7 @@ mavenPublishing {
         name.set("DittoChat")
         description.set("A chat library for Ditto applications")
         inceptionYear.set("2025")
-        url.set("https://github.com/ditto/dittochat/")
+        url.set("https://github.com/getditto/dittochat/")
 
         scm {
             url.set("https://github.com/getditto/DittoChat/")
