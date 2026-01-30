@@ -1,5 +1,11 @@
 # @dittolive/ditto-chat-core
 
+## 0.1.4
+
+### Patch Changes
+
+- 5cfe7e8: Enhanced message retention capabilities with support for indefinite retention and flexible configuration at global, room, and query levels. Updated Room interface to use RetentionConfig type with retainIndefinitely flag and optional days field. UI components now support passing retention configuration overrides.
+
 ## 0.1.3
 
 ### Patch Changes
