@@ -1,10 +1,13 @@
+import java.util.Base64
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.compose.compiler)
-    id("maven-publish")
+    id("com.vanniktech.maven.publish") version "0.36.0"
 }
 
 android {
@@ -16,6 +19,9 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+        aarMetadata {
+            minCompileSdk = 24
+        }
     }
 
     buildTypes {
@@ -36,9 +42,6 @@ android {
     }
     kotlin {
         jvmToolchain(21)
-    }
-    publishing {
-        singleVariant("release") {}
     }
 }
 
@@ -80,37 +83,49 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
 }
 
-publishing {
-    publications {
-        register<MavenPublication>("release") {
-            groupId = "com.ditto"
-            artifactId = "dittochat"
-            version = "1.0.0"
+val publishVersion = "1.0.0"
 
-            afterEvaluate {
-                from(components["release"])
-            }
+mavenPublishing {
+    // Configure which Sonatype instance to use
+    publishToMavenCentral(true)
 
-            pom {
-                name.set("DittoChat")
-                description.set("A Kotlin Android SDK for Ditto Chat")
-                url.set("https://github.com/getditto/DittoChat")
+    // Enable GPG signing for all publications
+    signAllPublications()
 
-                developers {
-                    developer {
-                        id.set("bmalumphy")
-                        name.set("Bryan Malumphy")
-                        email.set("bryan.malumphy@ditto.com")
-                    }
-                }
+    // Define Maven coordinates
+    coordinates("com.ditto", "dittochat", publishVersion)
+
+    // Configure POM metadata
+    pom {
+        name.set("DittoChat")
+        description.set("A chat library for Ditto applications")
+        inceptionYear.set("2025")
+        url.set("https://github.com/getditto/dittochat/")
+
+        licenses {
+            license {
+                name.set("MIT")
+                url.set("https://github.com/getditto/DittoChat/blob/main/sdks/swift/LICENSE")
             }
         }
-    }
 
-    repositories {
-        maven {
-            name = "DittoChat"
-            url = uri("${project.buildDir}/dittoChat")
+        developers {
+            developer {
+                id.set("bryan.malumphy")
+                name.set("Bryan Malumphy")
+                email.set("bryan.malumphy@ditto.com")
+            }
+            developer {
+                id.set("erik.everson")
+                name.set("Erik Everson")
+                email.set("erik.everson@ditto.com")
+            }
+        }
+
+        scm {
+            url.set("https://github.com/getditto/DittoChat/")
+            connection.set("scm:git:git://github.com/getditto/DittoChat.git")
+            developerConnection.set("scm:git:ssh://git@github.com/getditto/DittoChat.git")
         }
     }
 }
