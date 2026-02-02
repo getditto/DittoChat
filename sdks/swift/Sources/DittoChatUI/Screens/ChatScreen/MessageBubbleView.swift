@@ -69,22 +69,13 @@ struct MessageBubbleView: View {
     }
 
     private var side: MessageBubbleShape.Side {
-        if forPreview {
-            if user.id == previewUserId {
-                return .right
-            }
-        } else {
-            if user.id == dittoChat.currentUserId {
-                return .right
-            }
+        if user.id == dittoChat.currentUserId {
+            return .right
         }
         return .left
     }
 
     private var isSelfUser: Bool {
-        if forPreview {
-            return user.id == previewUserId
-        }
         return user.id == dittoChat.currentUserId
     }
 
@@ -301,31 +292,6 @@ struct MessageBubbleView: View {
         guard !isEditing else { return false }
         return isSelfUser && dittoChat.hasAdminPrivileges
     }
-
-    // for previewing
-    private var forPreview = false
-    private var previewUserId = "me"
-    fileprivate init(
-        messageWithUser: MessageWithUser,
-        messagesId: String = "xyz",
-        preview: Bool,
-        isEditing: Binding<Bool> = .constant(false)
-    ) {
-        let dittoChat =  DittoChat(config: ChatConfig(ditto: Ditto(), usersCollection: "users"))
-
-        self._viewModel = StateObject(
-            wrappedValue: MessageBubbleVM(
-                Message(roomId: "abc", text: "Hello World!"),
-                messagesId: messagesId,
-                dittoChat: dittoChat
-            )
-        )
-        self._isEditing = isEditing
-        self.messageUser = messageWithUser
-        self.forPreview = preview
-        self.messageOpCallback = nil
-        self.dittoChat = dittoChat
-    }
 }
 
 
@@ -407,64 +373,3 @@ struct MessageBubbleShape: Shape {
         return path
     }
 }
-
-
-#if DEBUG
-import Fakery
-struct MessageBubbleView_Previews: PreviewProvider {
-    static let faker = Faker()
-
-    static var messagesWithUsers: [MessageWithUser] = [
-        MessageWithUser(
-            message: Message(
-                id: UUID().uuidString,
-                createdOn: Date(),
-                roomId: publicKey,
-                text: Self.faker.lorem.sentence(),
-                userId: "max"
-            ),
-            user: ChatUser(id: "max", name: "Maximilian Alexander", subscriptions: [:], mentions: [:])
-        ),
-        MessageWithUser(
-            message: Message(
-                id: UUID().uuidString,
-                createdOn: Date(),
-                roomId: publicKey,
-                text: Self.faker.lorem.paragraph(sentencesAmount: 12),
-                userId: "me"
-            ),
-            user: ChatUser(id: "me", name: "Me NotYou", subscriptions: [:], mentions: [:])
-        ),
-        MessageWithUser(
-            message: Message(
-                id: UUID().uuidString,
-                createdOn: Date(),
-                roomId: publicKey,
-                text: Self.faker.lorem.sentence(),
-                userId: "max"
-            ),
-            user: ChatUser(id: "max", name: "Maximilian Alexander", subscriptions: [:], mentions: [:])
-        ),
-        MessageWithUser(
-            message: Message(
-                id: UUID().uuidString,
-                createdOn: Date(),
-                roomId: publicKey,
-                text: Self.faker.lorem.sentence(),
-                userId: "me"
-            ),
-            user: ChatUser(id: "me", name: "Me NotYou", subscriptions: [:], mentions: [:])
-        ),
-    ]
-
-    static var previews: some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(messagesWithUsers) { message in
-                    MessageBubbleView(messageWithUser: message, preview: true)
-                }
-            }
-        }
-    }
-}
-#endif

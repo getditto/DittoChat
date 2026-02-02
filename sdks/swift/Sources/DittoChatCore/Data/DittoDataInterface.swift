@@ -12,7 +12,7 @@ import UIKit
 
 @MainActor
 protocol DittoDataInterface {
-    var ditto: Ditto { get }
+    var ditto: Ditto? { get }
     var publicRoomsPublisher: CurrentValueSubject<[Room], Never> { get }
     var peerKeyString: String { get }
     var sdkVersion: String { get }
@@ -33,7 +33,7 @@ protocol DittoDataInterface {
     func attachmentPublisher(
         for token: DittoAttachmentToken,
         in collectionId: String
-    ) -> DittoStore.FetchAttachmentPublisher
+    ) -> DittoStore.FetchAttachmentPublisher?
     func createUpdateMessage(document: [String: Any?])
 
     func addUser(_ usr: ChatUser)
