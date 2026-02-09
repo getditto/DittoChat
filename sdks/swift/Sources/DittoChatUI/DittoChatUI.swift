@@ -25,6 +25,10 @@ public protocol DittoChatViews {
 public class DittoChatUI: DittoChatViews {
     public var dittoChat: DittoChat
 
+    public init(_ dittoChat: DittoChat) {
+        self.dittoChat = dittoChat
+    }
+
     public init() {
         do {
             dittoChat = try DittoChat.builder().build()
