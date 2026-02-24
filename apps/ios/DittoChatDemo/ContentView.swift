@@ -18,13 +18,10 @@ struct ContentView: View {
         NavigationView {
             let ditto = viewModel.ditto ?? Ditto()
             RoomsListScreen(
-                dittoChat: DittoChat(
-                    config: ChatConfig(
-                        ditto: ditto,
-                        usersCollection: "users",
-                        userId: viewModel.projectMetadata.ueerId
-                    )
-                )
+                dittoChat: try! DittoChatBuilder()
+                        .setDitto(ditto)
+                        .setUserId(viewModel.projectMetadata.ueerId)
+                        .build()
             )
         }
     }
