@@ -1,23 +1,13 @@
 package com.ditto.dittochatandroiddemo
 
-import android.content.Context
 import android.os.Bundle
-import android.util.AttributeSet
-import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Surface
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
-import com.ditto.dittochat.ChatConfig
 import com.ditto.dittochat.DittoChat
 import com.ditto.dittochat.DittoChatImpl
-import com.ditto.dittochat.ui.DittoChatUI
-import com.ditto.dittochat.ui.RoomEditViewModel
-import com.ditto.dittochat.ui.RoomsListScreenViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import live.ditto.Ditto
@@ -49,6 +39,7 @@ class MainActivity : ComponentActivity() {
         val playgroundToken = ""
         val appId = ""
         val cloudEndpoint = ""
+        val userId = ""
         // Create user Ditto instance with appropriate identity
         val userIdentity =
             // Use playground identity when playground token is available
@@ -64,7 +55,7 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             ditto.store.execute("ALTER SYSTEM SET DQL_STRICT_MODE = false")
         }
-        dittoChat = dittoChatBuilder.setDitto(ditto).build()
+        dittoChat = dittoChatBuilder.setDitto(ditto).setUserId(userId).build()
         ditto.disableSyncWithV3()
         ditto.startSync()
 
