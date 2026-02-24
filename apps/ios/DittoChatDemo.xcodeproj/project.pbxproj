@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		0750235F2E985C0100AF7194 /* DittoChatCore in Frameworks */ = {isa = PBXBuildFile; productRef = 0750235E2E985C0100AF7194 /* DittoChatCore */; };
 		075023612E985C0100AF7194 /* DittoChatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 075023602E985C0100AF7194 /* DittoChatUI */; };
+		781173362F4E112300EB7936 /* DittoChatCore in Frameworks */ = {isa = PBXBuildFile; productRef = 781173352F4E112300EB7936 /* DittoChatCore */; };
+		781173382F4E112300EB7936 /* DittoChatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 781173372F4E112300EB7936 /* DittoChatUI */; };
 		7873E56D2E68F390003DC9B2 /* DittoChatCore in Frameworks */ = {isa = PBXBuildFile; productRef = 7873E56C2E68F390003DC9B2 /* DittoChatCore */; };
 		7873E56F2E68F390003DC9B2 /* DittoChatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 7873E56E2E68F390003DC9B2 /* DittoChatUI */; };
 		7873E5782E68F47B003DC9B2 /* DittoChatCore in Frameworks */ = {isa = PBXBuildFile; productRef = 7873E5772E68F47B003DC9B2 /* DittoChatCore */; };
@@ -56,7 +58,9 @@
 				0750235F2E985C0100AF7194 /* DittoChatCore in Frameworks */,
 				7873E5882E68F5A2003DC9B2 /* DittoChatCore in Frameworks */,
 				7873E57D2E68F4F1003DC9B2 /* DittoChatCore in Frameworks */,
+				781173382F4E112300EB7936 /* DittoChatUI in Frameworks */,
 				7873E57F2E68F4F1003DC9B2 /* DittoChatUI in Frameworks */,
+				781173362F4E112300EB7936 /* DittoChatCore in Frameworks */,
 				7873E5782E68F47B003DC9B2 /* DittoChatCore in Frameworks */,
 				78E90C0A2E6A1E3C00B01E9B /* DittoChatUI in Frameworks */,
 				7873E57A2E68F47B003DC9B2 /* DittoChatUI in Frameworks */,
@@ -117,6 +121,8 @@
 				78E90C092E6A1E3C00B01E9B /* DittoChatUI */,
 				0750235E2E985C0100AF7194 /* DittoChatCore */,
 				075023602E985C0100AF7194 /* DittoChatUI */,
+				781173352F4E112300EB7936 /* DittoChatCore */,
+				781173372F4E112300EB7936 /* DittoChatUI */,
 			);
 			productName = DittoChatDemo;
 			productReference = 7873E55D2E68F35E003DC9B2 /* DittoChatDemo.app */;
@@ -147,7 +153,7 @@
 			mainGroup = 7873E5542E68F35E003DC9B2;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				0750235D2E985C0100AF7194 /* XCLocalSwiftPackageReference "../../../DittoChat" */,
+				781173342F4E112300EB7936 /* XCRemoteSwiftPackageReference "DittoChat" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 7873E55E2E68F35E003DC9B2 /* Products */;
@@ -421,12 +427,16 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCLocalSwiftPackageReference section */
-		0750235D2E985C0100AF7194 /* XCLocalSwiftPackageReference "../../../DittoChat" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = ../../../DittoChat;
+/* Begin XCRemoteSwiftPackageReference section */
+		781173342F4E112300EB7936 /* XCRemoteSwiftPackageReference "DittoChat" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getditto/DittoChat";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.0.2;
+			};
 		};
-/* End XCLocalSwiftPackageReference section */
+/* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		0750235E2E985C0100AF7194 /* DittoChatCore */ = {
@@ -435,6 +445,16 @@
 		};
 		075023602E985C0100AF7194 /* DittoChatUI */ = {
 			isa = XCSwiftPackageProductDependency;
+			productName = DittoChatUI;
+		};
+		781173352F4E112300EB7936 /* DittoChatCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 781173342F4E112300EB7936 /* XCRemoteSwiftPackageReference "DittoChat" */;
+			productName = DittoChatCore;
+		};
+		781173372F4E112300EB7936 /* DittoChatUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 781173342F4E112300EB7936 /* XCRemoteSwiftPackageReference "DittoChat" */;
 			productName = DittoChatUI;
 		};
 		7873E56C2E68F390003DC9B2 /* DittoChatCore */ = {

@@ -21,4 +21,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "DittoChatAndroidDemo"
 include(":app")
-include(":dittochat")

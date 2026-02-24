@@ -23,78 +23,301 @@
 
 </div>
 
-A suite of SDKs that provides UI components and data models to quickly build a
-peer-to-peer chat application using the Ditto Platform.
+# DittoChat Quickstart Guide
 
-## Features
+This guide walks you through adding DittoChat to an iOS or Android app from scratch. By the end you'll have a working peer-to-peer chat experience that syncs over Bluetooth, Wi-Fi, and the cloud.
 
-- Real-time, peer-to-peer chat
+---
 
-- Group chat and private messaging
+## Prerequisites (Both Platforms)
 
-- User presence and typing indicators
+Before you begin, make sure you have the following:
 
-- Easy-to-integrate SwiftUI views
+1. **A Ditto account** — Sign up free at the [Ditto Portal](https://portal.ditto.live).
+2. **An App ID and Online Playground Token** — Create a new app in the portal and copy these credentials. You'll need them to initialize the SDK.
 
-- Built on the Ditto Sync Platform
+---
 
-## Requirements:
+## iOS Quickstart (Swift / SwiftUI)
 
-### iOS
+### Step 1 — Create or Open Your Xcode Project
 
-- iOS 18.0+
-- Xcode 15.6+
-- Swift 5.7+
-- A Ditto Account, AppId, and baseline knowledge of the [DittoSwift SDK](https://github.com/getditto/DittoSwiftPackage)
+Open an existing iOS project or create a new one in Xcode (**File → New → Project → App**). Select **SwiftUI** as the interface and **Swift** as the language.
 
-### Android
+### Step 2 — Add the DittoChat Swift Package
 
-- TBD
+1. In Xcode, go to **File → Add Package Dependencies…**
+2. In the search bar, paste the DittoChat repository URL:
 
-### Web
+   ```
+   https://github.com/getditto/DittoChat.git
+   ```
 
-- Node.js 18.0+
-- React 18.0+ or 19.0+
-- TypeScript 4.5+
-- A Ditto Account, AppId, and baseline knowledge of the [Ditto JavaScript SDK](https://docs.ditto.live/sdk/latest/install-guides/js)
+3. Under **Dependency Rule**, choose **Up to Next Major Version** and set it to the latest release (check the [Releases page](https://github.com/getditto/DittoChat/releases) for the current version).
+4. Click **Add Package**.
+5. When prompted, select the DittoChat library product and add it to your app target.
 
-#### Packages
+### Step 3 — Configure Permissions
 
-The JavaScript implementation consists of two packages:
+Ditto uses Bluetooth LE and local networking for peer-to-peer sync. You need to declare usage descriptions so iOS can prompt the user for permission.
 
-**[@dittolive/ditto-chat-core](./sdks/js/ditto-chat-core/README.md)** - Core data models and React hooks for real-time chat functionalities
+Add the following keys to your project's **Info.plist**:
 
-```bash
-npm install @dittolive/ditto-chat-core
-# or
-yarn add @dittolive/ditto-chat-core
+```xml
+<key>NSBluetoothAlwaysUsageDescription</key>
+<string>Uses Bluetooth to connect and sync with nearby devices</string>
+
+<key>NSBluetoothPeripheralUsageDescription</key>
+<string>Uses Bluetooth to connect and sync with nearby devices</string>
+
+<key>NSLocalNetworkUsageDescription</key>
+<string>Uses WiFi to connect and sync with nearby devices</string>
+
+<key>NSBonjourServices</key>
+<array>
+    <string>_http-alt._tcp.</string>
+</array>
 ```
 
-**[@dittolive/ditto-chat-ui](./sdks/js/ditto-chat-ui/README.md)** - Ready-to-use React components for building chat UIs
+### Step 4 — Enable Background Modes (Optional but Recommended)
 
-```bash
-npm install @dittolive/ditto-chat-ui
-# or
-yarn add @dittolive/ditto-chat-ui
+To keep chat syncing when your app is in the background:
+
+1. Select your project in the navigator, then your app target.
+2. Go to **Signing & Capabilities → + Capability → Background Modes**.
+3. Enable the following:
+   - **Uses Bluetooth LE accessories**
+   - **Acts as a Bluetooth LE accessory**
+
+### Step 5 — Initialize Ditto and Present the Chat UI
+
+In your SwiftUI app entry point (e.g. `App.swift` or a root view), initialize a Ditto instance with your portal credentials and present the DittoChat view:
+
+```swift
+import SwiftUI
+import DittoSwift
+import DittoChat
+
+@main
+struct MyChatApp: App {
+    @StateObject private var dittoInstance = DittoManager()
+
+    var body: some Scene {
+        WindowGroup {
+            // Replace with the DittoChat view provided by the SDK.
+            // See the example app in the `apps/` directory for
+            // a complete working implementation.
+            ContentView()
+                .environmentObject(dittoInstance)
+        }
+    }
+}
+
+/// A simple singleton that owns the Ditto instance.
+class DittoManager: ObservableObject {
+    let ditto: Ditto
+
+    init() {
+        ditto = Ditto(
+            identity: .onlinePlayground(
+                appID: "YOUR_APP_ID",
+                token: "YOUR_PLAYGROUND_TOKEN"
+            )
+        )
+
+        // Start syncing with nearby peers
+        do {
+            try ditto.startSync()
+        } catch {
+            print("Failed to start Ditto sync: \(error)")
+        }
+    }
+}
 ```
 
-## Publishing
+> **Important:** Replace `YOUR_APP_ID` and `YOUR_PLAYGROUND_TOKEN` with the credentials from your Ditto Portal app. Never commit these values to source control — use environment variables or a configuration file excluded from Git.
 
-This monorepo uses [Changesets](https://github.com/changesets/changesets) for version management and publishing.
+### Step 6 — Build and Run
 
-### For Contributors
+1. Connect a physical iOS device (Bluetooth is not available in the Simulator).
+2. Select your device as the run destination and press **⌘R**.
+3. Grant Bluetooth and local network permissions when prompted.
+4. Run the app on a second device to see peer-to-peer chat in action.
 
-When making changes to the packages, please create a changeset to document your changes:
+---
 
-```bash
-npm run changeset
+## Android Quickstart (Kotlin)
+
+> **Note:** The DittoChat Android SDK is under active development. The steps below show how to integrate the Ditto SDK in a Kotlin Android project and prepare for the DittoChat library. Check the [Releases page](https://github.com/getditto/DittoChat/releases) and the `sdks/kotlin/` directory for the latest availability.
+
+### Step 1 — Create or Open Your Android Studio Project
+
+Open an existing project or create a new one in Android Studio (**File → New → New Project → Empty Activity**). Choose **Kotlin** as the language and set the minimum SDK to **API 23 (Android 6.0)** or higher.
+
+### Step 2 — Add the Ditto SDK Dependency
+
+1. In your **project-level** `build.gradle` (or `settings.gradle.kts`), make sure Maven Central is included:
+
+   ```groovy
+   // build.gradle (project-level)
+   allprojects {
+       repositories {
+           mavenCentral()
+       }
+   }
+   ```
+
+2. In your **app-level** `build.gradle`, add the Ditto SDK:
+
+   ```groovy
+   // build.gradle (app-level)
+   dependencies {
+       implementation "live.ditto:ditto:4.14.1"  // Check docs.ditto.live for the latest version
+   }
+   ```
+
+3. Sync your project: **File → Sync Project with Gradle Files**.
+
+> Once the DittoChat Android library is published, you will add it alongside the core Ditto SDK. Watch this repo for release announcements.
+
+### Step 3 — Configure Permissions
+
+The Ditto SDK's `AndroidManifest.xml` automatically merges the required Bluetooth and network permissions into your app. However, you should be aware of what's being added:
+
+```xml
+<!-- These are automatically merged by the Ditto SDK -->
+<uses-permission android:name="android.permission.BLUETOOTH"
+    android:maxSdkVersion="30" />
+<uses-permission android:name="android.permission.BLUETOOTH_ADMIN"
+    android:maxSdkVersion="30" />
+<uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE"
+    tools:targetApi="s" />
+<uses-permission android:name="android.permission.BLUETOOTH_CONNECT"
+    tools:targetApi="s" />
+<uses-permission android:name="android.permission.BLUETOOTH_SCAN"
+    android:usesPermissionFlags="neverForLocation"
+    tools:targetApi="s" />
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"
+    android:maxSdkVersion="32" />
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"
+    android:maxSdkVersion="30" />
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+<uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" />
 ```
 
-This will prompt you to select which packages are affected and describe your changes.
+### Step 4 — Request Runtime Permissions
 
-### Release Process
+Android requires that certain permissions (like Bluetooth and location) be requested from the user at runtime. Use the `DittoSyncPermissions` helper provided by the SDK:
 
-Releases are automated via GitHub Actions:
+```kotlin
+import live.ditto.transports.DittoSyncPermissions
 
-1. When changesets are merged to `main`, a "Version Packages" PR is automatically created
-2. Merging the "Version Packages" PR publishes the packages to NPM
+// In your Activity's onCreate or a Composable's LaunchedEffect:
+fun requestPermissions() {
+    val permissions = DittoSyncPermissions(this)
+    val missing = permissions.missingPermissions()
+    if (missing.isNotEmpty()) {
+        this.requestPermissions(missing, 0)
+    }
+}
+```
+
+Call this early in your app's lifecycle — before starting Ditto sync — so the user sees the permission prompts right away.
+
+### Step 5 — Initialize Ditto
+
+Create a singleton `Application` class (or use your existing one) to initialize Ditto at app startup:
+
+```kotlin
+import android.app.Application
+import android.util.Log
+import live.ditto.*
+import live.ditto.android.DefaultAndroidDittoDependencies
+
+class MyChatApplication : Application() {
+
+    lateinit var ditto: Ditto
+
+    override fun onCreate() {
+        super.onCreate()
+
+        try {
+            DittoLogger.minimumLogLevel = DittoLogLevel.DEBUG
+
+            val androidDependencies = DefaultAndroidDittoDependencies(applicationContext)
+            val identity = DittoIdentity.OnlinePlayground(
+                androidDependencies,
+                appId = "YOUR_APP_ID",
+                token = "YOUR_PLAYGROUND_TOKEN"
+            )
+
+            ditto = Ditto(androidDependencies, identity)
+            ditto.startSync()
+        } catch (e: DittoError) {
+            Log.e("DittoChat", "Failed to start Ditto: ${e.message}")
+        }
+    }
+}
+```
+
+Register the application class in your `AndroidManifest.xml`:
+
+```xml
+<application
+    android:name=".MyChatApplication"
+    ... >
+```
+
+> **Important:** Replace `YOUR_APP_ID` and `YOUR_PLAYGROUND_TOKEN` with your portal credentials. Store secrets securely — use `BuildConfig` fields or a `local.properties` file that is excluded from version control.
+
+### Step 6 — Build and Run
+
+1. Connect a physical Android device (Bluetooth is unavailable in the emulator).
+2. Run the app and grant all requested permissions.
+3. Deploy to a second device on the same network (or within Bluetooth range) to test peer-to-peer sync.
+
+---
+
+## Verifying Peer-to-Peer Sync
+
+Once you have the app running on two or more devices:
+
+1. Make sure both devices have **Bluetooth** and **Wi-Fi** enabled.
+2. Both apps must be configured with the **same App ID** from the Ditto Portal.
+3. Send a message on one device — it should appear on the other within seconds.
+4. To test offline sync, enable **Airplane Mode** on both devices (but keep Bluetooth on). Messages will still sync directly over Bluetooth LE.
+
+---
+
+## Troubleshooting
+
+| Symptom | Possible Cause | Fix |
+|---|---|---|
+| Devices don't discover each other | Missing permissions | Verify all Bluetooth and network permissions are granted in device settings |
+| Sync works on Wi-Fi but not Bluetooth | Background Modes not enabled (iOS) | Enable BLE Background Modes in Xcode capabilities |
+| `DittoError` on startup | Invalid App ID or token | Double-check your credentials in the [Ditto Portal](https://portal.ditto.live) |
+| Messages appear only on one device | Different App IDs | Ensure both devices use the same App ID |
+| Permissions prompt doesn't appear (Android) | `requestPermissions` not called | Call `DittoSyncPermissions.missingPermissions()` before `startSync()` |
+| Build fails after adding package (iOS) | Xcode version too old | DittoChat requires Xcode 15.6+; update Xcode |
+
+---
+
+## Next Steps
+
+- **Explore the example apps** in the [`apps/`](https://github.com/getditto/DittoChat/tree/main/apps) directory for complete, runnable implementations.
+- **Web integration?** See the [Web (React/TypeScript) section](./README.md#web-react--typescript) in the main README.
+- **Customize the UI** — DittoChat components are designed to be themed and extended. Check the platform-specific SDK READMEs in `sdks/` for API details.
+- **Go to production** — Replace `OnlinePlayground` authentication with `OnlineWithAuthentication` for production apps. See the [Ditto Cloud Authentication docs](https://docs.ditto.live/auth-and-authorization/cloud-authentication) for a full walkthrough.
+- **Learn more about Ditto** — Visit [docs.ditto.live](https://docs.ditto.live) for comprehensive platform documentation.
+
+---
+
+## Support
+
+If you run into issues:
+
+- **GitHub Issues:** [github.com/getditto/DittoChat/issues](https://github.com/getditto/DittoChat/issues)
+- **Ditto Support:** [support@ditto.live](mailto:support@ditto.live)
+- **Documentation:** [docs.ditto.live](https://docs.ditto.live)

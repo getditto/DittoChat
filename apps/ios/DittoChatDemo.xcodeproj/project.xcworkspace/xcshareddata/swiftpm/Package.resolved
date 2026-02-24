@@ -1,13 +1,22 @@
 {
-  "originHash" : "4411bffc85f6cdaafdf21e3acb2e7b3634bd9061dd7d5e9ae4e838a6735fc3e3",
+  "originHash" : "46b859b4f3b871f0739d5b4ee2be10ccf136be2912fff5ffce3e77a1af827074",
   "pins" : [
+    {
+      "identity" : "dittochat",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/getditto/DittoChat",
+      "state" : {
+        "revision" : "f049ae31d5d742bfba06365a6d559878f75d79a0",
+        "version" : "6.0.2"
+      }
+    },
     {
       "identity" : "dittoswiftpackage",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/getditto/DittoSwiftPackage",
       "state" : {
-        "revision" : "19e91a34cebdf0a00c7674af71460133528c46a1",
-        "version" : "4.12.3"
+        "revision" : "61b203cffc6a85c1c0d0987d1833d62eca7c549c",
+        "version" : "4.14.3"
       }
     },
     {
