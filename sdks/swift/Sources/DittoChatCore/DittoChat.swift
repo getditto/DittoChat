@@ -86,8 +86,22 @@ public class DittoChat: DittoSwiftChat, ObservableObject {
     private var rolesCancellable: AnyCancellable?
     private var roles: [AdminRole] = []
 
+    /// The delegate that receives callbacks for outgoing chat events that should trigger
+    /// a push notification. Held weakly — the caller is responsible for retaining it.
+    public weak var pushNotificationDelegate: DittoChatPushNotificationDelegate?
+
+    /// The hex-encoded APNs device token registered via `registerDeviceToken(_:)`.
+    /// `nil` until the host app calls `registerDeviceToken(_:)`.
+    public private(set) var deviceToken: String?
+
     private var localStore: LocalDataInterface
      var p2pStore: DittoDataInterface
+
+    /// Posts local `UNUserNotification`s when new messages arrive in synced rooms.
+    private var notificationManager: ChatNotificationManager?
+
+    /// Retains Combine subscriptions used to keep `notificationManager` in sync with rooms.
+    private var cancellables = Set<AnyCancellable>()
 
     init(
         ditto: Ditto?,
@@ -96,7 +110,8 @@ public class DittoChat: DittoSwiftChat, ObservableObject {
         userId: String?,
         userEmail: String?,
         acceptLargeImages: Bool,
-        primaryColor: String?
+        primaryColor: String?,
+        pushNotificationDelegate: DittoChatPushNotificationDelegate?
     ) {
         let localStore: LocalService = LocalService()
         self.acceptLargeImages = acceptLargeImages
@@ -105,6 +120,21 @@ public class DittoChat: DittoSwiftChat, ObservableObject {
         self.p2pStore = DittoService(privateStore: localStore, ditto: ditto, usersCollection: usersCollection, chatRetentionPolicy: retentionPolicy)
         self.publicRoomsPublisher = p2pStore.publicRoomsPublisher.eraseToAnyPublisher()
         self.retentionPolicy = retentionPolicy
+        self.pushNotificationDelegate = pushNotificationDelegate
+
+        // Set up local notification manager. Subscribes to each synced room's message
+        // collection via raw DittoStoreObserver so callbacks fire even when backgrounded.
+        let manager = ChatNotificationManager(ditto: ditto, localStore: localStore)
+        self.notificationManager = manager
+
+        // Whenever the public rooms list changes, reconcile which rooms are being observed.
+        p2pStore.publicRoomsPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak manager] rooms in
+                manager?.syncRooms(rooms)
+            }
+            .store(in: &cancellables)
+
         if let userId = userId {
             self.setCurrentUser(withConfig: UserConfig(id: userId))
         }
@@ -115,6 +145,50 @@ public class DittoChat: DittoSwiftChat, ObservableObject {
                 // TODO: Handle errors
             }
         }
+    }
+
+    // MARK: - Push Notifications
+
+    /// Registers an APNs device token with the SDK.
+    ///
+    /// Call this from `application(_:didRegisterForRemoteNotificationsWithDeviceToken:)`.
+    /// The token is converted to a hex string and stored in `deviceToken` so it is
+    /// accessible when building push payloads in your `DittoChatPushNotificationDelegate`
+    /// implementation.
+    ///
+    /// - Parameter deviceToken: The raw token data provided by APNs.
+    public func registerDeviceToken(_ deviceToken: Data) {
+        self.deviceToken = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
+    }
+
+    /// Interprets an incoming push notification payload and returns the navigation action.
+    ///
+    /// Call this from your `UNUserNotificationCenterDelegate` implementation when a
+    /// DittoChat-related notification arrives. The payload must contain at least
+    /// `DittoChatNotificationKey.roomId` for a non-`.none` action to be returned.
+    ///
+    /// ```swift
+    /// func userNotificationCenter(_ center: UNUserNotificationCenter,
+    ///                             didReceive response: UNNotificationResponse) async {
+    ///     let action = dittoChat.handleNotification(userInfo: response.notification.request.content.userInfo)
+    ///     switch action {
+    ///     case .openRoom(let id):      navigate(toRoomId: id)
+    ///     case .openMessage(let rId, let mId): navigate(toMessageId: mId, inRoomId: rId)
+    ///     case .none: break
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// - Parameter userInfo: The `userInfo` dictionary from the incoming notification.
+    /// - Returns: A `DittoChatNotificationAction` describing what the app should do.
+    public func handleNotification(userInfo: [AnyHashable: Any]) -> DittoChatNotificationAction {
+        guard let roomId = userInfo[DittoChatNotificationKey.roomId] as? String else {
+            return .none
+        }
+        if let messageId = userInfo[DittoChatNotificationKey.messageId] as? String {
+            return .openMessage(roomId: roomId, messageId: messageId)
+        }
+        return .openRoom(id: roomId)
     }
 
     public var currentUserId: String? {
@@ -187,6 +261,9 @@ public class DittoChat: DittoSwiftChat, ObservableObject {
     /// Clears references to Ditto and running subscritopns as well as observers.
     /// Note: Make sure that you call stop sync before calling this logout function.
     public func logout() {
+        notificationManager?.stopAll()
+        notificationManager = nil
+        cancellables.removeAll()
         p2pStore.logout()
     }
 }
@@ -199,6 +276,7 @@ public class DittoChatBuilder {
     private var userEmail: String?
     private var acceptLargeImages: Bool = true
     private var primaryColor: String?
+    private var pushNotificationDelegate: DittoChatPushNotificationDelegate?
 
     public init() {}
 
@@ -250,6 +328,16 @@ public class DittoChatBuilder {
         return self
     }
 
+    /// Sets the delegate that receives callbacks for outgoing chat events that should
+    /// trigger a push notification. The delegate is held weakly by `DittoChat`.
+    ///
+    /// - Parameter delegate: An object conforming to `DittoChatPushNotificationDelegate`.
+    @discardableResult
+    public func setPushNotificationDelegate(_ delegate: DittoChatPushNotificationDelegate?) -> DittoChatBuilder {
+        self.pushNotificationDelegate = delegate
+        return self
+    }
+
     @MainActor public func build() throws -> DittoChat {
         guard let ditto = ditto else {
             throw BuilderError.missingRequiredField("ditto")
@@ -262,7 +350,8 @@ public class DittoChatBuilder {
             userId: userId,
             userEmail: userEmail,
             acceptLargeImages: acceptLargeImages,
-            primaryColor: primaryColor
+            primaryColor: primaryColor,
+            pushNotificationDelegate: pushNotificationDelegate
         )
     }
 
@@ -324,10 +413,12 @@ extension DittoChat {
 
     public func createMessage(for room: Room, text: String) {
         p2pStore.createMessage(for: room, text: text)
+        pushNotificationDelegate?.dittoChat(self, didSendMessage: text, inRoom: room)
     }
 
     public func createImageMessage(for room: Room, image: UIImage, text: String?) async throws {
         try await p2pStore.createImageMessage(for: room, image: image, text: text)
+        pushNotificationDelegate?.dittoChat(self, didSendImageMessageInRoom: room)
     }
 
     public func saveEditedTextMessage(_ message: Message, in room: Room) {
