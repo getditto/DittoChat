@@ -96,16 +96,26 @@ final class ChatNotificationManager {
         let roomName = room.name
 
         do {
-            // deliverOn: .main keeps this @MainActor-safe and consistent with the rest of the SDK.
-            // On iOS, the main RunLoop continues while the app is backgrounded, so callbacks fire.
+            // deliverOn: .global() — deliver on a background thread so the callback fires
+            // immediately when Ditto's internal sync engine receives data, without needing
+            // the main RunLoop to iterate first. This is critical when the app is backgrounded:
+            // iOS keeps the main RunLoop alive for BLE-mode apps, but delivering directly on a
+            // global queue means callbacks are not queued behind any pending main-thread work.
+            //
+            // Message parsing (compactMap) happens on the background thread; only the actor-
+            // isolated state mutations hop to .main via DispatchQueue.main.async, which is
+            // lightweight and safe while the app has any background execution time.
             let observer = try ditto.store.registerObserver(
                 query: query,
                 arguments: ["roomId": roomId],
-                deliverOn: .main
+                deliverOn: .global(qos: .utility)
             ) { [weak self] result in
-                guard let self else { return }
+                // Parse off the main thread — no actor-isolated state touched here.
                 let messages = result.items.compactMap { Message(value: $0.value) }
-                self.handle(messages: messages, roomId: roomId, roomName: roomName)
+                // Hop to main for @MainActor state mutations and UNUserNotificationCenter.
+                DispatchQueue.main.async { [weak self] in
+                    self?.handle(messages: messages, roomId: roomId, roomName: roomName)
+                }
             }
             roomObservers[room.id] = observer
         } catch {

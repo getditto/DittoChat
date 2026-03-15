@@ -19,6 +19,8 @@
 		7873E58A2E68F5A2003DC9B2 /* DittoChatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 7873E5892E68F5A2003DC9B2 /* DittoChatUI */; };
 		78E90C082E6A1E3C00B01E9B /* DittoChatCore in Frameworks */ = {isa = PBXBuildFile; productRef = 78E90C072E6A1E3C00B01E9B /* DittoChatCore */; };
 		78E90C0A2E6A1E3C00B01E9B /* DittoChatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 78E90C092E6A1E3C00B01E9B /* DittoChatUI */; };
+		78FDF4202F65CE2A000D1840 /* DittoChatCore in Frameworks */ = {isa = PBXBuildFile; productRef = 78FDF41F2F65CE2A000D1840 /* DittoChatCore */; };
+		78FDF4222F65CE2A000D1840 /* DittoChatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 78FDF4212F65CE2A000D1840 /* DittoChatUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -56,7 +58,9 @@
 				0750235F2E985C0100AF7194 /* DittoChatCore in Frameworks */,
 				7873E5882E68F5A2003DC9B2 /* DittoChatCore in Frameworks */,
 				7873E57D2E68F4F1003DC9B2 /* DittoChatCore in Frameworks */,
+				78FDF4222F65CE2A000D1840 /* DittoChatUI in Frameworks */,
 				7873E57F2E68F4F1003DC9B2 /* DittoChatUI in Frameworks */,
+				78FDF4202F65CE2A000D1840 /* DittoChatCore in Frameworks */,
 				7873E5782E68F47B003DC9B2 /* DittoChatCore in Frameworks */,
 				78E90C0A2E6A1E3C00B01E9B /* DittoChatUI in Frameworks */,
 				7873E57A2E68F47B003DC9B2 /* DittoChatUI in Frameworks */,
@@ -117,6 +121,8 @@
 				78E90C092E6A1E3C00B01E9B /* DittoChatUI */,
 				0750235E2E985C0100AF7194 /* DittoChatCore */,
 				075023602E985C0100AF7194 /* DittoChatUI */,
+				78FDF41F2F65CE2A000D1840 /* DittoChatCore */,
+				78FDF4212F65CE2A000D1840 /* DittoChatUI */,
 			);
 			productName = DittoChatDemo;
 			productReference = 7873E55D2E68F35E003DC9B2 /* DittoChatDemo.app */;
@@ -147,6 +153,7 @@
 			mainGroup = 7873E5542E68F35E003DC9B2;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				78FDF41E2F65CE2A000D1840 /* XCRemoteSwiftPackageReference "DittoChat" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 7873E55E2E68F35E003DC9B2 /* Products */;
@@ -420,6 +427,17 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		78FDF41E2F65CE2A000D1840 /* XCRemoteSwiftPackageReference "DittoChat" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getditto/DittoChat";
+			requirement = {
+				branch = "feature/FORGE-740-Chat-Notifications";
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		0750235E2E985C0100AF7194 /* DittoChatCore */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -467,6 +485,16 @@
 		};
 		78E90C092E6A1E3C00B01E9B /* DittoChatUI */ = {
 			isa = XCSwiftPackageProductDependency;
+			productName = DittoChatUI;
+		};
+		78FDF41F2F65CE2A000D1840 /* DittoChatCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 78FDF41E2F65CE2A000D1840 /* XCRemoteSwiftPackageReference "DittoChat" */;
+			productName = DittoChatCore;
+		};
+		78FDF4212F65CE2A000D1840 /* DittoChatUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 78FDF41E2F65CE2A000D1840 /* XCRemoteSwiftPackageReference "DittoChat" */;
 			productName = DittoChatUI;
 		};
 /* End XCSwiftPackageProductDependency section */

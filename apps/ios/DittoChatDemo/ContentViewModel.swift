@@ -29,7 +29,7 @@ final class ContentViewModel: ObservableObject {
 
             dittoChat = try DittoChat.builder()
                 .setDitto(dittoInstance)
-                .setUserId(projectMetadata.ueerId)
+                .setUserId(projectMetadata.userId)
                 .build()
         } catch {
             #if DEBUG

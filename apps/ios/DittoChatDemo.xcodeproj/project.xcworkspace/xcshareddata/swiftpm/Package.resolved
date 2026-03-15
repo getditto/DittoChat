@@ -1,0 +1,42 @@
+{
+  "originHash" : "46b859b4f3b871f0739d5b4ee2be10ccf136be2912fff5ffce3e77a1af827074",
+  "pins" : [
+    {
+      "identity" : "dittochat",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/getditto/DittoChat",
+      "state" : {
+        "branch" : "feature/FORGE-740-Chat-Notifications",
+        "revision" : "b5576be0a6b7b81516c215b0a8da038355923ad4"
+      }
+    },
+    {
+      "identity" : "dittoswiftpackage",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/getditto/DittoSwiftPackage",
+      "state" : {
+        "revision" : "61b203cffc6a85c1c0d0987d1833d62eca7c549c",
+        "version" : "4.14.3"
+      }
+    },
+    {
+      "identity" : "fakery",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/vadymmarkov/Fakery",
+      "state" : {
+        "revision" : "71cb3bf36a808534659d1248780c2bf3c4c4fc91",
+        "version" : "5.1.0"
+      }
+    },
+    {
+      "identity" : "swift-collections",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-collections",
+      "state" : {
+        "revision" : "8d9834a6189db730f6264db7556a7ffb751e99ee",
+        "version" : "1.4.0"
+      }
+    }
+  ],
+  "version" : 3
+}
