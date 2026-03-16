@@ -35,6 +35,13 @@
         android:usesPermissionFlags="neverForLocation"
         tools:targetApi="tiramisu" />
 
+    <!-- Required to post notifications on Android 13+ (API 33+). The runtime permission
+         prompt is shown in MainActivity.requestPermissions(). On Android 12 and below
+         the permission is granted automatically and this declaration is a no-op. -->
+    <uses-permission
+        android:name="android.permission.POST_NOTIFICATIONS"
+        tools:targetApi="tiramisu" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
