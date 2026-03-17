@@ -10,9 +10,11 @@ import Combine
 import DittoSwift
 import DittoChatCore
 
+@MainActor
 final class ContentViewModel: ObservableObject {
 
     @Published private(set) var ditto: Ditto?
+    @Published private(set) var dittoChat: DittoChat?
     @Published private(set) var projectMetadata: ProjectMetadata
 
     init() {
@@ -24,6 +26,11 @@ final class ContentViewModel: ObservableObject {
         do {
             let dittoInstance = try dittoInstanceForProject(projectMetadata)
             ditto = dittoInstance
+
+            dittoChat = try DittoChat.builder()
+                .setDitto(dittoInstance)
+                .setUserId(projectMetadata.userId)
+                .build()
         } catch {
             #if DEBUG
             print("Error setting up Ditto: \(error)")
@@ -35,8 +42,7 @@ final class ContentViewModel: ObservableObject {
 
     nonisolated func dittoDirectory(forId projectId: String) throws -> URL {
         try FileManager.default.url(
-            for:
-            .applicationSupportDirectory,
+            for: .applicationSupportDirectory,
             in: .userDomainMask,
             appropriateFor: nil,
             create: true

@@ -1,12 +1,15 @@
 package com.ditto.dittochat
 
 import android.content.Context
+import android.os.Bundle
 import com.google.gson.Gson
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.UUID
 import javax.inject.Inject
@@ -30,10 +33,55 @@ interface DittoChat {
 
     suspend fun updateRoom(room: Room)
     fun logout()
+
+    // -----------------------------------------------------------------------------------------
+    // Push notifications
+    // -----------------------------------------------------------------------------------------
+
+    /**
+     * Optional delegate that receives callbacks for outgoing chat events so the host app
+     * can forward them to a push server (FCM). Held with a strong reference — the caller
+     * controls its lifetime.
+     */
+    var pushNotificationDelegate: DittoChatPushNotificationDelegate?
+
+    /**
+     * The FCM registration token set by [registerDeviceToken]. Null until the host app
+     * provides a token.
+     */
+    val deviceToken: String?
+
+    /**
+     * Stores the FCM registration token so it is available when building push payloads.
+     *
+     * Call this from your `FirebaseMessagingService.onNewToken` override:
+     * ```kotlin
+     * override fun onNewToken(token: String) {
+     *     dittoChat.registerDeviceToken(token)
+     * }
+     * ```
+     */
+    fun registerDeviceToken(token: String)
+
+    /**
+     * Interprets an incoming notification's extras and returns the navigation action.
+     *
+     * Pass the [Bundle] from `intent.extras` (in `Activity.onCreate` or `onNewIntent`):
+     * ```kotlin
+     * val action = dittoChat.handleNotification(intent.extras)
+     * when (action) {
+     *     is DittoChatNotificationAction.OpenRoom    -> navTo("chatroom/${action.roomId}")
+     *     is DittoChatNotificationAction.OpenMessage -> navTo("chatroom/${action.roomId}")
+     *     is DittoChatNotificationAction.None        -> { }
+     * }
+     * ```
+     */
+    fun handleNotification(extras: Bundle?): DittoChatNotificationAction
 }
 
 @Singleton
 class DittoChatImpl private constructor(
+    private val context: Context,
     private val ditto: live.ditto.Ditto?,
     override val retentionPolicy: ChatRetentionPolicy,
     private val usersCollection: String,
@@ -55,12 +103,59 @@ class DittoChatImpl private constructor(
             localStore.currentUserId = value
         }
 
+    // -----------------------------------------------------------------------------------------
+    // Push notifications
+    // -----------------------------------------------------------------------------------------
+
+    override var pushNotificationDelegate: DittoChatPushNotificationDelegate? = null
+    override var deviceToken: String? = null
+        private set
+
+    override fun registerDeviceToken(token: String) {
+        deviceToken = token
+    }
+
+    override fun handleNotification(extras: Bundle?): DittoChatNotificationAction {
+        val roomId = extras?.getString(DittoChatNotificationKey.ROOM_ID)
+            ?: return DittoChatNotificationAction.None
+        val messageId = extras.getString(DittoChatNotificationKey.MESSAGE_ID)
+        return if (messageId != null) {
+            DittoChatNotificationAction.OpenMessage(roomId, messageId)
+        } else {
+            DittoChatNotificationAction.OpenRoom(roomId)
+        }
+    }
+
+    // -----------------------------------------------------------------------------------------
+    // Notification manager
+    // -----------------------------------------------------------------------------------------
+
+    private val notificationManager = ChatNotificationManager(context, ditto!!, localStore)
+
+    /** Scope used solely to collect [publicRoomsFlow] and keep [notificationManager] in sync. */
+    private val notificationScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+    // -----------------------------------------------------------------------------------------
+    // Init
+    // -----------------------------------------------------------------------------------------
+
     init {
         userId?.let { setCurrentUser(UserConfig(it)) }
         userEmail?.let {
             // Setup roles subscription if needed
         }
+
+        // Keep ChatNotificationManager in sync with the live rooms list.
+        notificationScope.launch {
+            p2pStore.publicRoomsFlow.collect { rooms ->
+                notificationManager.syncRooms(rooms)
+            }
+        }
     }
+
+    // -----------------------------------------------------------------------------------------
+    // DittoChat interface
+    // -----------------------------------------------------------------------------------------
 
     override suspend fun createRoom(config: RoomConfig): String {
         val room = p2pStore.createRoom(config.id, config.name, config.isGenerated)
@@ -71,6 +166,7 @@ class DittoChatImpl private constructor(
     override suspend fun createMessage(config: MessageConfig) {
         val room = readRoomById(config.roomId)
         p2pStore.createMessage(room, config.message)
+        pushNotificationDelegate?.dittoChat(this, config.message, room)
     }
 
     override fun setCurrentUser(config: UserConfig) {
@@ -91,6 +187,8 @@ class DittoChatImpl private constructor(
     }
 
     override fun logout() {
+        notificationManager.stopAll()
+        notificationScope.cancel()
         p2pStore.logout()
     }
 
@@ -108,6 +206,7 @@ class DittoChatImpl private constructor(
 
     suspend fun createImageMessage(room: Room, imageData: ByteArray, text: String?) {
         p2pStore.createImageMessage(room, imageData, text)
+        pushNotificationDelegate?.dittoChat(this, room)
     }
 
     suspend fun saveEditedTextMessage(message: Message, room: Room) {
@@ -167,9 +266,25 @@ class DittoChatImpl private constructor(
     val peerKeyString: String
         get() = p2pStore.peerKeyString
 
-    // Builder Pattern
+    // -----------------------------------------------------------------------------------------
+    // Builder
+    // -----------------------------------------------------------------------------------------
+
+    /**
+     * Fluent builder for [DittoChatImpl].
+     *
+     * When using Hilt, inject [Builder] directly — [Context] is provided automatically.
+     * Without Hilt, use the [companion factory][DittoChatImpl.builder]:
+     * ```kotlin
+     * val chat = DittoChatImpl.builder(localStore, applicationContext)
+     *     .setDitto(ditto)
+     *     .setUserId(userId)
+     *     .build()
+     * ```
+     */
     class Builder @Inject constructor(
-        private val localStore: LocalData
+        private val localStore: LocalData,
+        @ApplicationContext private val context: Context
     ) {
         private var ditto: live.ditto.Ditto? = null
         var retentionPolicy: ChatRetentionPolicy = ChatRetentionPolicy(days = 30)
@@ -186,6 +301,7 @@ class DittoChatImpl private constructor(
             private set
         var primaryColor: String? = null
             private set
+        private var pushNotificationDelegate: DittoChatPushNotificationDelegate? = null
 
         fun setDitto(ditto: live.ditto.Ditto) = apply {
             this.ditto = ditto
@@ -223,6 +339,14 @@ class DittoChatImpl private constructor(
             this.primaryColor = color
         }
 
+        /**
+         * Sets the delegate that receives callbacks for outgoing chat events so the host app
+         * can forward them to a push server (FCM).
+         */
+        fun setPushNotificationDelegate(delegate: DittoChatPushNotificationDelegate?) = apply {
+            this.pushNotificationDelegate = delegate
+        }
+
         fun build(): DittoChatImpl {
             requireNotNull(ditto) { "Ditto instance is required" }
 
@@ -234,6 +358,7 @@ class DittoChatImpl private constructor(
             )
 
             return DittoChatImpl(
+                context = context,
                 ditto = ditto,
                 retentionPolicy = retentionPolicy,
                 usersCollection = usersCollection,
@@ -244,13 +369,16 @@ class DittoChatImpl private constructor(
                 primaryColor = primaryColor,
                 localStore = localStore,
                 p2pStore = dittoStore
-            )
+            ).also { impl ->
+                impl.pushNotificationDelegate = pushNotificationDelegate
+            }
         }
     }
 
     companion object {
-        fun builder(localStore: LocalData): Builder {
-            return Builder(localStore)
+        /** Non-Hilt factory. [context] should be the Application context. */
+        fun builder(localStore: LocalData, context: Context): Builder {
+            return Builder(localStore, context)
         }
     }
 }

@@ -1,5 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict/>
+<dict>
+    <!--
+    Background Modes
+    ================
+    bluetooth-central  — keeps Ditto's BLE transport alive so peer devices can push
+                         new messages to this device while it is backgrounded.
+    bluetooth-peripheral — allows this device to advertise itself to peers in background
+                           so they can discover and connect to it.
+    fetch              — lets iOS wake the app periodically so BGAppRefreshTask can give
+                         Ditto sync time on WiFi-only scenarios where no BLE event fires.
+    -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>bluetooth-central</string>
+        <string>bluetooth-peripheral</string>
+        <string>fetch</string>
+    </array>
+
+    <!--
+    BGTaskSchedulerPermittedIdentifiers
+    ====================================
+    Must list every task identifier passed to BGTaskScheduler.shared.register before
+    iOS will allow the app to schedule it. The identifier below is registered in
+    AppDelegate and used to request periodic background execution time.
+    -->
+    <key>BGTaskSchedulerPermittedIdentifiers</key>
+    <array>
+        <string>com.ditto.DittoChatDemo.refresh</string>
+    </array>
+</dict>
 </plist>
