@@ -128,10 +128,16 @@ public class DittoChat: DittoSwiftChat, ObservableObject {
         self.notificationManager = manager
 
         // Whenever the public rooms list changes, reconcile which rooms are being observed.
+        // Use Task { @MainActor in } rather than .receive(on: DispatchQueue.main) so that
+        // syncRooms — an @MainActor method — is entered through Swift's structured concurrency
+        // executor. In Xcode 26.4 / Swift 6.3, calling @MainActor methods via raw GCD from a
+        // nonisolated Combine sink triggers a runtime actor-isolation crash even when on the
+        // main thread.
         p2pStore.publicRoomsPublisher
-            .receive(on: DispatchQueue.main)
             .sink { [weak manager] rooms in
-                manager?.syncRooms(rooms)
+                Task { @MainActor [weak manager] in
+                    manager?.syncRooms(rooms)
+                }
             }
             .store(in: &cancellables)
 

@@ -21,13 +21,14 @@ extension Publisher where Output: Sendable {
     ) -> Publishers.FlatMap<Future<T, Error>, Self> {
         flatMap { value in
             Future { promise in
-                let box = SendableBox(promise)
+                let vBox = SendableBox(value)
+                let pBox = SendableBox(promise)
                 Task {
                     do {
-                        let output = try await transform(value)
-                        box.value(.success(output))
+                        let output = try await transform(vBox.value)
+                        pBox.value(.success(output))
                     } catch {
-                        box.value(.failure(error))
+                        pBox.value(.failure(error))
                     }
                 }
             }
@@ -39,10 +40,11 @@ extension Publisher where Output: Sendable {
     ) -> Publishers.FlatMap<Future<T, Never>, Self> {
         flatMap { value in
             Future { promise in
-                let box = SendableBox(promise)
+                let vBox = SendableBox(value)
+                let pBox = SendableBox(promise)
                 Task {
-                    let output = await transform(value)
-                    box.value(.success(output))
+                    let output = await transform(vBox.value)
+                    pBox.value(.success(output))
                 }
             }
         }
