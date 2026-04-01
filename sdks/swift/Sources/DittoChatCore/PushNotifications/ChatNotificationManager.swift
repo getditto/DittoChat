@@ -5,7 +5,7 @@
 //  Copyright © 2025 DittoLive Incorporated. All rights reserved.
 //
 
-import DittoSwift
+@preconcurrency import DittoSwift
 import Foundation
 import UserNotifications
 
@@ -29,8 +29,10 @@ import UserNotifications
 /// - Never for archived / deleted messages.
 /// - Each message ID is tracked in `notifiedMessageIds` so duplicate callbacks don't
 ///   produce duplicate banners.
+// @unchecked Sendable: all mutable state is @MainActor-isolated; the class is safe to
+// reference across concurrency boundaries even though the compiler can't verify it.
 @MainActor
-final class ChatNotificationManager {
+final class ChatNotificationManager: @unchecked Sendable {
 
     // MARK: - Private State
 
@@ -84,7 +86,6 @@ final class ChatNotificationManager {
     private func startObserving(room: Room) {
         guard let ditto, roomObservers[room.id] == nil else { return }
 
-        // Query the most recent 50 messages; no attachment tokens needed for text preview.
         let query = """
             SELECT * FROM `\(room.messagesId)`
             WHERE roomId == :roomId
@@ -92,34 +93,42 @@ final class ChatNotificationManager {
             LIMIT 50
             """
 
-        let roomId = room.id
-        let roomName = room.name
-
         do {
-            // deliverOn: .global() — deliver on a background thread so the callback fires
-            // immediately when Ditto's internal sync engine receives data, without needing
-            // the main RunLoop to iterate first. This is critical when the app is backgrounded:
-            // iOS keeps the main RunLoop alive for BLE-mode apps, but delivering directly on a
-            // global queue means callbacks are not queued behind any pending main-thread work.
-            //
-            // Message parsing (compactMap) happens on the background thread; only the actor-
-            // isolated state mutations hop to .main via DispatchQueue.main.async, which is
-            // lightweight and safe while the app has any background execution time.
-            let observer = try ditto.store.registerObserver(
-                query: query,
-                arguments: ["roomId": roomId],
-                deliverOn: .global(qos: .utility)
-            ) { [weak self] result in
-                // Parse off the main thread — no actor-isolated state touched here.
-                let messages = result.items.compactMap { Message(value: $0.value) }
-                // Hop to main for @MainActor state mutations and UNUserNotificationCenter.
-                DispatchQueue.main.async { [weak self] in
-                    self?.handle(messages: messages, roomId: roomId, roomName: roomName)
-                }
-            }
+            // registerObserver is called from a nonisolated helper so that the closure passed
+            // to Ditto is created in a nonisolated context. Swift 6.3 injects
+            // _swift_task_checkIsolatedSwift into the prologue of any closure created inside an
+            // @MainActor method — crashing when Ditto delivers the callback on utility-qos.
+            let observer = try makeObserver(store: ditto.store, query: query,
+                                            roomId: room.id, roomName: room.name,
+                                            owner: self)
             roomObservers[room.id] = observer
         } catch {
-            print("ChatNotificationManager: failed to register observer for room \(roomId): \(error)")
+            print("ChatNotificationManager: failed to register observer for room \(room.id): \(error)")
+        }
+    }
+
+    /// Creates and registers a Ditto store observer from a `nonisolated` context.
+    /// Closures defined here carry no `@MainActor` coloring, so Swift 6.3 does not inject
+    /// actor-isolation checks into their prologues. ChatNotificationManager: @unchecked Sendable
+    /// allows `owner` to cross the nonisolated boundary without region-isolation errors.
+    nonisolated private func makeObserver(
+        store: DittoStore,
+        query: String,
+        roomId: String,
+        roomName: String,
+        owner: ChatNotificationManager
+    ) throws -> DittoStoreObserver {
+        weak var weakOwner: ChatNotificationManager? = owner
+        return try store.registerObserver(query: query, arguments: ["roomId": roomId]) { result in
+            let messages = result.items.compactMap { Message(value: $0.value) }
+            // Snapshot the weak reference into an immutable let before crossing into the
+            // @MainActor closure. Swift 6.3 flags mutable (weak var) nonisolated variables
+            // captured by @MainActor closures as potential races; a let of a Sendable type
+            // (@unchecked Sendable ChatNotificationManager) is clean.
+            let owner = weakOwner
+            Task { @MainActor in
+                owner?.handle(messages: messages, roomId: roomId, roomName: roomName)
+            }
         }
     }
 

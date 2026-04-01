@@ -47,6 +47,11 @@ extension DittoStore {
 extension DittoStore {
 
     // Send mapped objects as an array
+    //
+    // NOTE: Despite `deliverOn: .main` being the default, the Ditto runtime delivers callbacks on
+    // an internal utility-qos thread in Xcode 26 / Swift 6.3. All callers use the result for
+    // @MainActor-isolated state (DittoService.allPublicRooms, ViewModel @Published properties),
+    // so we force delivery onto DispatchQueue.main here rather than relying on the Ditto parameter.
     func observePublisher<T: DittoDecodable>(query: String, arguments: [String : Any?]? = nil, deliverOn queue: DispatchQueue = .main, mapTo: T.Type) -> AnyPublisher<[T], Error> {
         let subject = PassthroughSubject<[T], Error>()
 
@@ -59,7 +64,7 @@ extension DittoStore {
             subject.send(completion: .failure(error))
         }
 
-        return subject.eraseToAnyPublisher()
+        return subject.receive(on: DispatchQueue.main).eraseToAnyPublisher()
     }
 
     // Send a mapped object as a single value instead of an array
@@ -76,6 +81,6 @@ extension DittoStore {
             subject.send(completion: .failure(error))
         }
 
-        return subject.eraseToAnyPublisher()
+        return subject.receive(on: DispatchQueue.main).eraseToAnyPublisher()
     }
 }
