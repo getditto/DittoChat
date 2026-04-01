@@ -121,10 +121,13 @@ final class ChatNotificationManager: @unchecked Sendable {
         weak var weakOwner: ChatNotificationManager? = owner
         return try store.registerObserver(query: query, arguments: ["roomId": roomId]) { result in
             let messages = result.items.compactMap { Message(value: $0.value) }
-            DispatchQueue.main.async {
-                MainActor.assumeIsolated {
-                    weakOwner?.handle(messages: messages, roomId: roomId, roomName: roomName)
-                }
+            // Snapshot the weak reference into an immutable let before crossing into the
+            // @MainActor closure. Swift 6.3 flags mutable (weak var) nonisolated variables
+            // captured by @MainActor closures as potential races; a let of a Sendable type
+            // (@unchecked Sendable ChatNotificationManager) is clean.
+            let owner = weakOwner
+            Task { @MainActor in
+                owner?.handle(messages: messages, roomId: roomId, roomName: roomName)
             }
         }
     }
