@@ -91,15 +91,20 @@ final class ChatNotificationManager {
             LIMIT 50
             """
 
+        // Pass self as nonisolated(unsafe) to remove it from the @MainActor region before
+        // it crosses into makeObserver. Swift 6.3 region isolation flags `self` as a sending
+        // value when it flows from an @MainActor method into a nonisolated one; the
+        // nonisolated(unsafe) local opts the reference out of that tracking entirely.
+        nonisolated(unsafe) let unsafeSelf: ChatNotificationManager = self
+
         do {
             // registerObserver is called from a nonisolated helper so that the closure passed
             // to Ditto is created in a nonisolated context. Swift 6.3 injects
             // _swift_task_checkIsolatedSwift into the prologue of any closure created inside an
-            // @MainActor method — even if all captures are nonisolated(unsafe) — crashing when
-            // Ditto delivers the callback on utility-qos. Moving closure creation into a
-            // nonisolated method removes that coloring entirely.
+            // @MainActor method — crashing when Ditto delivers the callback on utility-qos.
             let observer = try makeObserver(store: ditto.store, query: query,
-                                            roomId: room.id, roomName: room.name)
+                                            roomId: room.id, roomName: room.name,
+                                            owner: unsafeSelf)
             roomObservers[room.id] = observer
         } catch {
             print("ChatNotificationManager: failed to register observer for room \(room.id): \(error)")
@@ -113,14 +118,15 @@ final class ChatNotificationManager {
         store: DittoStore,
         query: String,
         roomId: String,
-        roomName: String
+        roomName: String,
+        owner: ChatNotificationManager
     ) throws -> DittoStoreObserver {
-        nonisolated(unsafe) weak var weakSelf: ChatNotificationManager? = self
+        nonisolated(unsafe) weak var weakOwner: ChatNotificationManager? = owner
         return try store.registerObserver(query: query, arguments: ["roomId": roomId]) { result in
             let messages = result.items.compactMap { Message(value: $0.value) }
             DispatchQueue.main.async {
                 MainActor.assumeIsolated {
-                    weakSelf?.handle(messages: messages, roomId: roomId, roomName: roomName)
+                    weakOwner?.handle(messages: messages, roomId: roomId, roomName: roomName)
                 }
             }
         }
