@@ -29,8 +29,10 @@ import UserNotifications
 /// - Never for archived / deleted messages.
 /// - Each message ID is tracked in `notifiedMessageIds` so duplicate callbacks don't
 ///   produce duplicate banners.
+// @unchecked Sendable: all mutable state is @MainActor-isolated; the class is safe to
+// reference across concurrency boundaries even though the compiler can't verify it.
 @MainActor
-final class ChatNotificationManager {
+final class ChatNotificationManager: @unchecked Sendable {
 
     // MARK: - Private State
 
@@ -91,12 +93,6 @@ final class ChatNotificationManager {
             LIMIT 50
             """
 
-        // Pass self as nonisolated(unsafe) to remove it from the @MainActor region before
-        // it crosses into makeObserver. Swift 6.3 region isolation flags `self` as a sending
-        // value when it flows from an @MainActor method into a nonisolated one; the
-        // nonisolated(unsafe) local opts the reference out of that tracking entirely.
-        nonisolated(unsafe) let unsafeSelf: ChatNotificationManager = self
-
         do {
             // registerObserver is called from a nonisolated helper so that the closure passed
             // to Ditto is created in a nonisolated context. Swift 6.3 injects
@@ -104,7 +100,7 @@ final class ChatNotificationManager {
             // @MainActor method — crashing when Ditto delivers the callback on utility-qos.
             let observer = try makeObserver(store: ditto.store, query: query,
                                             roomId: room.id, roomName: room.name,
-                                            owner: unsafeSelf)
+                                            owner: self)
             roomObservers[room.id] = observer
         } catch {
             print("ChatNotificationManager: failed to register observer for room \(room.id): \(error)")
@@ -113,7 +109,8 @@ final class ChatNotificationManager {
 
     /// Creates and registers a Ditto store observer from a `nonisolated` context.
     /// Closures defined here carry no `@MainActor` coloring, so Swift 6.3 does not inject
-    /// actor-isolation checks into their prologues.
+    /// actor-isolation checks into their prologues. ChatNotificationManager: @unchecked Sendable
+    /// allows `owner` to cross the nonisolated boundary without region-isolation errors.
     nonisolated private func makeObserver(
         store: DittoStore,
         query: String,
@@ -121,7 +118,7 @@ final class ChatNotificationManager {
         roomName: String,
         owner: ChatNotificationManager
     ) throws -> DittoStoreObserver {
-        nonisolated(unsafe) weak var weakOwner: ChatNotificationManager? = owner
+        weak var weakOwner: ChatNotificationManager? = owner
         return try store.registerObserver(query: query, arguments: ["roomId": roomId]) { result in
             let messages = result.items.compactMap { Message(value: $0.value) }
             DispatchQueue.main.async {
