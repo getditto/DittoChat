@@ -406,7 +406,10 @@ extension DittoChat {
     }
 
      func readMessagesForRoom(room: Room) {
-        // TODO: Implement
+        guard let userId = currentUserId else { return }
+        Task { @MainActor in
+            await p2pStore.markRoomAsRead(roomId: room.id, userId: userId)
+        }
     }
 
      func readMessagesForUser(user: ChatUser) {
@@ -517,6 +520,61 @@ extension DittoChat {
 
      func setCurrentUser(id: String) {
         currentUserId = id
+    }
+}
+
+// MARK: - Read Receipts & Unread Counts
+
+@MainActor
+extension DittoChat {
+
+    /// Emits the count of unread messages in `room` for the current user.
+    ///
+    /// Derived from the current user's `subscriptions[room.id]` last-read timestamp.
+    /// Messages authored by the current user and archived (tombstoned) messages are
+    /// excluded. If the user has no last-read timestamp for the room (never opened it
+    /// or not subscribed), the count is `0`.
+    public func unreadMessagesCountPublisher(for room: Room) -> AnyPublisher<Int, Never> {
+        Publishers.CombineLatest(
+            messagesPublisher(for: room, retentionDays: nil),
+            currentUserPublisher()
+        )
+        .map { messages, currentUser -> Int in
+            guard let user = currentUser,
+                  let lastRead = user.subscriptions[room.id] ?? nil else {
+                return 0
+            }
+            return messages.filter { msg in
+                !msg.isArchived
+                    && msg.userId != user.id
+                    && msg.createdOn > lastRead
+            }.count
+        }
+        .removeDuplicates()
+        .eraseToAnyPublisher()
+    }
+
+    /// Emits a `[userId: lastReadDate]` map describing which users have read up to
+    /// what point in `room`. A user appears in the map only if they have a non-nil
+    /// last-read timestamp for the room — i.e. they have opened it at least once
+    /// since the SDK started tracking reads.
+    ///
+    /// To render a "read by" indicator on a message, compare each user's last-read
+    /// date to the message's `createdOn`: if `lastRead >= createdOn`, the user has
+    /// seen the message.
+    public func readReceiptsPublisher(for room: Room) -> AnyPublisher<[String: Date], Never> {
+        allUsersPublisher()
+            .map { users -> [String: Date] in
+                var receipts: [String: Date] = [:]
+                for user in users {
+                    if let lastRead = user.subscriptions[room.id] ?? nil {
+                        receipts[user.id] = lastRead
+                    }
+                }
+                return receipts
+            }
+            .removeDuplicates()
+            .eraseToAnyPublisher()
     }
 }
 

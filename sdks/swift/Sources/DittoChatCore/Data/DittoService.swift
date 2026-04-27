@@ -213,6 +213,17 @@ extension DittoService {
             .removeDuplicates()
             .eraseToAnyPublisher()
     }
+
+    func markRoomAsRead(roomId: String, userId: String) async {
+        do {
+            let user = try await findUserById(userId, inCollection: usersKey)
+            var subs = user.subscriptions
+            subs[roomId] = Date()
+            updateUser(withId: userId, name: nil, subscriptions: subs, mentions: nil)
+        } catch {
+            print("markRoomAsRead Error: \(error)")
+        }
+    }
 }
 
 // MARK: Messages
