@@ -9,6 +9,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.UUID
@@ -33,6 +36,39 @@ interface DittoChat {
 
     suspend fun updateRoom(room: Room)
     fun logout()
+
+    // -----------------------------------------------------------------------------------------
+    // Read receipts & unread counts
+    // -----------------------------------------------------------------------------------------
+
+    /**
+     * Marks [roomId] as read for the current user by setting their
+     * `subscriptions[roomId]` to `Date()`. Subsequent calls to
+     * [unreadMessagesCountFlow] for that room emit `0` until new messages arrive.
+     */
+    suspend fun markRoomAsRead(roomId: String)
+
+    /**
+     * Emits the count of unread messages in [room] for the current user.
+     *
+     * Derived from the current user's `subscriptions[room.id]` last-read timestamp.
+     * Messages authored by the current user and archived messages are excluded.
+     * If the user has no last-read timestamp for the room (never opened it or not
+     * subscribed), the count is `0`.
+     */
+    fun unreadMessagesCountFlow(room: Room): Flow<Int>
+
+    /**
+     * Emits a `Map<userId, lastReadDate>` describing which users have read up to
+     * what point in [room]. A user appears in the map only if they have a non-null
+     * last-read timestamp for the room — i.e. they have opened it at least once
+     * since the SDK started tracking reads.
+     *
+     * To render a "read by" indicator on a message, compare each user's last-read
+     * date to the message's `createdOn`: if `lastRead >= createdOn`, the user has
+     * seen the message.
+     */
+    fun readReceiptsFlow(room: Room): Flow<Map<String, Date>>
 
     // -----------------------------------------------------------------------------------------
     // Push notifications
@@ -190,6 +226,45 @@ class DittoChatImpl private constructor(
         notificationManager.stopAll()
         notificationScope.cancel()
         p2pStore.logout()
+    }
+
+    // -----------------------------------------------------------------------------------------
+    // Read receipts & unread counts
+    // -----------------------------------------------------------------------------------------
+
+    override suspend fun markRoomAsRead(roomId: String) {
+        val userId = currentUserId ?: return
+        try {
+            val user = p2pStore.findUserById(userId, usersCollection)
+            val subs = user.subscriptions?.toMutableMap() ?: mutableMapOf()
+            subs[roomId] = Date()
+            p2pStore.updateUser(id = userId, subscriptions = subs)
+        } catch (e: Exception) {
+            // User not found yet — nothing to mark as read.
+        }
+    }
+
+    override fun unreadMessagesCountFlow(room: Room): Flow<Int> {
+        return combine(
+            p2pStore.messagesFlow(room, null),
+            p2pStore.currentUserFlow()
+        ) { messages, currentUser ->
+            val user = currentUser ?: return@combine 0
+            val lastRead = user.subscriptions?.get(room.id) ?: return@combine 0
+            messages.count { msg ->
+                !msg.isArchived
+                    && msg.userId != user.id
+                    && (DateUtils.fromISOString(msg.createdOn)?.after(lastRead) == true)
+            }
+        }.distinctUntilChanged()
+    }
+
+    override fun readReceiptsFlow(room: Room): Flow<Map<String, Date>> {
+        return p2pStore.allUsersFlow().map { users ->
+            users.mapNotNull { user ->
+                user.subscriptions?.get(room.id)?.let { date -> user.id to date }
+            }.toMap()
+        }.distinctUntilChanged()
     }
 
     fun archiveRoom(room: Room) {

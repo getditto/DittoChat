@@ -45,5 +45,7 @@ protocol DittoDataInterface {
     func currentUserPublisher() -> AnyPublisher<ChatUser?, Never>
     func allUsersPublisher() -> AnyPublisher<[ChatUser], Never>
 
+    func markRoomAsRead(roomId: String, userId: String) async
+
     func logout()
 }
