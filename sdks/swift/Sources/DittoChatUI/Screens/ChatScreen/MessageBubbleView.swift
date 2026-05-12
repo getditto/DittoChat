@@ -13,6 +13,14 @@ import DittoSwift
 import SwiftUI
 import DittoChatCore
 
+internal func canEditMessage(isEditing: Bool, isImageMessage: Bool, isAdmin: Bool) -> Bool {
+    !isEditing && !isImageMessage && isAdmin
+}
+
+internal func canDeleteMessage(isEditing: Bool, isAdmin: Bool) -> Bool {
+    !isEditing && isAdmin
+}
+
 struct MessageBubbleView: View {
     @StateObject var errorHandler: ErrorHandler = ErrorHandler()
     @StateObject private var viewModel: MessageBubbleVM
@@ -20,7 +28,7 @@ struct MessageBubbleView: View {
     @Binding var isEditing: Bool
     let messageUser: MessageWithUser
     var messageOpCallback: ((MessageOperation, Message) -> Void)?
-    private let dittoChat: DittoChat
+    @ObservedObject private var dittoChat: DittoChat
 
     init(
         messageWithUser: MessageWithUser,
@@ -284,13 +292,11 @@ struct MessageBubbleView: View {
     }
 
     private func canEdit() -> Bool {
-        guard !isEditing else { return false }
-        return isSelfUser && !isImageMessage && dittoChat.hasAdminPrivileges
+        canEditMessage(isEditing: isEditing, isImageMessage: isImageMessage, isAdmin: dittoChat.isAdmin)
     }
-        
+
     private func canDelete() -> Bool {
-        guard !isEditing else { return false }
-        return isSelfUser && dittoChat.hasAdminPrivileges
+        canDeleteMessage(isEditing: isEditing, isAdmin: dittoChat.isAdmin)
     }
 }
 

@@ -5,7 +5,6 @@ import React, { useEffect, useMemo, useState } from 'react'
 
 import { useImageAttachment } from '../hooks/useImageAttachment'
 import { formatDate } from '../utils'
-import { usePermissions } from '../utils/usePermissions'
 import { Icons } from './Icons'
 import QuickReaction from './QuickReaction'
 import * as Dialog from './ui/Dialog'
@@ -111,13 +110,6 @@ function MessageBubble({
   onAddReaction,
   onRemoveReaction,
 }: MessageBubbleProps) {
-  const {
-    canEditOwnMessage,
-    canDeleteOwnMessage,
-    canAddReaction,
-    canRemoveOwnReaction,
-  } = usePermissions()
-
   const thumbnailToken = useMemo(
     () =>
       message.thumbnailImageToken
@@ -431,21 +423,18 @@ function MessageBubble({
                 isActionsVisible ? 'opacity-100' : 'opacity-0'
               }`}
             >
-              {canEditOwnMessage && (
-                <button
-                  onClick={() => {
-                    onStartEdit(message)
-                    setIsActionsVisible(false)
-                  }}
-                  disabled={message.isDeleted || hasImage || hasFile}
-                  className="p-1 rounded-full hover:bg-(--dc-secondary-bg-hover) text-(--dc-text-color-lightest) disabled:opacity-50 disabled:cursor-not-allowed outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
-                  aria-label="Edit message"
-                >
-                  <Icons.edit3 className="w-5 h-5" />
-                </button>
-              )}
-              {(canEditOwnMessage || canDeleteOwnMessage) && (
-                <DropdownMenu.Root
+              <button
+                onClick={() => {
+                  onStartEdit(message)
+                  setIsActionsVisible(false)
+                }}
+                disabled={message.isDeleted || hasImage || hasFile}
+                className="p-1 rounded-full hover:bg-(--dc-secondary-bg-hover) text-(--dc-text-color-lightest) disabled:opacity-50 disabled:cursor-not-allowed outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color)"
+                aria-label="Edit message"
+              >
+                <Icons.edit3 className="w-5 h-5" />
+              </button>
+              <DropdownMenu.Root
                   onOpenChange={(open) => {
                     if (open) {
                       setIsActionsVisible(true)
@@ -470,29 +459,23 @@ function MessageBubble({
                       align="end"
                       sideOffset={5}
                     >
-                      {!message.isDeleted &&
-                        canEditOwnMessage &&
-                        !hasImage &&
-                        !hasFile && (
-                          <DropdownMenu.Item
-                            onSelect={() => onStartEdit(message)}
-                            className="w-full text-left px-4 py-2 text-sm hover:bg-(--dc-secondary-bg) outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color) rounded cursor-pointer"
-                          >
-                            Edit message
-                          </DropdownMenu.Item>
-                        )}
-                      {canDeleteOwnMessage && (
+                      {!message.isDeleted && !hasImage && !hasFile && (
                         <DropdownMenu.Item
-                          onSelect={handleDelete}
-                          className="w-full text-left px-4 py-2 text-sm text-(--dc-danger-text) hover:bg-(--dc-secondary-bg) outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color) rounded cursor-pointer"
+                          onSelect={() => onStartEdit(message)}
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-(--dc-secondary-bg) outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color) rounded cursor-pointer"
                         >
-                          Delete message
+                          Edit message
                         </DropdownMenu.Item>
                       )}
+                      <DropdownMenu.Item
+                        onSelect={handleDelete}
+                        className="w-full text-left px-4 py-2 text-sm text-(--dc-danger-text) hover:bg-(--dc-secondary-bg) outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color) rounded cursor-pointer"
+                      >
+                        Delete message
+                      </DropdownMenu.Item>
                     </DropdownMenu.Content>
                   </DropdownMenu.Portal>
                 </DropdownMenu.Root>
-              )}
             </div>
           )}
         </div>
@@ -508,16 +491,16 @@ function MessageBubble({
               <button
                 key={reaction.emoji}
                 onClick={() =>
-                  canRemoveOwnReaction && userHasReacted
+                  userHasReacted
                     ? onRemoveReaction(message, currentUserId, reaction.emoji)
                     : undefined
                 }
-                disabled={!canRemoveOwnReaction || !userHasReacted}
+                disabled={!userHasReacted}
                 className={`text-xs px-2 py-0.5 rounded-full flex items-center space-x-1 transition-colors ${
                   userHasReacted
                     ? 'bg-(--dc-primary-color-lighter) border border-(--dc-primary-color-light-border) cursor-pointer'
                     : 'bg-(--dc-secondary-bg-hover) hover:bg-(--dc-disabled-bg)'
-                } ${!canRemoveOwnReaction && userHasReacted ? 'cursor-not-allowed' : ''}`}
+                }`}
               >
                 <span>{reaction.emoji}</span>
                 <span
@@ -532,13 +515,11 @@ function MessageBubble({
               </button>
             )
           })}
-          {canAddReaction && (
-            <QuickReaction
-              onSelect={handleAddReactionClick}
-              disabled={message.isDeleted}
-              isOwnMessage={isOwnMessage}
-            />
-          )}
+          <QuickReaction
+            onSelect={handleAddReactionClick}
+            disabled={message.isDeleted}
+            isOwnMessage={isOwnMessage}
+          />
         </div>
 
         {showLargeImage && (largeImageUrl || thumbnailUrl) && (

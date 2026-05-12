@@ -9,7 +9,6 @@ import { clsx } from 'clsx'
 import React, { useEffect, useRef, useState } from 'react'
 
 import { useImageAttachment } from '../hooks/useImageAttachment'
-import { usePermissions } from '../utils/usePermissions'
 import Avatar from './Avatar'
 import { Icons } from './Icons'
 import * as Popover from './ui/Popover'
@@ -79,7 +78,6 @@ function MessageInput({
 }: MessageInputProps) {
   const users: ChatUser[] = useDittoChatStore((state) => state.allUsers)
   const fetchAttachment = useDittoChatStore((state) => state.fetchAttachment)
-  const { canMentionUsers } = usePermissions()
   const [text, setText] = useState('')
   const [mentions, setMentions] = useState<Mention[]>([])
   const [isAttachMenuOpen, setIsAttachMenuOpen] = useState(false)
@@ -254,12 +252,6 @@ function MessageInput({
     setText(newText)
 
     // Part 2: Check if a new mention is being typed
-
-    // Only allow mentions if user has permission
-    if (!canMentionUsers) {
-      setIsMentioning(false)
-      return
-    }
 
     const cursorPosition = e.target.selectionStart
     const textBeforeCursor = newText.substring(0, cursorPosition)

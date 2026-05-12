@@ -9,10 +9,7 @@
 - [Comment Rooms (Generated Rooms)](#comment-rooms-generated-rooms)
   - [Creating a Comment Room](#creating-a-comment-room)
   - [Subscribing to Messages](#subscribing-to-messages)
-- [Role-Based Access Control (RBAC)](#role-based-access-control-rbac)
-  - [Available Permissions](#available-permissions)
-  - [Configuring Permissions](#configuring-permissions)
-  - [Checking Permissions](#checking-permissions)
+- [Admin Flag](#admin-flag)
 - [Notifications](#notifications)
   - [Notification Handler](#notification-handler)
   - [Default Behavior](#default-behavior)
@@ -158,62 +155,23 @@ useEffect(() => {
 }, [isCommentsOpen, commentRoomId])
 ```
 
-## Role-Based Access Control (RBAC)
+## Admin Flag
 
-DittoChatCore includes a built-in RBAC system that allows you to control user permissions for various chat actions. By default, all permissions are enabled.
-
-### Available Permissions
-
-| Permission             | Description               | Default |
-| ---------------------- | ------------------------- | ------- |
-| `canCreateRoom`        | Create new chat rooms     | `true`  |
-| `canEditOwnMessage`    | Edit own messages         | `true`  |
-| `canDeleteOwnMessage`  | Delete own messages       | `true`  |
-| `canAddReaction`       | Add reactions to messages | `true`  |
-| `canRemoveOwnReaction` | Remove own reactions      | `true`  |
-| `canMentionUsers`      | Mention users in messages | `true`  |
-| `canSubscribeToRoom`   | Subscribe to chat rooms   | `true`  |
-
-### Configuring Permissions
-
-You can configure permissions when initializing the chat or update them dynamically:
+DittoChatCore exposes a single non-nullable `isAdmin: boolean` flag (defaulting to `false`) for admin moderation. Pass the initial value via `DittoConfParams`; mutate at runtime via the store's `setIsAdmin` action or by changing the `isAdmin` prop on `<DittoChatUI>` (a `useEffect` keeps prop and store in sync).
 
 ```typescript
 import { useDittoChat, useDittoChatStore } from '@dittolive/ditto-chat-core'
 
-// Configure permissions during initialization
-const chat = useDittoChat({
+useDittoChat({
   ditto: dittoInstance,
   userId: currentUserId,
   userCollectionKey: userCollectionKey,
-  rbacConfig: {
-    canCreateRoom: false, // Disable room creation
-    canMentionUsers: false, // Disable user mentions
-    canDeleteOwnMessage: true, // Allow deleting own messages
-  },
+  isAdmin: true, // optional, defaults to false
 })
 
-// Or update permissions dynamically
-const updateRBACConfig = useDittoChatStore((state) => state.updateRBACConfig)
-
-updateRBACConfig({
-  canEditOwnMessage: false, // Disable message editing
-})
+// Imperative update at runtime
+useDittoChatStore.getState().setIsAdmin(false)
 ```
-
-### Checking Permissions
-
-You can check if a user has permission to perform an action:
-
-```typescript
-const canPerformAction = useDittoChatStore((state) => state.canPerformAction)
-
-if (canPerformAction('canCreateRoom')) {
-  // Show create room button
-}
-```
-
-**Note:** When a permission is denied, the action will fail silently with a warning logged to the console. The UI layer should check permissions before displaying action buttons to provide better UX.
 
 ## Notifications
 

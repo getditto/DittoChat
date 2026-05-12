@@ -10,7 +10,6 @@ import { MeasuredCellParent } from 'react-virtualized/dist/es/CellMeasurer'
 import { GridCoreProps } from 'react-virtualized/dist/es/Grid'
 
 import type { Chat } from '../types'
-import { usePermissions } from '../utils/usePermissions'
 import ChatListItem from './ChatListItem'
 import { Icons } from './Icons'
 import * as DropdownMenu from './ui/DropdownMenu'
@@ -33,8 +32,6 @@ function ChatList({
   const currentUserId = useDittoChatStore<string>(
     (state) => state.currentUser?._id || '',
   )
-  const { canCreateRoom } = usePermissions()
-
   // search state moved outside for brevity - keep your useState if needed
   const [searchTerm, setSearchTerm] = React.useState('')
 
@@ -120,12 +117,11 @@ function ChatList({
           <div ref={containerRef} className="flex w-full group">
             <button
               onClick={() => onNewMessage('newMessage')}
-              className={`w-full bg-(--dc-primary-color) text-(--dc-text-on-primary) font-semibold py-3 ${canCreateRoom ? 'rounded-l-xl' : 'rounded-xl'} hover:bg-(--dc-primary-color-hover) outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color) transition-colors`}
+              className={`w-full bg-(--dc-primary-color) text-(--dc-text-on-primary) font-semibold py-3 rounded-l-xl hover:bg-(--dc-primary-color-hover) outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color) transition-colors`}
             >
               New Message
             </button>
-            {canCreateRoom && (
-              <DropdownMenu.Root>
+            <DropdownMenu.Root>
                 <DropdownMenu.Trigger asChild>
                   <button
                     className="relative inline-flex items-center px-3 py-3 bg-(--dc-primary-color) rounded-r-xl text-(--dc-text-on-primary) hover:bg-(--dc-primary-color-hover) focus:z-10 outline-none focus:outline-none focus-visible:ring-(--dc-ring-color) focus-visible:ring-[3px] focus:ring-offset-1 ring-offset-(--dc-surface-color) border-l border-white/20 transition-colors"
@@ -150,7 +146,6 @@ function ChatList({
                   </DropdownMenu.Content>
                 </DropdownMenu.Portal>
               </DropdownMenu.Root>
-            )}
           </div>
         </div>
 

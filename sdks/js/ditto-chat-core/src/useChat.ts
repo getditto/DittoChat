@@ -4,7 +4,7 @@ import {
   StoreObserver,
   SyncSubscription,
 } from '@dittolive/ditto'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useStore } from 'zustand'
 import { useShallow } from 'zustand/react/shallow'
 import { createStore, StoreApi } from 'zustand/vanilla'
@@ -15,9 +15,7 @@ import {
   createMessageSlice,
   MessageSlice,
 } from './slices/useMessages'
-import { createRBACSlice, RBACSlice } from './slices/useRBAC'
 import { createRoomSlice, RoomSlice } from './slices/useRooms'
-import { RBACConfig } from './types/RBAC'
 import type { RetentionConfig } from './types/Retention'
 
 export type DittoConfParams = {
@@ -25,7 +23,7 @@ export type DittoConfParams = {
   userId: string
   userCollectionKey: string
   retention?: RetentionConfig
-  rbacConfig?: RBACConfig
+  isAdmin?: boolean
   notificationHandler?: (title: string, description: string) => void
 }
 
@@ -37,8 +35,9 @@ export type CreateSlice<T> = (
 
 export type ChatStore = RoomSlice &
   ChatUserSlice &
-  MessageSlice &
-  RBACSlice & {
+  MessageSlice & {
+    isAdmin: boolean
+    setIsAdmin: (isAdmin: boolean) => void
     activeRoomId: string | number | null
     fetchAttachment: (
       token: AttachmentToken,
@@ -71,7 +70,8 @@ export function useDittoChat(params: DittoConfParams) {
           ...createRoomSlice(set, get, params),
           ...createChatUserSlice(set, get, params),
           ...createMessageSlice(set, get, params),
-          ...createRBACSlice(set, get, params),
+          isAdmin: params.isAdmin ?? false,
+          setIsAdmin: (isAdmin: boolean) => set({ isAdmin }),
           activeRoomId: null,
           setActiveRoomId: (roomId) => set({ activeRoomId: roomId }),
           chatLogout: () => {
@@ -96,6 +96,12 @@ export function useDittoChat(params: DittoConfParams) {
     }
     return globalThis.__DITTO_CHAT_STORE__
   }, [params])
+
+  // Sync the declarative `isAdmin` prop into the store so consumers can update
+  // a user's admin status by changing the prop without rebuilding the chat.
+  useEffect(() => {
+    store.getState().setIsAdmin(params.isAdmin ?? false)
+  }, [store, params.isAdmin])
 
   return useStore(store)
 }

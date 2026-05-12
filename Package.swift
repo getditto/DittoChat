@@ -37,7 +37,7 @@ let package = Package(
         ),
         .testTarget(
             name: "DittoChatPackageTests",
-            dependencies: ["DittoChatCore"],
+            dependencies: ["DittoChatCore", "DittoChatUI"],
             path: "sdks/swift/Tests",
         ),
     ]

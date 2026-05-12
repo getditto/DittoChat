@@ -4,7 +4,6 @@ import { createStore } from 'zustand'
 import { createRoomSlice } from '../src/slices/useRooms'
 import { createChatUserSlice } from '../src/slices/useChatUser'
 import { createMessageSlice } from '../src/slices/useMessages'
-import { createRBACSlice } from '../src/slices/useRBAC'
 import { ChatStore, resetChatStore } from '../src/useChat'
 
 // Reset the global store between tests for proper test isolation
@@ -91,7 +90,8 @@ export const createTestStore = (mockDitto: MockDitto | null) => {
         ...createRoomSlice(set, get, params),
         ...createChatUserSlice(set, get, params),
         ...createMessageSlice(set, get, params),
-        ...createRBACSlice(set, get, params),
+        isAdmin: false,
+        setIsAdmin: (isAdmin: boolean) => set({ isAdmin } as any),
         activeRoomId: null,
         setActiveRoomId: (roomId: string | number | null) =>
           set({ activeRoomId: roomId }),
