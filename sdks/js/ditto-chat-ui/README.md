@@ -39,15 +39,7 @@ const MyChatApp = () => {
         userCollectionKey="my-users"
         userId="user123"
         theme="auto"
-        rbacConfig={{
-          canCreateRoom: true,
-          canEditOwnMessage: true,
-          canDeleteOwnMessage: false,
-          canAddReaction: true,
-          canRemoveOwnReaction: true,
-          canMentionUsers: true,
-          canSubscribeToRoom: true,
-        }}
+        isAdmin={true}
         notificationHandler={(title, description) => {
           toast.info(title, {
             description,
@@ -69,7 +61,7 @@ The `DittoChatUI` component accepts the following props:
 - `userCollectionKey`: (Required) A string representing the key for the Ditto collection where user information is stored.
 - `userId`: (Required) A string representing the ID of the current user.
 - `theme`: (Optional) Theme configuration. Can be a mode string (`"light"`, `"dark"`, or `"auto"`) or a custom `Theme` object. Default is `"light"`.
-- `rbacConfig`: (Optional) Role-Based Access Control configuration object to control user permissions. See the [RBAC section in DittoChatCore](../ditto-chat-core/README.md#role-based-access-control-rbac) for available permissions and detailed documentation.
+- `isAdmin`: (Optional) Boolean flag indicating whether the current user has admin privileges. Defaults to `false`. Mutating this prop at runtime is supported — a `useEffect` inside `useDittoChat` syncs prop changes into the store.
 - `notificationHandler`: (Optional) A callback function to handle chat notifications. Receives `title` and `description` parameters. If not provided, the component uses a default toast notification handler. See the [Notifications section](#notifications) for more details.
 
 ## Theming
@@ -211,80 +203,9 @@ import { ChatView } from '@dittolive/ditto-chat-ui'
 
 For detailed documentation on **creating** comment rooms and managing their state, see the [DittoChatCore Comment Rooms documentation](../ditto-chat-core/README.md#comment-rooms-generated-rooms).
 
-## Role-Based Access Control (RBAC)
+## Admin Flag
 
-The `DittoChatUI` component includes a built-in RBAC system that allows you to control user permissions for various chat actions through the `rbacConfig` prop.
-
-### Available Permissions
-
-| Permission             | Description               | Default | UI Impact                                    |
-| ---------------------- | ------------------------- | ------- | -------------------------------------------- |
-| `canCreateRoom`        | Create new chat rooms     | `true`  | Shows/hides "New Room" button in chat list   |
-| `canEditOwnMessage`    | Edit own messages         | `true`  | Shows/hides edit button on user's messages   |
-| `canDeleteOwnMessage`  | Delete own messages       | `true`  | Shows/hides delete button on user's messages |
-| `canAddReaction`       | Add reactions to messages | `true`  | Enables/disables reaction picker on messages |
-| `canRemoveOwnReaction` | Remove own reactions      | `true`  | Enables/disables removing user's reactions   |
-| `canMentionUsers`      | Mention users in messages | `true`  | Enables/disables @ mentions in message input |
-| `canSubscribeToRoom`   | Subscribe to chat rooms   | `true`  | Controls room subscription functionality     |
-
-### Default Behavior
-
-If no `rbacConfig` is provided, all permissions default to `true`, giving users full access to all chat features.
-
-### Configuration Examples
-
-#### Restrict Room Creation
-
-```javascript
-<DittoChatUI
-  ditto={ditto}
-  userCollectionKey="my-users"
-  userId="user123"
-  rbacConfig={{
-    canCreateRoom: false, // Users cannot create new rooms
-  }}
-/>
-```
-
-#### Read-Only Chat Experience
-
-```javascript
-<DittoChatUI
-  ditto={ditto}
-  userCollectionKey="my-users"
-  userId="user123"
-  rbacConfig={{
-    canCreateRoom: false,
-    canEditOwnMessage: false,
-    canDeleteOwnMessage: false,
-    canAddReaction: false,
-    canMentionUsers: false,
-  }}
-/>
-```
-
-#### Moderator Permissions
-
-```javascript
-<DittoChatUI
-  ditto={ditto}
-  userCollectionKey="my-users"
-  userId="user123"
-  rbacConfig={{
-    canCreateRoom: true,
-    canEditOwnMessage: true,
-    canDeleteOwnMessage: true,
-    canAddReaction: true,
-    canRemoveOwnReaction: true,
-    canMentionUsers: true,
-    canSubscribeToRoom: true,
-  }}
-/>
-```
-
-### Dynamic Permission Updates
-
-For advanced use cases where permissions need to change dynamically, see the [DittoChatCore RBAC documentation](../ditto-chat-core/README.md#role-based-access-control-rbac) for information on updating permissions at runtime.
+`<DittoChatUI>` takes an optional `isAdmin: boolean` prop (default `false`). The prop can change at runtime — a `useEffect` inside `useDittoChat` syncs prop changes into the underlying Zustand store, so consumers can update a user's admin status without rebuilding the chat. For imperative updates from outside the React tree, call `useDittoChatStore.getState().setIsAdmin(...)` directly. See [DittoChatCore's Admin Flag section](../ditto-chat-core/README.md#admin-flag) for details.
 
 ## Contributing
 

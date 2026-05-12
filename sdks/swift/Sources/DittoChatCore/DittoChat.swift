@@ -64,27 +64,16 @@ public struct ChatRetentionPolicy {
     }
 }
 
-struct AdminRole: DittoDecodable {
-    init(value: [String : Any?]) {
-        _id = value["_id"] as? String
-        email = value["email"] as? String
-    }
-
-    public var _id: String?
-    public var email: String?
-}
-
 @MainActor
 public class DittoChat: DittoSwiftChat, ObservableObject {
     @Published private(set) public var publicRoomsPublisher: AnyPublisher<[Room], Never>
     public var retentionPolicy: ChatRetentionPolicy = .init(days: 30)
     public var acceptLargeImages: Bool
     public var primaryColor: String?
-    public var hasAdminPrivileges: Bool {
-        return !roles.isEmpty
+    @Published public var isAdmin: Bool
+    public var isAdminPublisher: AnyPublisher<Bool, Never> {
+        $isAdmin.eraseToAnyPublisher()
     }
-    private var rolesCancellable: AnyCancellable?
-    private var roles: [AdminRole] = []
 
     /// The delegate that receives callbacks for outgoing chat events that should trigger
     /// a push notification. Held weakly — the caller is responsible for retaining it.
@@ -108,7 +97,7 @@ public class DittoChat: DittoSwiftChat, ObservableObject {
         retentionPolicy: ChatRetentionPolicy,
         usersCollection: String,
         userId: String?,
-        userEmail: String?,
+        isAdmin: Bool,
         acceptLargeImages: Bool,
         primaryColor: String?,
         pushNotificationDelegate: DittoChatPushNotificationDelegate?
@@ -116,6 +105,7 @@ public class DittoChat: DittoSwiftChat, ObservableObject {
         let localStore: LocalService = LocalService()
         self.acceptLargeImages = acceptLargeImages
         self.primaryColor = primaryColor
+        self.isAdmin = isAdmin
         self.localStore = localStore
         self.p2pStore = DittoService(privateStore: localStore, ditto: ditto, usersCollection: usersCollection, chatRetentionPolicy: retentionPolicy)
         self.publicRoomsPublisher = p2pStore.publicRoomsPublisher.eraseToAnyPublisher()
@@ -143,13 +133,6 @@ public class DittoChat: DittoSwiftChat, ObservableObject {
 
         if let userId = userId {
             self.setCurrentUser(withConfig: UserConfig(id: userId))
-        }
-        if let email = userEmail {
-            do {
-                try setupRolesSubscription(email: email)
-            } catch {
-                // TODO: Handle errors
-            }
         }
     }
 
@@ -210,25 +193,6 @@ public class DittoChat: DittoSwiftChat, ObservableObject {
         return room
     }
 
-    func setupRolesSubscription(email: String) throws {
-        try p2pStore.ditto?.sync.registerSubscription(
-            query: "SELECT * FROM `roles` WHERE email = :email",
-            arguments: ["email": email]
-        )
-
-        rolesCancellable = p2pStore.ditto?.store
-            .observePublisher(
-                query: "SELECT * FROM `roles` WHERE email = :email",
-                arguments: ["email": email],
-                mapTo: AdminRole.self
-            )
-            .catch { error in
-                assertionFailure("ERROR with \(#function)" + error.localizedDescription)
-                return Empty<[AdminRole], Never>()
-            }
-            .assign(to: \.roles, on: self)
-    }
-
     public func allUsersPublisher() -> AnyPublisher<[ChatUser], Never> {
         p2pStore.allUsersPublisher()
     }
@@ -279,7 +243,7 @@ public class DittoChatBuilder {
     private var retentionPolicy: ChatRetentionPolicy = .init(days: 30)
     private var usersCollection: String = "users"
     private var userId: String?
-    private var userEmail: String?
+    internal var isAdmin: Bool = false
     private var acceptLargeImages: Bool = true
     private var primaryColor: String?
     private var pushNotificationDelegate: DittoChatPushNotificationDelegate?
@@ -317,8 +281,8 @@ public class DittoChatBuilder {
     }
 
     @discardableResult
-    public func setUserEmail(_ email: String?) -> DittoChatBuilder {
-        self.userEmail = email
+    public func setIsAdmin(_ isAdmin: Bool) -> DittoChatBuilder {
+        self.isAdmin = isAdmin
         return self
     }
 
@@ -354,7 +318,7 @@ public class DittoChatBuilder {
             retentionPolicy: retentionPolicy,
             usersCollection: usersCollection,
             userId: userId,
-            userEmail: userEmail,
+            isAdmin: isAdmin,
             acceptLargeImages: acceptLargeImages,
             primaryColor: primaryColor,
             pushNotificationDelegate: pushNotificationDelegate

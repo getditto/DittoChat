@@ -319,5 +319,5 @@ Once you have the app running on two or more devices:
 If you run into issues:
 
 - **GitHub Issues:** [github.com/getditto/DittoChat/issues](https://github.com/getditto/DittoChat/issues)
-- **Ditto Support:** [support@ditto.live](mailto:support@ditto.live)
+- **Ditto Support:** [support@ditto.com](mailto:support@ditto.com)
 - **Documentation:** [docs.ditto.live](https://docs.ditto.live)

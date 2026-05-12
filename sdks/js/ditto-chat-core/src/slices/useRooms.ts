@@ -216,12 +216,6 @@ export const createRoomSlice: CreateSlice<RoomSlice> = (
      * @returns Promise resolving to the created Room object, or undefined if permission denied
      */
     createRoom(name: string, options?: CreateRoomOptions) {
-      // Check create room permission
-      if (!_get().canPerformAction('canCreateRoom')) {
-        console.warn('Permission denied: canCreateRoom is false')
-        return Promise.resolve(undefined)
-      }
-
       const currentUser = _get().currentUser
       return createRoomBase({
         ditto,

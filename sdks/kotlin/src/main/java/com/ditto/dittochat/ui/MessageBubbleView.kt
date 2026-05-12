@@ -17,6 +17,14 @@ import androidx.compose.ui.unit.dp
 import com.ditto.dittochat.DateUtils
 import com.ditto.dittochat.Message
 import com.ditto.dittochat.MessageWithUser
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+
+internal fun canEditMessage(isEditing: Boolean, isImageMessage: Boolean, isAdmin: Boolean): Boolean =
+    !isEditing && !isImageMessage && isAdmin
+
+internal fun canDeleteMessage(isEditing: Boolean, isAdmin: Boolean): Boolean =
+    !isEditing && isAdmin
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,9 +34,10 @@ fun MessageBubble(
     onEditClick: (Message) -> Unit,
     onDeleteClick: (Message) -> Unit,
     onImageClick: (Message) -> Unit,
-    hasAdminPrivileges: Boolean = false,
+    isAdmin: StateFlow<Boolean> = MutableStateFlow(false),
     primaryColor: Color? = null
 ) {
+    val isAdminSnapshot by isAdmin.collectAsState()
     val message = messageWithUser.message
     val user = messageWithUser.user
     val isCurrentUser = user.id == currentUserId
@@ -125,7 +134,7 @@ fun MessageBubble(
                 )
             }
 
-            if (isCurrentUser && !message.isImageMessage && hasAdminPrivileges) {
+            if (canEditMessage(isEditing = false, isImageMessage = message.isImageMessage, isAdmin = isAdminSnapshot)) {
                 DropdownMenuItem(
                     text = { Text("Edit") },
                     onClick = {
@@ -135,7 +144,7 @@ fun MessageBubble(
                 )
             }
 
-            if (isCurrentUser && hasAdminPrivileges) {
+            if (canDeleteMessage(isEditing = false, isAdmin = isAdminSnapshot)) {
                 DropdownMenuItem(
                     text = { Text("Delete") },
                     onClick = {

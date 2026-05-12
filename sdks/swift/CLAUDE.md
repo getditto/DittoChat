@@ -53,7 +53,7 @@ Sources/
 let chat = try DittoChat.builder()
     .setDitto(ditto)           // required
     .setUserId("user-123")     // required
-    .setUserEmail("u@example.com")
+    .setIsAdmin(true)
     .setRetentionDays(30)
     .setAcceptLargeImages(true)
     .setPrimaryColor("#FF5733")

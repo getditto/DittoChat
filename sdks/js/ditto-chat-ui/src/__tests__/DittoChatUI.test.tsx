@@ -146,13 +146,12 @@ describe('DittoChatUI', () => {
   })
 
   it('initializes ditto chat hook', () => {
-    const rbacConfig = { canCreateRoom: false }
-    render(<DittoChatUI {...defaultProps} rbacConfig={rbacConfig} />)
+    render(<DittoChatUI {...defaultProps} isAdmin={true} />)
     expect(mockUseDittoChat).toHaveBeenCalledWith({
       ditto: defaultProps.ditto,
       userCollectionKey: defaultProps.userCollectionKey,
       userId: defaultProps.userId,
-      rbacConfig: rbacConfig,
+      isAdmin: true,
       notificationHandler: expect.any(Function),
     })
   })

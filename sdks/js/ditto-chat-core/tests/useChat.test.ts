@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderHook } from '@testing-library/react'
+import { renderHook, act } from '@testing-library/react'
 import {
   useDittoChat,
   useDittoChatStore,
@@ -190,5 +190,61 @@ describe('useDittoChatStore', () => {
     expect(result.current).toHaveProperty('userExists')
     expect(result.current.hasRooms).toBe(false)
     expect(result.current.userExists).toBe(false)
+  })
+})
+
+describe('isAdmin', () => {
+  let mockDitto: MockDitto
+  const baseParams: DittoConfParams = {
+    ditto: null,
+    userId: 'test-user',
+    userCollectionKey: 'users',
+  }
+
+  beforeEach(() => {
+    mockDitto = createMockDitto()
+    baseParams.ditto = mockDitto as unknown as Ditto
+  })
+
+  it('isAdmin defaults to false when prop is not provided', () => {
+    const { result } = renderHook(() => useDittoChat(baseParams))
+    expect(result.current.isAdmin).toBe(false)
+  })
+
+  it('isAdmin true persists in the store when initialized with isAdmin: true', () => {
+    const { result } = renderHook(() =>
+      useDittoChat({ ...baseParams, isAdmin: true }),
+    )
+    expect(result.current.isAdmin).toBe(true)
+  })
+
+  it('setIsAdmin updates the store imperatively', () => {
+    const { result } = renderHook(() => useDittoChat(baseParams))
+    expect(result.current.isAdmin).toBe(false)
+
+    act(() => {
+      result.current.setIsAdmin(true)
+    })
+    expect(globalThis.__DITTO_CHAT_STORE__!.getState().isAdmin).toBe(true)
+
+    act(() => {
+      globalThis.__DITTO_CHAT_STORE__!.getState().setIsAdmin(false)
+    })
+    expect(globalThis.__DITTO_CHAT_STORE__!.getState().isAdmin).toBe(false)
+  })
+
+  it('isAdmin prop change syncs to the store via useEffect', () => {
+    const { rerender } = renderHook(
+      ({ isAdmin }: { isAdmin: boolean }) =>
+        useDittoChat({ ...baseParams, isAdmin }),
+      { initialProps: { isAdmin: false } },
+    )
+    expect(globalThis.__DITTO_CHAT_STORE__!.getState().isAdmin).toBe(false)
+
+    rerender({ isAdmin: true })
+    expect(globalThis.__DITTO_CHAT_STORE__!.getState().isAdmin).toBe(true)
+
+    rerender({ isAdmin: false })
+    expect(globalThis.__DITTO_CHAT_STORE__!.getState().isAdmin).toBe(false)
   })
 })
