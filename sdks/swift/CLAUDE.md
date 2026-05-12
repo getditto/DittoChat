@@ -371,6 +371,22 @@ Your push server should include these keys in the `userInfo` (APN `data`) dictio
 
 ---
 
+## Read Receipts & Unread Counts
+
+Both features are derived client-side from the existing per-user `ChatUser.subscriptions: [roomId: Date?]` map (the user's last-read timestamp per room). There is no per-message `readBy` field.
+
+| API | Returns |
+|---|---|
+| `read(messagesForRoom:)` | Updates the current user's `subscriptions[room.id] = Date()` |
+| `unreadMessagesCountPublisher(for:)` | `AnyPublisher<Int, Never>` — count of messages newer than the user's last-read timestamp, excluding own and archived |
+| `readReceiptsPublisher(for:)` | `AnyPublisher<[userId: Date], Never>` — last-read timestamp per user for the room |
+
+To render a "read by" indicator on a specific message, compare each entry in `readReceiptsPublisher` to `message.createdOn`: if `lastRead >= createdOn`, the user has seen that message. There is no way to express "user X read message A but not the older message B" in this model — users are assumed to read in chronological order.
+
+The unread count is bounded by the same retention window as `messagesPublisher(for:retentionDays:)`.
+
+---
+
 ## Adding New Features
 
 1. **New model** — Add a `struct` in `DittoChatCore/Models/` conforming to `DittoDecodable` (and `Codable` if local persistence is needed).
