@@ -24,7 +24,7 @@ export default function DittoChatUI({
   userId,
   theme = 'light',
   retention,
-  rbacConfig,
+  isAdmin,
   notificationHandler,
 }: DittoConfParams & { theme: 'light' | 'dark' | 'auto' | Theme }) {
   useDittoChat({
@@ -32,7 +32,7 @@ export default function DittoChatUI({
     userCollectionKey,
     userId,
     retention,
-    rbacConfig,
+    isAdmin,
     notificationHandler: notificationHandler
       ? notificationHandler
       : (title, description) => {

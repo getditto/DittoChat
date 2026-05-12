@@ -20,11 +20,6 @@ const DittoChatUIWrapper = () => {
         ditto={ditto?.ditto as Ditto}
         userId="6903511900bd187500bb5c12"
         userCollectionKey="users"
-        rbacConfig={{
-          canMentionUsers: true,
-          canSubscribeToRoom: true,
-          canCreateRoom: true,
-        }}
         notificationHandler={(title, description) => {
           toast.info(title, {
             description,

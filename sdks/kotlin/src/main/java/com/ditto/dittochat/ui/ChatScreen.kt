@@ -170,7 +170,7 @@ fun ChatScreen(
                             onEditClick = { viewModel.startEditMessage(it) },
                             onDeleteClick = { viewModel.deleteMessage(it) },
                             onImageClick = { viewModel.showAttachment(it) },
-                            hasAdminPrivileges = viewModel.dittoChat.hasAdminPrivileges,
+                            isAdmin = viewModel.dittoChat.isAdmin,
                             primaryColor = Color(viewModel.dittoChat.primaryColor?.toInt() ?: 0xFF4F46E5.toInt())
                         )
                     }

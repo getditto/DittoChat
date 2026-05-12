@@ -19,7 +19,6 @@ vi.mock('@dittolive/ditto-chat-core', () => ({
       messagesLoading: false,
       messagesByRoom: {},
       setActiveRoomId: vi.fn(),
-      canPerformAction: vi.fn(() => true),
     }
     return selector(mockState)
   }),

@@ -9,6 +9,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.UUID
@@ -21,7 +24,8 @@ interface DittoChat {
     fun setCurrentUser(config: UserConfig)
 
     val publicRoomsFlow: Flow<List<Room>>
-    val hasAdminPrivileges: Boolean
+    val isAdmin: StateFlow<Boolean>
+    fun setIsAdmin(isAdmin: Boolean)
     val retentionPolicy: ChatRetentionPolicy
     val acceptLargeImages: Boolean
     val primaryColor: String?
@@ -80,19 +84,26 @@ interface DittoChat {
 }
 
 @Singleton
-class DittoChatImpl private constructor(
+class DittoChatImpl internal constructor(
     private val context: Context,
     private val ditto: live.ditto.Ditto?,
     override val retentionPolicy: ChatRetentionPolicy,
     private val usersCollection: String,
     private val userId: String?,
     private val userEmail: String?,
-    override val hasAdminPrivileges: Boolean,
+    isAdmin: Boolean,
     override val acceptLargeImages: Boolean,
     override val primaryColor: String?,
     override val localStore: LocalData,
     override val p2pStore: DittoData
 ) : DittoChat {
+
+    private val _isAdmin = MutableStateFlow(isAdmin)
+    override val isAdmin: StateFlow<Boolean> = _isAdmin.asStateFlow()
+
+    override fun setIsAdmin(isAdmin: Boolean) {
+        _isAdmin.value = isAdmin
+    }
 
     override val publicRoomsFlow: Flow<List<Room>>
         get() = p2pStore.publicRoomsFlow
@@ -141,9 +152,6 @@ class DittoChatImpl private constructor(
 
     init {
         userId?.let { setCurrentUser(UserConfig(it)) }
-        userEmail?.let {
-            // Setup roles subscription if needed
-        }
 
         // Keep ChatNotificationManager in sync with the live rooms list.
         notificationScope.launch {
@@ -293,7 +301,7 @@ class DittoChatImpl private constructor(
             private set
         var userId: String? = null
             private set
-        var hasAdminPrivileges: Boolean = false
+        var isAdmin: Boolean = false
             private set
         var userEmail: String? = null
             private set
@@ -327,8 +335,8 @@ class DittoChatImpl private constructor(
             this.userEmail = email
         }
 
-        fun setHasAdminPrivileges(hasAdminPrivileges: Boolean) = apply {
-            this.hasAdminPrivileges = hasAdminPrivileges
+        fun setIsAdmin(isAdmin: Boolean) = apply {
+            this.isAdmin = isAdmin
         }
 
         fun setAcceptLargeImages(accept: Boolean) = apply {
@@ -364,7 +372,7 @@ class DittoChatImpl private constructor(
                 usersCollection = usersCollection,
                 userId = userId,
                 userEmail = userEmail,
-                hasAdminPrivileges = hasAdminPrivileges,
+                isAdmin = isAdmin,
                 acceptLargeImages = acceptLargeImages,
                 primaryColor = primaryColor,
                 localStore = localStore,

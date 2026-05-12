@@ -1,17 +1,5 @@
 package com.ditto.dittochat
 
-import androidx.compose.ui.graphics.Color
-
-data class ChatConfig(
-    val ditto: live.ditto.Ditto,
-    val retentionPolicy: ChatRetentionPolicy = ChatRetentionPolicy(days = 30),
-    val usersCollection: String = "users",
-    val userId: String? = "ditto-system-user-id",
-    val acceptLargeImages: Boolean = true,
-    val primaryColor: Color? = null,
-    val hasAdminPrivileges: Boolean = false
-)
-
 data class ChatRetentionPolicy(
     val days: Int
 )

@@ -14,7 +14,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import { EMPTY_MESSAGES, EMPTY_ROOMS } from '../constants'
 import { useImageAttachment } from '../hooks/useImageAttachment'
 import type { Chat } from '../types'
-import { usePermissions } from '../utils/usePermissions'
 import Avatar from './Avatar'
 import { Icons } from './Icons'
 import MessageBubble from './MessageBubble'
@@ -48,7 +47,6 @@ function ChatView({
 }: ChatViewProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [editingMessage, setEditingMessage] = useState<Message | null>(null)
-  const { canSubscribeToRoom } = usePermissions()
 
   const effectiveRoomId = roomId || chat.id
 
@@ -275,10 +273,7 @@ function ChatView({
             <h2 className="text-xl font-semibold">{chatName}</h2>
           </div>
 
-          {room &&
-            currentUser &&
-            chat.type === 'group' &&
-            canSubscribeToRoom && (
+          {room && currentUser && chat.type === 'group' && (
               <button
                 onClick={() => {
                   if (toggleRoomSubscription) {
