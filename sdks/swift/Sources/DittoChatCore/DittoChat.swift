@@ -411,7 +411,7 @@ extension DittoChat {
     }
 
     func attachmentPublisher(
-        for token: DittoAttachmentToken,
+        for token: [String: Any],
         in collectionId: String
     ) -> DittoSwift.DittoStore.FetchAttachmentPublisher? {
         p2pStore.attachmentPublisher(for: token, in: collectionId)
@@ -425,7 +425,7 @@ extension DittoChat {
     public func fetchAttachment(
         token: [String : Any],
         deliverOn queue: DispatchQueue = .main,
-        onFetchEvent: @escaping (DittoAttachmentFetchEvent) -> Void
+        onFetchEvent: @escaping @Sendable (DittoAttachmentFetchEvent) -> Void
     ) throws -> DittoAttachmentFetcher? {
         try p2pStore.ditto?.store.fetchAttachment(token: token, deliverOn: queue, onFetchEvent: onFetchEvent)
     }

@@ -16,7 +16,7 @@ class DittoService: DittoDataInterface {
     @Published fileprivate private(set) var allPublicRooms: [Room] = []
     private var allPublicRoomsCancellable: AnyCancellable = AnyCancellable({})
     private var cancellables = Set<AnyCancellable>()
-    private var usersSubscription: DittoSubscription?
+    private var usersSubscription: DittoSyncSubscription?
 
     private var privateRoomSubscriptions = [String: DittoSyncSubscription]()
     private var privateRoomMessagesSubscriptions = [String: DittoSyncSubscription]()
@@ -36,7 +36,11 @@ class DittoService: DittoDataInterface {
         self.chatRetentionPolicy = chatRetentionPolicy
 
         if let ditto = ditto {
-            self.usersSubscription = ditto.store[usersCollection].findAll().subscribe()
+            do {
+                self.usersSubscription = try ditto.sync.registerSubscription(query: "SELECT * FROM `\(usersCollection)`")
+            } catch {
+                print("Error subscribing to users collection: \(error)")
+            }
         }
 
         createDefaultPublicRoom()
@@ -205,7 +209,7 @@ extension DittoService {
         }
 
         return ditto.store
-            .observePublisher(query: "SELECT * FROM COLLECTION `\(usersKey)` (`\(subscriptionsKey)` MAP, `\(mentionsKey)` MAP)", mapTo: ChatUser.self)
+            .observePublisher(query: "SELECT * FROM COLLECTION `\(usersKey)` (`\(subscriptionsKey)` MAP, `\(mentionsKey)` MAP) ORDER BY \(nameKey) ASC", mapTo: ChatUser.self)
             .catch { error in
                 assertionFailure("ERROR with \(#function)" + error.localizedDescription)
                 return Empty<[ChatUser], Never>()
@@ -477,7 +481,7 @@ extension DittoService {
    }
 
     func attachmentPublisher(
-        for token: DittoAttachmentToken,
+        for token: [String: Any],
         in collectionId: String
     ) -> DittoSwift.DittoStore.FetchAttachmentPublisher? {
         guard let ditto = ditto else { return nil }
@@ -681,7 +685,7 @@ extension DittoService {
 
 extension DittoService {
     var peerKeyString: String {
-        ditto?.presence.graph.localPeer.peerKeyString ?? ""
+        ditto?.presence.graph.localPeer.peerKey ?? ""
     }
 
     var sdkVersion: String {

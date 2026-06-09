@@ -116,8 +116,8 @@ class MessageBubbleVM: ObservableObject {
 public struct ImageAttachmentFetcher {
     public typealias CompletionRatio = CGFloat
     public typealias ImageMetadataTuple = (image: UIImage, metadata: [String: String])
-    public typealias ProgressHandler = (CompletionRatio) -> Void
-    public typealias CompletionHandler = (Result<ImageMetadataTuple, Error>) -> Void
+    public typealias ProgressHandler = @MainActor @Sendable (CompletionRatio) -> Void
+    public typealias CompletionHandler = @MainActor @Sendable (Result<ImageMetadataTuple, Error>) -> Void
 
     @MainActor public func fetch(with token: [String: Any]?,
                from collectionId: String,
@@ -128,30 +128,45 @@ public struct ImageAttachmentFetcher {
 
         // Fetch the thumbnail data from Ditto, calling the progress handler to
         // report the operation's ongoing progress.
-        let _ = try? dittoChat.fetchAttachment(token: token) { event in
-            switch event {
-            case .progress(let downloadedBytes, let totalBytes):
-                let percent = Double(downloadedBytes) / Double(totalBytes)
-                onProgress(percent)
+        //
+        // The callback is @Sendable in v5 and Ditto may deliver it on an internal utility-qos
+        // thread even though `deliverOn: .main` is the default (see Publishers.swift). We must NOT
+        // assume main-actor isolation on entry — doing so crashes ("incorrect actor executor
+        // assumption"). Instead we explicitly hop to the main queue (which guarantees the main
+        // thread) and only then bridge to the main actor to call the @MainActor handlers.
+        do {
+        let _ = try dittoChat.fetchAttachment(token: token) { event in
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated {
+                    switch event {
+                case .progress(let downloadedBytes, let totalBytes):
+                    let percent = Double(downloadedBytes) / Double(totalBytes)
+                    onProgress(percent)
 
-            case .completed(let attachment):
-                do {
-                    let data = try attachment.data()
-                    if let uiImage = UIImage(data: data) {
-                        onComplete(.success( (image: uiImage, metadata: attachment.metadata) ))
+                case .completed(let attachment):
+                    do {
+                        let data = try attachment.data()
+                        if let uiImage = UIImage(data: data) {
+                            onComplete(.success( (image: uiImage, metadata: attachment.metadata) ))
+                        }
+                    } catch {
+                        print("\(#function) ERROR: \(error.localizedDescription)")
+                        onComplete(.failure(error))
                     }
-                } catch {
-                    print("\(#function) ERROR: \(error.localizedDescription)")
-                    onComplete(.failure(error))
+
+                case .deleted:
+                    onComplete(.failure(AttachmentError.deleted))
+
+                    @unknown default:
+                        print("ImageFetcher.fetch(): default case - unknown condition")
+                        onComplete(.failure(AttachmentError.unknown("Unkown attachment error")))
+                    }
                 }
-
-            case .deleted:
-                onComplete(.failure(AttachmentError.deleted))
-
-            @unknown default:
-                print("ImageFetcher.fetch(): default case - unknown condition")
-                onComplete(.failure(AttachmentError.unknown("Unkown attachment error")))
             }
+        }
+        } catch {
+            print("ImageAttachmentFetcher.fetch: failed to start attachment fetch: \(error)")
+            onComplete(.failure(error))
         }
     }
 }
