@@ -89,9 +89,8 @@ final class ContentViewModel: ObservableObject {
                 }
             }
 
-            // v4 defaulted to DQL_STRICT_MODE = true; v5 defaults to false. Set it explicitly
-            // before sync starts to preserve the data-modeling semantics the app was built on.
-            try await dittoInstance.store.execute(query: "ALTER SYSTEM SET DQL_STRICT_MODE = true")
+            // v5 defaults to DQL_STRICT_MODE = false; set it explicitly before sync starts.
+            try await dittoInstance.store.execute(query: "ALTER SYSTEM SET DQL_STRICT_MODE = false")
 
             try dittoInstance.sync.start()
 
