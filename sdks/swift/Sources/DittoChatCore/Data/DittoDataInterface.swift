@@ -31,7 +31,7 @@ protocol DittoDataInterface {
     func messagesPublisher(for room: Room, retentionDays: Int?) -> AnyPublisher<[Message], Never>
     func messagePublisher(for msgId: String, in collectionId: String) -> AnyPublisher<Message, Never>
     func attachmentPublisher(
-        for token: DittoAttachmentToken,
+        for token: [String: Any],
         in collectionId: String
     ) -> DittoStore.FetchAttachmentPublisher?
     func createUpdateMessage(document: [String: Any?])

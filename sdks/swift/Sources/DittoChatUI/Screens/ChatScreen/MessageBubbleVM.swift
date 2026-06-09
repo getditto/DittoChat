@@ -51,54 +51,87 @@ class MessageBubbleVM: ObservableObject {
             : message.thumbnailImageToken
         else { return }
 
-        ImageAttachmentFetcher().fetch(
-            with: token,
-            from: messagesId,
-            dittoChat: dittoChat,
-            onProgress: { [weak self] (ratio: ImageAttachmentFetcher.CompletionRatio) in
-                switch type {
-                case .thumbnailImage:
-                    self?.thumbnailProgress = ratio
-                case .largeImage:
-                    self?.fetchProgress = ratio
-                }
-            },
-            onComplete: { [weak self] (result: Result<ImageAttachmentFetcher.ImageMetadataTuple, any Error>) in
-                guard let self else { return }
+        // Bridge Ditto's callback-based fetch into an AsyncStream. The fetch is started here on
+        // the main actor; its @Sendable callback — which Ditto may invoke on a background thread —
+        // performs the blocking `data()` read off-main and yields Sendable updates. We consume
+        // them back on the main actor via `for await`, so UI state is updated with no manual
+        // thread hopping or `assumeIsolated` assertions.
+        let (updates, continuation) = AsyncStream.makeStream(of: AttachmentUpdate.self)
 
-                switch result {
-                case .success(let tuple):
-                    let uiImage = tuple.0
-                    let metadata = tuple.1
-
-                    switch type {
-                    case .thumbnailImage:
-                        self.thumbnailImage = Image(uiImage: uiImage)
-
-                    case .largeImage:
-                        let fname = metadata[filenameKey] ?? unnamedLargeImageFileKey
-
-                        if let tmp = try? TemporaryFile(creatingTempDirectoryForFilename: fname) {
-                            self.tmpStorage = tmp
-
-                            if let _ = try? uiImage.jpegData(compressionQuality: 1.0)?.write(to: tmp.fileURL) {
-                                self.fileURL = tmp.fileURL
-                            } else {
-                                print("ImageAttachmentFetcher.onComplete: Error writing JPG attachment data to file at path: \(tmp.fileURL.path) --> Return")
-                            }
-                        } else {
-                            print("ImageAttachmentFetcher.onComplete.success ERROR creating tmpStorage")
-                        }
+        let fetcher: DittoAttachmentFetcher?
+        do {
+            fetcher = try dittoChat.fetchAttachment(token: token) { event in
+                switch event {
+                case .progress(let downloadedBytes, let totalBytes):
+                    let ratio = totalBytes > 0 ? Double(downloadedBytes) / Double(totalBytes) : 0
+                    continuation.yield(.progress(ratio))
+                case .completed(let attachment):
+                    if let data = try? attachment.data() {
+                        continuation.yield(.image(data, metadata: attachment.metadata))
+                    } else {
+                        continuation.yield(.failed)
                     }
-
-                case .failure:
-                    print("MessageBubbleVM.ImageAttachmentFetcher.failure: UNKNOWN Thumbnail image Error")
-                    self.thumbnailImage = Image(uiImage: UIImage(systemName: messageImageFailKey)!)
-
-                    // do nothing for large image fetch
+                    continuation.finish()
+                case .deleted:
+                    continuation.yield(.failed)
+                    continuation.finish()
+                @unknown default:
+                    continuation.yield(.failed)
+                    continuation.finish()
                 }
             }
-        )
+        } catch {
+            print("MessageBubbleVM.fetchAttachment: failed to start fetch: \(error)")
+            fetcher = nil
+            continuation.yield(.failed)
+            continuation.finish()
+        }
+
+        // Keep the fetcher alive for the lifetime of the stream.
+        continuation.onTermination = { @Sendable _ in _ = fetcher }
+
+        for await update in updates {
+            switch update {
+            case .progress(let ratio):
+                switch type {
+                case .thumbnailImage: thumbnailProgress = ratio
+                case .largeImage: fetchProgress = ratio
+                }
+
+            case .image(let data, let metadata):
+                guard let uiImage = UIImage(data: data) else {
+                    if type == .thumbnailImage { setThumbnailFailImage() }
+                    continue
+                }
+                switch type {
+                case .thumbnailImage:
+                    thumbnailImage = Image(uiImage: uiImage)
+                case .largeImage:
+                    saveLargeImage(uiImage, metadata: metadata)
+                }
+
+            case .failed:
+                if type == .thumbnailImage { setThumbnailFailImage() }
+            }
+        }
+    }
+
+    private func saveLargeImage(_ uiImage: UIImage, metadata: [String: String]) {
+        let fname = metadata[filenameKey] ?? unnamedLargeImageFileKey
+        guard let tmp = try? TemporaryFile(creatingTempDirectoryForFilename: fname) else {
+            print("MessageBubbleVM.saveLargeImage: ERROR creating tmpStorage")
+            return
+        }
+        tmpStorage = tmp
+        if (try? uiImage.jpegData(compressionQuality: 1.0)?.write(to: tmp.fileURL)) != nil {
+            fileURL = tmp.fileURL
+        } else {
+            print("MessageBubbleVM.saveLargeImage: Error writing JPG attachment data to \(tmp.fileURL.path)")
+        }
+    }
+
+    private func setThumbnailFailImage() {
+        thumbnailImage = Image(uiImage: UIImage(systemName: messageImageFailKey)!)
     }
 
     func closeTemporaryStorage() {
@@ -112,46 +145,10 @@ class MessageBubbleVM: ObservableObject {
     }
 }
 
-@MainActor
-public struct ImageAttachmentFetcher {
-    public typealias CompletionRatio = CGFloat
-    public typealias ImageMetadataTuple = (image: UIImage, metadata: [String: String])
-    public typealias ProgressHandler = (CompletionRatio) -> Void
-    public typealias CompletionHandler = (Result<ImageMetadataTuple, Error>) -> Void
-
-    @MainActor public func fetch(with token: [String: Any]?,
-               from collectionId: String,
-                dittoChat: DittoChat,
-               onProgress: @escaping ProgressHandler,
-               onComplete: @escaping CompletionHandler) {
-        guard let token = token else { return }
-
-        // Fetch the thumbnail data from Ditto, calling the progress handler to
-        // report the operation's ongoing progress.
-        let _ = try? dittoChat.fetchAttachment(token: token) { event in
-            switch event {
-            case .progress(let downloadedBytes, let totalBytes):
-                let percent = Double(downloadedBytes) / Double(totalBytes)
-                onProgress(percent)
-
-            case .completed(let attachment):
-                do {
-                    let data = try attachment.data()
-                    if let uiImage = UIImage(data: data) {
-                        onComplete(.success( (image: uiImage, metadata: attachment.metadata) ))
-                    }
-                } catch {
-                    print("\(#function) ERROR: \(error.localizedDescription)")
-                    onComplete(.failure(error))
-                }
-
-            case .deleted:
-                onComplete(.failure(AttachmentError.deleted))
-
-            @unknown default:
-                print("ImageFetcher.fetch(): default case - unknown condition")
-                onComplete(.failure(AttachmentError.unknown("Unkown attachment error")))
-            }
-        }
-    }
+/// Sendable updates bridged from Ditto's attachment-fetch callback (which may run off the main
+/// thread) to the main-actor consumer in `MessageBubbleVM.fetchAttachment(type:)`.
+private enum AttachmentUpdate: Sendable {
+    case progress(Double)
+    case image(Data, metadata: [String: String])
+    case failed
 }

@@ -16,7 +16,7 @@ let package = Package(
             targets: ["DittoChatUI"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/getditto/DittoSwiftPackage", from: "4.12.2"),
+        .package(url: "https://github.com/getditto/DittoSwiftPackage", exact: "5.0.1"),
         .package(url: "https://github.com/vadymmarkov/Fakery", from: "5.1.0"),
         .package(url: "https://github.com/apple/swift-collections", from: "1.0.0"),
     ],

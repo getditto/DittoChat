@@ -23,7 +23,11 @@ extension DittoStore {
     func executePublisher<T: DittoDecodable>(query: String, arguments: Dictionary<String, Any?>? = [:], mapTo: T.Type) async -> [T] {
             do {
                 let result = try await self.execute(query: query, arguments: arguments ?? [:])
-                let items = result.items.compactMap { T(value: $0.value) }
+                let items = result.items.compactMap { item -> T? in
+                    let mapped = T(value: item.value)
+                    item.dematerialize() // v5: free native memory backing the result item
+                    return mapped
+                }
                 return items
             } catch {
                 return []
@@ -36,6 +40,7 @@ extension DittoStore {
             let result = try await self.execute(query: query, arguments: arguments ?? [:])
             guard let first = result.items.first else { return nil }
             let item = T(value: first.value)
+            first.dematerialize() // v5: free native memory backing the result item
             return item
         } catch {
             throw error
@@ -57,7 +62,11 @@ extension DittoStore {
 
         do {
             try self.registerObserver(query: query, arguments: arguments, deliverOn: queue) { result in
-                let items = result.items.compactMap { T(value: $0.value) }
+                let items = result.items.compactMap { item -> T? in
+                    let mapped = T(value: item.value)
+                    item.dematerialize() // v5: free native memory backing the result item
+                    return mapped
+                }
                 subject.send(items)
             }
         } catch {
@@ -75,6 +84,7 @@ extension DittoStore {
             try self.registerObserver(query: query, arguments: arguments, deliverOn: queue) { result in
                 guard let first = result.items.first else { return subject.send(nil) }
                 let item = T(value: first.value)
+                first.dematerialize() // v5: free native memory backing the result item
                 subject.send(item)
             }
         } catch {

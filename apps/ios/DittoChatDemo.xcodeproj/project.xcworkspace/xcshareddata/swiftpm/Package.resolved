@@ -1,22 +1,13 @@
 {
-  "originHash" : "46b859b4f3b871f0739d5b4ee2be10ccf136be2912fff5ffce3e77a1af827074",
+  "originHash" : "b6d35f5c23195e3642e4868145060e00f1088ca65ae9c55361fa6c89e24f1dc6",
   "pins" : [
-    {
-      "identity" : "dittochat",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/getditto/DittoChat",
-      "state" : {
-        "branch" : "feature/FORGE-740-Chat-Notifications",
-        "revision" : "b5576be0a6b7b81516c215b0a8da038355923ad4"
-      }
-    },
     {
       "identity" : "dittoswiftpackage",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/getditto/DittoSwiftPackage",
       "state" : {
-        "revision" : "61b203cffc6a85c1c0d0987d1833d62eca7c549c",
-        "version" : "4.14.3"
+        "revision" : "8ca33bcf6f3f41500b12ee624f752bfc4845eeed",
+        "version" : "5.0.1"
       }
     },
     {
@@ -33,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-collections",
       "state" : {
-        "revision" : "8d9834a6189db730f6264db7556a7ffb751e99ee",
-        "version" : "1.4.0"
+        "revision" : "a0cb0954ecb21e4e31b0070e6ed5674e8556685a",
+        "version" : "1.6.0"
       }
     }
   ],

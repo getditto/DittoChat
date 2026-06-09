@@ -153,7 +153,7 @@
 			mainGroup = 7873E5542E68F35E003DC9B2;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				7806EAF32F7B40A00058119F /* XCRemoteSwiftPackageReference "DittoChat" */,
+				7806EAF32F7B40A00058119F /* XCLocalSwiftPackageReference "DittoChatPackage" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 7873E55E2E68F35E003DC9B2 /* Products */;
@@ -427,16 +427,12 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		7806EAF32F7B40A00058119F /* XCRemoteSwiftPackageReference "DittoChat" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/getditto/DittoChat";
-			requirement = {
-				branch = "bugfix/chat-crashes-on-observation";
-				kind = branch;
-			};
+/* Begin XCLocalSwiftPackageReference section */
+		7806EAF32F7B40A00058119F /* XCLocalSwiftPackageReference "DittoChatPackage" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../..";
 		};
-/* End XCRemoteSwiftPackageReference section */
+/* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		0750235E2E985C0100AF7194 /* DittoChatCore */ = {
@@ -449,12 +445,10 @@
 		};
 		7806EAF42F7B40A00058119F /* DittoChatCore */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 7806EAF32F7B40A00058119F /* XCRemoteSwiftPackageReference "DittoChat" */;
 			productName = DittoChatCore;
 		};
 		7806EAF62F7B40A00058119F /* DittoChatUI */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 7806EAF32F7B40A00058119F /* XCRemoteSwiftPackageReference "DittoChat" */;
 			productName = DittoChatUI;
 		};
 		7873E56C2E68F390003DC9B2 /* DittoChatCore */ = {

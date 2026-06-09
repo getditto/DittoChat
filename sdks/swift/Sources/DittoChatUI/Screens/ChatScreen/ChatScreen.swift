@@ -151,7 +151,7 @@ public struct ChatScreen: View {
         .padding(.trailing, 4)
         .frame(width: 56, height: 44)
         .buttonStyle(.borderless)
-        .onChange(of: viewModel.selectedItem) { newValue, _ in
+        .onChange(of: viewModel.selectedItem) { _, newValue in
             Task {
                 do {
                     let imageData = try await newValue?.loadTransferable(type: Data.self)
