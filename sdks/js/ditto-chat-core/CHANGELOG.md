@@ -1,5 +1,11 @@
 # @dittolive/ditto-chat-core
 
+## 0.2.0
+
+### Minor Changes
+
+- 0813eb7: Migrate to Ditto SDK v5. The `@dittolive/ditto` peer dependency now requires `^5.0.1`; consumers must pass a v5 `Ditto` instance (opened via `Ditto.open(new DittoConfig(...))`). Attachment data is now read with `attachment.data()` instead of the removed `getData()`.
+
 ## 0.1.4
 
 ### Patch Changes
