@@ -1,19 +1,14 @@
 name: OWASP Dependency Check
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - 'sdks/js/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/owasp-check.yml'
+  schedule:
+    # Every Monday at 06:00 UTC
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
 
 permissions:
   contents: read
-  pull-requests: write
   issues: write
-  security-events: write
 
 jobs:
   dependency-check:
@@ -60,12 +55,12 @@ jobs:
           EOF
 
       - name: Run OWASP Dependency-Check
-        uses: dependency-check/Dependency-Check_Action@main
+        uses: dependency-check/Dependency-Check_Action@1.1.0
         id: depcheck
         with:
           project: "${{ matrix.workspace }}"
           path: "${{ matrix.path }}"
-          format: "ALL"
+          format: "HTML,JSON"
           args: >
             -s "${{ matrix.path }}/package.json"
             -s "package-lock.json"
@@ -77,7 +72,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: dependency-check-report-${{ hashFiles(format('{0}/package.json', matrix.path)) }}
+          name: dependency-check-report-${{ matrix.path == 'sdks/js/ditto-chat-core' && 'core' || 'ui' }}
           path: reports/
           retention-days: 15
 
@@ -96,120 +91,86 @@ jobs:
             LOW=$(jq '[.dependencies[].vulnerabilities[]? | select(.severity == "LOW" or .severity == "low")] | length' "$REPORT_FILE")
             TOTAL=$(jq '[.dependencies[].vulnerabilities[]?] | length' "$REPORT_FILE")
 
-            echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
-            echo "high=$HIGH" >> $GITHUB_OUTPUT
-            echo "medium=$MEDIUM" >> $GITHUB_OUTPUT
-            echo "low=$LOW" >> $GITHUB_OUTPUT
-            echo "total=$TOTAL" >> $GITHUB_OUTPUT
+            {
+              echo "critical=$CRITICAL"
+              echo "high=$HIGH"
+              echo "medium=$MEDIUM"
+              echo "low=$LOW"
+              echo "total=$TOTAL"
+              echo "workspace=$WORKSPACE"
+            } >> "$GITHUB_OUTPUT"
 
-            # Extract detailed vulnerabilities
-            echo "VULNERABILITIES<<EOF" >> $GITHUB_OUTPUT
-            jq -r '.dependencies[] | select(.vulnerabilities) | .fileName as $file | .vulnerabilities[] | "- **\(.name)** (\(.severity)) in `\($file)`\n  - Description: \(.description // "N/A" | gsub("[`\\n\\r\"$]"; " "))\n  - CVSS: \(.cvssv3.baseScore // .cvssv2.score // "N/A")\n"' "$REPORT_FILE" | head -n 50 >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
+            # Write markdown summary for issue body
+            {
+              echo "## OWASP Dependency Check — \`$WORKSPACE\`"
+              echo ""
+              echo "| Severity | Count |"
+              echo "|----------|------:|"
+              echo "| Critical | $CRITICAL |"
+              echo "| High     | $HIGH |"
+              echo "| Medium   | $MEDIUM |"
+              echo "| Low      | $LOW |"
+              echo "| **Total**| **$TOTAL** |"
+              echo ""
+              if [ "$TOTAL" -gt 0 ]; then
+                echo "### Vulnerability Details"
+                echo ""
+                jq -r '.dependencies[] | select(.vulnerabilities) | .fileName as $file | .vulnerabilities[] | "- **\(.name)** (\(.severity)) in `\($file)`\n  CVSS: \(.cvssv3.baseScore // .cvssv2.score // "N/A")"' "$REPORT_FILE" | head -n 60
+              fi
+              echo ""
+              echo "[View full artifact](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+            } > vuln-summary-${{ matrix.path == 'sdks/js/ditto-chat-core' && 'core' || 'ui' }}.md
           else
-            echo "critical=0" >> $GITHUB_OUTPUT
-            echo "high=0" >> $GITHUB_OUTPUT
-            echo "medium=0" >> $GITHUB_OUTPUT
-            echo "low=0" >> $GITHUB_OUTPUT
-            echo "total=0" >> $GITHUB_OUTPUT
-            echo "VULNERABILITIES=No vulnerabilities found" >> $GITHUB_OUTPUT
+            {
+              echo "critical=0"
+              echo "high=0"
+              echo "medium=0"
+              echo "low=0"
+              echo "total=0"
+              echo "workspace=$WORKSPACE"
+            } >> "$GITHUB_OUTPUT"
+            echo "No report generated for $WORKSPACE." > vuln-summary-${{ matrix.path == 'sdks/js/ditto-chat-core' && 'core' || 'ui' }}.md
           fi
 
-      - name: Comment PR with Detailed Results
+      - name: Upload vulnerability summary
         if: always()
-        uses: actions/github-script@v7
-        env:
-          VULN_DATA: ${{ steps.summary.outputs.VULNERABILITIES }}
+        uses: actions/upload-artifact@v4
         with:
-          script: |
-            const workspace = '${{ matrix.workspace }}';
-            const critical = '${{ steps.summary.outputs.critical }}';
-            const high = '${{ steps.summary.outputs.high }}';
-            const medium = '${{ steps.summary.outputs.medium }}';
-            const low = '${{ steps.summary.outputs.low }}';
-            const total = '${{ steps.summary.outputs.total }}';
-            const vulnerabilities = process.env.VULN_DATA;
+          name: vuln-summary-${{ matrix.path == 'sdks/js/ditto-chat-core' && 'core' || 'ui' }}
+          path: vuln-summary-${{ matrix.path == 'sdks/js/ditto-chat-core' && 'core' || 'ui' }}.md
+          retention-days: 7
 
-            // Determine status emoji and message
-            let statusEmoji = '✅';
-            let statusMessage = 'No vulnerabilities found';
+  open-issue-on-failure:
+    runs-on: ubuntu-latest
+    needs: [dependency-check]
+    if: failure()
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Download vulnerability summaries
+        uses: actions/download-artifact@v4
+        with:
+          pattern: vuln-summary-*
+          merge-multiple: true
 
-            if (parseInt(critical) > 0 || parseInt(high) > 0) {
-              statusEmoji = '🚨';
-              statusMessage = 'Critical or High severity vulnerabilities detected!';
-            } else if (parseInt(medium) > 0) {
-              statusEmoji = '⚠️';
-              statusMessage = 'Medium severity vulnerabilities detected';
-            } else if (parseInt(low) > 0) {
-              statusEmoji = 'ℹ️';
-              statusMessage = 'Low severity vulnerabilities detected';
-            }
+      - name: Build combined issue body
+        run: |
+          {
+            echo "# OWASP Dependency Check Failures"
+            echo ""
+            echo "The scheduled OWASP dependency check detected vulnerabilities."
+            echo "Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo ""
+            for f in vuln-summary-*.md; do
+              [ -f "$f" ] && cat "$f" && echo ""
+            done
+          } > issue-body.md
 
-            const body = `## ${statusEmoji} OWASP Dependency Check - \`${workspace}\`
-
-            ### ${statusMessage}
-
-            | Severity | Count |
-            |----------|------:|
-            | 🔴 Critical | **${critical}** |
-            | 🟠 High     | **${high}** |
-            | 🟡 Medium   | **${medium}** |
-            | 🔵 Low      | **${low}** |
-            | **Total**   | **${total}** |
-
-            ${parseInt(total) > 0 ? `
-            ### 📋 Vulnerability Details
-
-            ${vulnerabilities}
-
-            ${parseInt(total) > 50 ? '_Note: Showing first 50 vulnerabilities. Check the full report for complete details._' : ''}
-            ` : ''}
-
-            ---
-
-            📊 **[View Full HTML Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})**
-
-            <details>
-            <summary>ℹ️ How to fix vulnerabilities</summary>
-
-            1. Update vulnerable dependencies to patched versions
-            2. Run \`npm audit fix\` or \`npm audit fix --force\` in the root directory
-            3. Check for alternative packages if updates aren't available
-            4. Review and update your \`package.json\` and \`package-lock.json\`
-
-            </details>
-            `;
-
-            // Find existing comment
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
-
-            const botComment = comments.find(comment =>
-              comment.user.type === 'Bot' &&
-              comment.body.includes(`OWASP Dependency Check - \`${workspace}\``)
-            );
-
-            // Update or create comment
-            if (botComment) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: botComment.id,
-                body: body
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: body
-              });
-            }
-
-            // Fail the job if critical or high vulnerabilities found
-            if (parseInt(critical) > 0 || parseInt(high) > 0) {
-              core.setFailed(`Found ${critical} critical and ${high} high severity vulnerabilities in ${workspace}`);
-            }
+      - name: Create or update tracking issue
+        uses: peter-evans/create-issue-from-file@v5
+        with:
+          title: "OWASP Dependency Check failures"
+          content-filepath: issue-body.md
+          labels: security
+          token: ${{ secrets.GITHUB_TOKEN }}
