@@ -36,7 +36,7 @@
     "typecheck": "tsc --noEmit --skipLibCheck"
   },
   "peerDependencies": {
-    "@dittolive/ditto": "^4.14.0",
+    "@dittolive/ditto": "^5.0.1",
     "react": "^18 || ^19",
     "zustand": "^5.0.8"
   },
@@ -70,7 +70,7 @@
     "ditto-chat"
   ],
   "dependencies": {
-    "@dittolive/ditto": "^4.14.0",
+    "@dittolive/ditto": "^5.0.1",
     "immer": "^10.2.0",
     "uuid": "^13.0.0"
   },

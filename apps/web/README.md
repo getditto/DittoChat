@@ -12,7 +12,7 @@ Before you begin, ensure you have the following installed:
 
 - Node.js (v18 or higher)
 - npm (v9 or higher) or yarn (v1.22 or higher)
-- A Ditto Portal account and a provisioned Ditto application. You will need your App ID and a valid token.
+- A Ditto Portal account and a provisioned Ditto application. You will need your database ID, server URL, and playground token.
 
 ### Installation
 
@@ -33,16 +33,15 @@ Before you begin, ensure you have the following installed:
 ### Running the App
 
 1.  **Configure Ditto:**
-    Before running the app, you need to set up your Ditto credentials. Create a `.env` file in the root of the `DittoChatDemo` directory with your Ditto App ID and token:
+    Before running the app, you need to set up your Ditto credentials. Create a `.env` file in the root of the `DittoChatDemo` directory:
 
     ```
-    VITE_DITTO_APP_ID="YOUR_DITTO_APP_ID"
-    VITE_DITTO_APP_TOKEN="YOUR_DITTO_APP_TOKEN"
-    VITE_DITTO_AUTH_URL="YOUR_DITTO_AUTH_URL"
-    VITE_DITTO_WEB_SOCKET="YOUR_DITTO_WEB_SOCKET"
+    VITE_APP_DITTO_DATABASE_ID="YOUR_DITTO_DATABASE_ID"
+    VITE_APP_DITTO_SERVER_URL="YOUR_DITTO_SERVER_URL"
+    VITE_APP_DITTO_APP_TOKEN="YOUR_DITTO_PLAYGROUND_TOKEN"
     ```
 
-    Replace the placeholder values with your actual Ditto application credentials from the Ditto Portal.
+    Replace the placeholder values with your database ID, server URL, and playground token from the Ditto Portal (Connect via SDK). Copy the full server URL from the portal; do not build it from the database ID.
 
 2.  **Start the development server:**
 

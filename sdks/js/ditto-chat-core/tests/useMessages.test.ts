@@ -544,7 +544,7 @@ describe('useMessages Slice', () => {
           cb({
             type: 'Completed',
             attachment: {
-              getData: () => Promise.resolve(new Uint8Array([1, 2, 3])),
+              data: () => Promise.resolve(new Uint8Array([1, 2, 3])),
               metadata: {},
             } as Parameters<typeof cb>[0] extends {
               type: 'Completed'
@@ -632,7 +632,7 @@ describe('useMessages Slice', () => {
       )
     })
 
-    it('handles error in getData', () => {
+    it('handles error in data', () => {
       const token = { id: 'token-123', len: 100, metadata: {} }
       const onProgress = vi.fn()
       const onComplete = vi.fn()
@@ -642,8 +642,8 @@ describe('useMessages Slice', () => {
           cb({
             type: 'Completed',
             attachment: {
-              getData: () => {
-                throw new Error('getData failed')
+              data: () => {
+                throw new Error('data failed')
               },
               metadata: {},
             } as Parameters<typeof cb>[0] extends {
@@ -685,7 +685,7 @@ describe('useMessages Slice', () => {
       })
     })
 
-    it('handles async getData', async () => {
+    it('handles async data', async () => {
       const token = { id: 'token-123', len: 100, metadata: {} }
       const onProgress = vi.fn()
       const onComplete = vi.fn()
@@ -695,7 +695,7 @@ describe('useMessages Slice', () => {
           cb({
             type: 'Completed',
             attachment: {
-              getData: () => Promise.resolve(new Uint8Array([1, 2, 3])),
+              data: () => Promise.resolve(new Uint8Array([1, 2, 3])),
               metadata: { test: 'metadata' },
             } as Parameters<typeof cb>[0] extends {
               type: 'Completed'
@@ -711,7 +711,7 @@ describe('useMessages Slice', () => {
         .getState()
         .fetchAttachment(token as AttachmentToken, onProgress, onComplete)
 
-      // Wait for async getData to complete
+      // Wait for async data to complete
       await vi.runAllTimersAsync()
 
       expect(onComplete).toHaveBeenCalledWith({
