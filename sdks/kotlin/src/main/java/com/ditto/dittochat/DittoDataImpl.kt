@@ -1,13 +1,12 @@
 package com.ditto.dittochat
 
 import android.util.Log
+import com.ditto.kotlin.*
 import com.google.gson.Gson
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
-import live.ditto.*
 import java.util.*
-import javax.inject.Inject
 
 internal class DittoDataImpl(
     private val privateStore: LocalData,
@@ -22,7 +21,7 @@ internal class DittoDataImpl(
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val subscriptions = mutableMapOf<String, DittoSyncSubscription>()
-    private var usersSubscription: DittoSubscription? = null
+    private var usersSubscription: DittoSyncSubscription? = null
 
     init {
         initialize()
@@ -38,14 +37,14 @@ internal class DittoDataImpl(
                 Log.d("DITTODATA","Error subscribing to public rooms: $e")
             }
 
-            usersSubscription = ditto.store[usersCollection].findAll().subscribe()
+            usersSubscription = ditto.sync.registerSubscription("SELECT * FROM `$usersCollection`")
 
             updateAllPublicRooms()
         }
     }
 
     override val peerKeyString: String
-        get() = ditto.presence.graph.localPeer.peerKeyString
+        get() = ditto.presence.graph.localPeer.peerKey
 
     override val sdkVersion: String
         get() = Ditto.VERSION
@@ -56,8 +55,9 @@ internal class DittoDataImpl(
         val args = mapOf("id" to room.id)
 
         return try {
-            val result = ditto.store.execute(query, args).items.firstOrNull()
-            result?.let { gson.fromJson(gson.toJson(it.value), Room::class.java) }
+            ditto.store.execute(query, args) { result ->
+                result.items.firstOrNull()?.let { gson.fromJson(it.jsonString(), Room::class.java) }
+            }
         } catch (e: Exception) {
             Log.d("DITTODATA","room Error: $e")
             null
@@ -68,12 +68,11 @@ internal class DittoDataImpl(
         val actualId = if (id == "public") Constants.PUBLIC_KEY else id
 
         return try {
-            val result = ditto.store.execute(
+            ditto.store.execute(
                 "SELECT * FROM `${Constants.PUBLIC_ROOMS_COLLECTION_ID}` WHERE _id = :id",
                 mapOf("id" to actualId)
-            )
-            result.items.firstOrNull()?.let {
-                gson.fromJson(gson.toJson(it.value), Room::class.java)
+            ) { result ->
+                result.items.firstOrNull()?.let { gson.fromJson(it.jsonString(), Room::class.java) }
             }
         } catch (e: Exception) {
             Log.d("DITTODATA","findPublicRoomById Error: $e")
@@ -98,8 +97,9 @@ internal class DittoDataImpl(
         val args = mapOf("newDoc" to room.toDocument())
 
         val roomId = try {
-            val result = ditto.store.execute(query, args)
-            result.items.firstOrNull()?.value?.get("_id") as? String
+            ditto.store.execute(query, args) { result ->
+                result.mutatedDocumentIds().firstOrNull()?.toString()
+            }
         } catch (e: Exception) {
             Log.d("DITTODATA","createRoom Error: $e")
             null
@@ -125,10 +125,15 @@ internal class DittoDataImpl(
         val userId = privateStore.currentUserId ?: return
         val actualRoom = room(room) ?: return
 
-        val userResult = ditto.store.execute(
-            "SELECT * FROM COLLECTION `$usersCollection` (`${Constants.SUBSCRIPTIONS_KEY}` MAP, `${Constants.MENTIONS_KEY}` MAP) WHERE _id = '$userId'"
-        )
-        val userName = userResult.items.firstOrNull()?.value?.get("name") as? String ?: userId
+        val userName = try {
+            ditto.store.execute(
+                "SELECT * FROM COLLECTION `$usersCollection` (`${Constants.SUBSCRIPTIONS_KEY}` MAP, `${Constants.MENTIONS_KEY}` MAP) WHERE _id = '$userId'"
+            ) { result ->
+                result.items.firstOrNull()?.let { gson.fromJson(it.jsonString(), ChatUser::class.java) }?.name
+            } ?: userId
+        } catch (e: Exception) {
+            userId
+        }
 
         val message = Message(
             roomId = actualRoom.id,
@@ -206,7 +211,7 @@ internal class DittoDataImpl(
 
             ditto.store.registerObserver(query, args) { result ->
                 val messages = result.items.map { item ->
-                    gson.fromJson(gson.toJson(item.value), Message::class.java)
+                    gson.fromJson(item.jsonString(), Message::class.java)
                 }
                 trySend(messages)
             }
@@ -226,7 +231,7 @@ internal class DittoDataImpl(
 
             ditto.store.registerObserver(query, args) { result ->
                 val message = result.items.firstOrNull()?.let { item ->
-                    gson.fromJson(gson.toJson(item.value), Message::class.java)
+                    gson.fromJson(item.jsonString(), Message::class.java)
                 }
                 Log.i("DITTOCHAT", "TRYING TO SEND MESSAGE: $message")
                 trySend(message)
@@ -267,15 +272,14 @@ internal class DittoDataImpl(
     }
 
     override suspend fun findUserById(id: String, collection: String): ChatUser {
-        val result = ditto.store.execute(
+        val item = ditto.store.execute(
             "SELECT * FROM $collection WHERE _id = :_id",
             mapOf("_id" to id)
-        )
+        ) { result ->
+            result.items.firstOrNull()
+        } ?: throw Exception("Failed to get chat user from id")
 
-        val value = result.items.firstOrNull()?.value
-            ?: throw Exception("Failed to get chat user from id")
-
-        return gson.fromJson(gson.toJson(value), ChatUser::class.java)
+        return gson.fromJson(item.jsonString(), ChatUser::class.java)
     }
 
     override suspend fun updateUser(
@@ -321,7 +325,7 @@ internal class DittoDataImpl(
 
                     ditto.store.registerObserver(query, mapOf("id" to userId)) { result ->
                         val user = result.items.firstOrNull()?.let { item ->
-                            gson.fromJson(gson.toJson(item.value), ChatUser::class.java)
+                            gson.fromJson(item.jsonString(), ChatUser::class.java)
                         }
                         trySend(user)
                     }
@@ -334,13 +338,13 @@ internal class DittoDataImpl(
     override fun allUsersFlow(): Flow<List<ChatUser>> {
         return channelFlow {
             val query = """
-                SELECT * FROM COLLECTION `$usersCollection` 
+                SELECT * FROM COLLECTION `$usersCollection`
                 (`${Constants.SUBSCRIPTIONS_KEY}` MAP, `${Constants.MENTIONS_KEY}` MAP)
             """.trimIndent()
 
             ditto.store.registerObserver(query) { result ->
                 val users = result.items.map { item ->
-                    gson.fromJson(gson.toJson(item.value), ChatUser::class.java)
+                    gson.fromJson(item.jsonString(), ChatUser::class.java)
                 }
                 trySend(users)
             }
@@ -410,9 +414,10 @@ internal class DittoDataImpl(
         val query = "SELECT * FROM `${Constants.PUBLIC_ROOMS_COLLECTION_ID}` ORDER BY ${Constants.CREATED_ON_KEY} ASC"
 
         try {
-            val result = ditto.store.execute(query)
-            val allRooms = result.items.map { item ->
-                gson.fromJson(gson.toJson(item.value), Room::class.java)
+            val allRooms = ditto.store.execute(query) { result ->
+                result.items.map { item ->
+                    gson.fromJson(item.jsonString(), Room::class.java)
+                }
             }
 
             val filteredRooms = allRooms.filter { room ->
@@ -431,9 +436,10 @@ internal class DittoDataImpl(
 
     private suspend fun getAllPublicRooms(): List<Room> {
         return try {
-            val result = ditto.store.execute("SELECT * FROM `${Constants.PUBLIC_ROOMS_COLLECTION_ID}`")
-            result.items.map { item ->
-                gson.fromJson(gson.toJson(item.value), Room::class.java)
+            ditto.store.execute("SELECT * FROM `${Constants.PUBLIC_ROOMS_COLLECTION_ID}`") { result ->
+                result.items.map { item ->
+                    gson.fromJson(item.jsonString(), Room::class.java)
+                }
             }
         } catch (e: Exception) {
             emptyList()

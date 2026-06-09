@@ -1,6 +1,7 @@
 package com.ditto.dittochat
 
 import androidx.test.core.app.ApplicationProvider
+import com.ditto.kotlin.Ditto
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +16,7 @@ import org.robolectric.annotation.Config
 class DittoChatTest {
 
     private fun makeChat(initialIsAdmin: Boolean): DittoChatImpl {
-        val ditto = mockk<live.ditto.Ditto>(relaxed = true)
+        val ditto = mockk<Ditto>(relaxed = true)
         val localStore = mockk<LocalData>(relaxed = true)
         val p2pStore = mockk<DittoData>(relaxed = true)
         every { p2pStore.publicRoomsFlow } returns MutableStateFlow(emptyList())

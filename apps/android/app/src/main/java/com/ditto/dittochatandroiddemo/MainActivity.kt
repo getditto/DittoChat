@@ -7,21 +7,18 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
 import com.ditto.dittochat.DittoChat
 import com.ditto.dittochat.DittoChatImpl
 import com.ditto.dittochat.DittoChatNotificationKey
+import com.ditto.kotlin.Ditto
+import com.ditto.kotlin.DittoAuthenticationProvider
+import com.ditto.kotlin.DittoConfig
+import com.ditto.kotlin.DittoFactory
+import com.ditto.kotlin.transports.DittoSyncPermissions
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
-import live.ditto.Ditto
-import live.ditto.DittoIdentity
-import live.ditto.android.DefaultAndroidDittoDependencies
-import live.ditto.transports.DittoSyncPermissions
-import java.io.File
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -49,31 +46,32 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         requestPermissions()
 
-        val baseDir = File(this.filesDir, "ditto")
-        val userDir = File(baseDir, "user_ditto_chat_demo")
-        userDir.mkdirs()
-
-        val userDependencies = DefaultAndroidDittoDependencies(this)
+        //Replace these empty strings with your actual Ditto app credentials
         val playgroundToken = ""
-        val appId = ""
+        val databaseId = ""
         val cloudEndpoint = ""
         val userId = ""
 
-        val userIdentity = DittoIdentity.OnlinePlayground(
-            dependencies = userDependencies,
-            appId = appId,
-            token = playgroundToken,
-            enableDittoCloudSync = false,
-            customAuthUrl = "https://${cloudEndpoint}"
+        val config = DittoConfig(
+            databaseId = databaseId,
+            connect = DittoConfig.Connect.Server(
+                url = "https://$cloudEndpoint"
+            )
         )
 
-        ditto = Ditto(userDependencies, userIdentity)
-        lifecycleScope.launch {
-            ditto.store.execute("ALTER SYSTEM SET DQL_STRICT_MODE = false")
+        ditto = DittoFactory.create(config)
+
+        ditto.auth?.let { auth ->
+            auth.expirationHandler = { d, _ ->
+                d.auth?.login(
+                    token = playgroundToken,
+                    provider = DittoAuthenticationProvider.development()
+                )
+            }
         }
+
         dittoChat = dittoChatBuilder.setDitto(ditto).setUserId(userId).build()
-        ditto.disableSyncWithV3()
-        ditto.startSync()
+        ditto.sync.start()
 
         // If this Activity was launched by tapping a DittoChat notification, extract the
         // room ID and make it available to the Compose navigation graph.

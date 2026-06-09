@@ -9,8 +9,10 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import live.ditto.Ditto
-import live.ditto.DittoStoreObserver
+import com.ditto.kotlin.Ditto
+import com.ditto.kotlin.DittoQueryResultItem
+import com.ditto.kotlin.DittoStoreObserver
+import com.google.gson.Gson
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -45,7 +47,8 @@ import java.util.concurrent.ConcurrentHashMap
 internal class ChatNotificationManager(
     private val context: Context,
     private val ditto: Ditto,
-    private val localStore: LocalData
+    private val localStore: LocalData,
+    private val gson: Gson = Gson()
 ) {
 
     companion object {
@@ -127,7 +130,7 @@ internal class ChatNotificationManager(
                 val currentUserId = localStore.currentUserId
 
                 val incoming = result.items.mapNotNull { item ->
-                    parseSafeMessage(item.value)
+                    parseSafeMessage(item)
                 }.filter { msg ->
                     msg.userId != currentUserId                           // not own message
                         && createdAfterStart(msg.createdOn)               // not historical
@@ -217,23 +220,12 @@ internal class ChatNotificationManager(
     // Helpers
     // -----------------------------------------------------------------------------------------
 
-    /** Safely parse a raw Ditto document value into a [Message], returning null on failure. */
-    @Suppress("UNCHECKED_CAST")
-    private fun parseSafeMessage(value: Map<String, Any?>): Message? {
+    /** Safely parse a raw Ditto document item into a [Message], returning null on failure. */
+    private fun parseSafeMessage(item: DittoQueryResultItem): Message? {
         return try {
-            val id = value["_id"] as? String ?: return null
-            val createdOn = value["createdOn"] as? String ?: return null
-            val roomId = value["roomId"] as? String ?: return null
-            Message(
-                id = id,
-                createdOn = createdOn,
-                roomId = roomId,
-                text = value["text"] as? String,
-                userId = value["userId"] as? String ?: "",
-                thumbnailImageToken = value["thumbnailImageToken"] as? Map<String, Any>,
-                largeImageToken = value["largeImageToken"] as? Map<String, Any>,
-                isArchived = value["isArchived"] as? Boolean ?: false
-            )
+            val message = gson.fromJson(item.jsonString(), Message::class.java) ?: return null
+            if (message.id.isBlank() || message.createdOn.isBlank() || message.roomId.isBlank()) null
+            else message
         } catch (e: Exception) {
             null
         }
