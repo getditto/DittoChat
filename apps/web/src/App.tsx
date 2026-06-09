@@ -1,14 +1,15 @@
 import './index.css'
-import { Ditto } from '@dittolive/ditto'
-import {
-  DittoProvider,
-  useDitto,
-  useOnlinePlaygroundIdentity,
-  usePendingCursorOperation,
-} from '@dittolive/react-ditto'
+import { Authenticator, Ditto, DittoConfig } from '@dittolive/ditto'
+import { DittoProvider, useDitto, useQuery } from '@dittolive/react-ditto'
+import type { ChatUser } from '@dittolive/ditto-chat-core'
 import DittoChatUI from '@dittolive/ditto-chat-ui'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { Theme } from '../../../sdks/js/ditto-chat-ui/dist/types'
+
+const PERSISTENCE_PATH = 'dittochat'
+const DITTO_DATABASE_ID = String(import.meta.env.VITE_APP_DITTO_DATABASE_ID)
+const DITTO_SERVER_URL = String(import.meta.env.VITE_APP_DITTO_SERVER_URL)
+const DITTO_PLAYGROUND_TOKEN = String(import.meta.env.VITE_APP_DITTO_APP_TOKEN)
 
 const myTheme: Theme = {
   variant: 'light',
@@ -79,16 +80,13 @@ const StoreInitializer = ({
 }
 
 const DittoChatUIWrapper = () => {
-  const ditto = useDitto('testing')
+  const ditto = useDitto(PERSISTENCE_PATH)
   const [userId, setUserId] = useState('')
   const [viewMode, setViewMode] = useState<ViewMode>('chat')
-  const { documents: users } = usePendingCursorOperation({
-    collection: 'users',
-  })
-
-  useEffect(() => {
-    console.log({ userId })
-  }, [userId])
+  const { items: users } = useQuery<ChatUser & { _id: string }>(
+    'SELECT * FROM users',
+    { persistenceDirectory: PERSISTENCE_PATH },
+  )
 
   if (!userId) {
     return (
@@ -198,27 +196,30 @@ const DittoChatUIWrapper = () => {
 }
 
 function App() {
-  const { create } = useOnlinePlaygroundIdentity()
   return (
     <DittoProvider
       setup={async () => {
-        const ditto = new Ditto(
-          create({
-            appID: String(import.meta.env.VITE_APP_DITTO_APP_ID),
-            token: String(import.meta.env.VITE_APP_DITTO_APP_TOKEN),
-            enableDittoCloudSync: false,
-            customAuthURL: String(import.meta.env.VITE_APP_DITTO_AUTH_URL),
-          }),
-          'testing',
+        const ditto = await Ditto.open(
+          new DittoConfig(
+            DITTO_DATABASE_ID,
+            { mode: 'server', url: DITTO_SERVER_URL },
+            PERSISTENCE_PATH,
+          ),
         )
-        ditto.updateTransportConfig((config) => {
-          config.connect.websocketURLs.push(
-            String(import.meta.env.VITE_APP_DITTO_WEB_SOCKET),
-          )
+        await ditto.auth.setExpirationHandler(async (ditto) => {
+          try {
+            const { error } = await ditto.auth.login(
+              DITTO_PLAYGROUND_TOKEN,
+              Authenticator.DEVELOPMENT_PROVIDER,
+            )
+            if (error) {
+              console.error('Ditto authentication failed:', error)
+            }
+          } catch (error) {
+            console.error('Ditto authentication failed:', error)
+          }
         })
-        await ditto.store.execute('ALTER SYSTEM SET DQL_STRICT_MODE = false')
-        await ditto.disableSyncWithV3()
-        ditto.startSync()
+        ditto.sync.start()
         return ditto
       }}
     >

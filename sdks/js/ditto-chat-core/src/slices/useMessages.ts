@@ -873,9 +873,7 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
 
             case 'Completed':
               try {
-                const dataResult = event.attachment.getData()
-                const data =
-                  dataResult instanceof Promise ? await dataResult : dataResult
+                const data = await event.attachment.data()
                 onComplete({
                   success: true,
                   data,
