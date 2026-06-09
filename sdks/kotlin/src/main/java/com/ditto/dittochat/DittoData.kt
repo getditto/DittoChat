@@ -1,9 +1,10 @@
 package com.ditto.dittochat
 
+import com.ditto.kotlin.Ditto
 import java.util.Date
 
 interface DittoData {
-    val ditto: live.ditto.Ditto
+    val ditto: Ditto
     val publicRoomsFlow: kotlinx.coroutines.flow.StateFlow<List<Room>>
     val peerKeyString: String
     val sdkVersion: String

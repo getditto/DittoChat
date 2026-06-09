@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.ditto.kotlin.Ditto
 import java.util.Date
 import java.util.UUID
 import javax.inject.Inject
@@ -122,7 +123,7 @@ interface DittoChat {
 @Singleton
 class DittoChatImpl internal constructor(
     private val context: Context,
-    private val ditto: live.ditto.Ditto?,
+    private val ditto: Ditto?,
     override val retentionPolicy: ChatRetentionPolicy,
     private val usersCollection: String,
     private val userId: String?,
@@ -369,7 +370,7 @@ class DittoChatImpl internal constructor(
         private val localStore: LocalData,
         @ApplicationContext private val context: Context
     ) {
-        private var ditto: live.ditto.Ditto? = null
+        private var ditto: Ditto? = null
         var retentionPolicy: ChatRetentionPolicy = ChatRetentionPolicy(days = 30)
             private set
         var usersCollection: String = "users"
@@ -386,7 +387,7 @@ class DittoChatImpl internal constructor(
             private set
         private var pushNotificationDelegate: DittoChatPushNotificationDelegate? = null
 
-        fun setDitto(ditto: live.ditto.Ditto) = apply {
+        fun setDitto(ditto: Ditto) = apply {
             this.ditto = ditto
         }
 

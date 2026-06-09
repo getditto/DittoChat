@@ -6,12 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.util.*
 import android.net.Uri
 import com.ditto.dittochat.DittoData
 import com.ditto.dittochat.Message
-import live.ditto.DittoAttachmentFetchEvent
-import live.ditto.DittoStore
+import com.ditto.kotlin.DittoAttachmentFetchResult
 
 
 class MessageBubbleViewModel(
@@ -36,26 +34,20 @@ class MessageBubbleViewModel(
         viewModelScope.launch {
             message.thumbnailImageToken?.let { token ->
                 try {
-                    dittoData.ditto.store.fetchAttachment(
+                    val result = dittoData.ditto.store.fetchAttachment(
                         tokenMap = token,
-                        onFetchEvent = { event ->
-                            when (event) {
-                                is DittoAttachmentFetchEvent.Progress -> {
-                                    val progress = event.downloadedBytes.toDouble() /
-                                            event.totalBytes.toDouble()
-                                    _thumbnailProgress.value = progress
-                                }
-                                is DittoAttachmentFetchEvent.Completed -> {
-                                    val data = event.attachment.getData()
-                                    val bitmap = BitmapFactory.decodeByteArray(
-                                        data, 0, data.size
-                                    )
-                                    _thumbnailImage.value = bitmap
-                                }
-                                else -> {}
-                            }
-                        }
+                        onFetchProgress = {downloadedBytes, totalBytes -> _thumbnailProgress.value = downloadedBytes.toDouble() / totalBytes.toDouble()}
                     )
+
+                    when (result) {
+                        is DittoAttachmentFetchResult.Completed -> {
+                            val data = result.attachment.getData()
+                            val bitmap = BitmapFactory.decodeByteArray(data, 0, data.size)
+                            _thumbnailImage.value = bitmap
+                            _thumbnailProgress.value = 1.0
+                        }
+                        else -> {}
+                    }
                 } catch (e: Exception) {
                     // Handle error
                 }
@@ -67,23 +59,19 @@ class MessageBubbleViewModel(
         viewModelScope.launch {
             message.largeImageToken?.let { token ->
                 try {
-                    dittoData.ditto.store.fetchAttachment(
+                    val result = dittoData.ditto.store.fetchAttachment(
                         tokenMap = token,
-                        onFetchEvent = { event ->
-                            when (event) {
-                                is DittoAttachmentFetchEvent.Progress -> {
-                                    val progress = event.downloadedBytes.toDouble() /
-                                            event.totalBytes.toDouble()
-                                    _fetchProgress.value = progress
-                                }
-                                is DittoAttachmentFetchEvent.Completed -> {
-                                    // Save to temp file and create URI
-                                    // Implementation would save file and update _fileUri
-                                }
-                                else -> {}
-                            }
-                        }
+                        onFetchProgress = {downloadedBytes, totalBytes -> _fetchProgress.value = downloadedBytes.toDouble() / totalBytes.toDouble()}
                     )
+
+                    when (result) {
+                        is DittoAttachmentFetchResult.Completed -> {
+                            _fetchProgress.value = 1.0
+                            // Save to temp file and create URI
+                            // Implementation would save file and update _fileUri
+                        }
+                        else -> {}
+                    }
                 } catch (e: Exception) {
                     // Handle error
                 }
