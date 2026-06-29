@@ -7,7 +7,7 @@
 //  Copyright © 2024 DittoLive Incorporated. All rights reserved.
 
 import Foundation
-@preconcurrency import Combine
+import Combine
 import DittoSwift
 
 typealias DittoQuery = (string: String, args: [String: Any?])
