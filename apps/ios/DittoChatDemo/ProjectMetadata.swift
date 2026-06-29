@@ -18,5 +18,5 @@ struct ProjectMetadata {
     let cloudUrl: String = ""
     let iconUrl: String = ""
     let userEmail: String = ""
-    let ueerId: String = ""
+    let userId: String = ""
 }

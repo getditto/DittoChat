@@ -7,7 +7,7 @@
 //
 
 import Combine
-@preconcurrency import DittoSwift
+import DittoSwift
 import UIKit
 
 @MainActor

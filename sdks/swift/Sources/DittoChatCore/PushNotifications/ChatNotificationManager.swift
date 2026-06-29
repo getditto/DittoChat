@@ -5,7 +5,7 @@
 //  Copyright © 2025 DittoLive Incorporated. All rights reserved.
 //
 
-@preconcurrency import DittoSwift
+import DittoSwift
 import Foundation
 import UserNotifications
 
@@ -122,9 +122,13 @@ final class ChatNotificationManager: @unchecked Sendable {
         // weakly in the capture list rather than an external `weak var` — a Sendable closure
         // cannot capture mutable state. Same weak reference, same delivery onto @MainActor.
         return try store.registerObserver(query: query, arguments: ["roomId": roomId]) { [weak owner] result in
+            // Bind a fresh strong reference per invocation so it lives in its own isolation
+            // region; the weak capture is shared across callbacks and can't be sent into the
+            // @MainActor task without a data race.
+            guard let owner else { return }
             let messages = result.items.compactMap { Message(value: $0.value) }
             Task { @MainActor in
-                owner?.handle(messages: messages, roomId: roomId, roomName: roomName)
+                owner.handle(messages: messages, roomId: roomId, roomName: roomName)
             }
         }
     }
