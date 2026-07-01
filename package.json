@@ -29,7 +29,8 @@
   },
   "overrides": {
     "react": "^19.2.6",
-    "react-dom": "^19.2.6"
+    "react-dom": "^19.2.6",
+    "@dittolive/ditto": "5.1.0-experimental-join.1"
   },
   "keywords": [
     "ditto",

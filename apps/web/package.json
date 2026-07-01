@@ -11,7 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@dittolive/ditto": "^5.0.1",
+    "@dittolive/ditto": "5.1.0-experimental-join.1",
     "@dittolive/ditto-chat-core": "*",
     "@dittolive/ditto-chat-ui": "*",
     "@dittolive/react-ditto": "^1.0.1",

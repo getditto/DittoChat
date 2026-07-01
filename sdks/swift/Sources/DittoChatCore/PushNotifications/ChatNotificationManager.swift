@@ -5,7 +5,7 @@
 //  Copyright © 2025 DittoLive Incorporated. All rights reserved.
 //
 
-@preconcurrency import DittoSwift
+import DittoSwift
 import Foundation
 import UserNotifications
 
@@ -118,16 +118,17 @@ final class ChatNotificationManager: @unchecked Sendable {
         roomName: String,
         owner: ChatNotificationManager
     ) throws -> DittoStoreObserver {
-        weak var weakOwner: ChatNotificationManager? = owner
-        return try store.registerObserver(query: query, arguments: ["roomId": roomId]) { result in
+        // The joins DittoSwift makes the observation handler `@Sendable`; capture `owner`
+        // weakly in the capture list rather than an external `weak var` — a Sendable closure
+        // cannot capture mutable state. Same weak reference, same delivery onto @MainActor.
+        return try store.registerObserver(query: query, arguments: ["roomId": roomId]) { [weak owner] result in
+            // Bind a fresh strong reference per invocation so it lives in its own isolation
+            // region; the weak capture is shared across callbacks and can't be sent into the
+            // @MainActor task without a data race.
+            guard let owner else { return }
             let messages = result.items.compactMap { Message(value: $0.value) }
-            // Snapshot the weak reference into an immutable let before crossing into the
-            // @MainActor closure. Swift 6.3 flags mutable (weak var) nonisolated variables
-            // captured by @MainActor closures as potential races; a let of a Sendable type
-            // (@unchecked Sendable ChatNotificationManager) is clean.
-            let owner = weakOwner
             Task { @MainActor in
-                owner?.handle(messages: messages, roomId: roomId, roomName: roomName)
+                owner.handle(messages: messages, roomId: roomId, roomName: roomName)
             }
         }
     }
