@@ -456,8 +456,29 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         }
       }
 
+      // Ditto sync subscriptions don't support ORDER BY/LIMIT (they define an
+      // unordered sync set); only the local observer needs ordering. Strip it
+      // for the subscription and register it in its own try so an offline /
+      // small-peer failure ("Unsupported feature: Limit or Order by") is
+      // non-fatal and the local observer still renders. Mirrors Forge's
+      // sdks/js/src/hooks/ditto/useQuery.ts.
+      const subscriptionQuery = query.replace(/\s*ORDER BY[\s\S]*$/i, '')
       try {
-        const subscription = ditto.sync.registerSubscription(query, args)
+        const subscription = ditto.sync.registerSubscription(subscriptionQuery, args)
+        _set({
+          messageSubscriptionsByRoom: {
+            ..._get().messageSubscriptionsByRoom,
+            [roomId]: subscription,
+          },
+        })
+      } catch (subErr) {
+        console.warn(
+          'registerSubscription failed (continuing with local observer):',
+          subErr,
+        )
+      }
+
+      try {
         const allUsers = _get().allUsers
 
         const observer = ditto.store.registerObserver<Message>(
@@ -489,10 +510,6 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         )
 
         _set({
-          messageSubscriptionsByRoom: {
-            ..._get().messageSubscriptionsByRoom,
-            [roomId]: subscription,
-          },
           messageObserversByRoom: {
             ..._get().messageObserversByRoom,
             [roomId]: observer,
@@ -570,8 +587,29 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         }
       }
 
+      // Ditto sync subscriptions don't support ORDER BY/LIMIT (they define an
+      // unordered sync set); only the local observer needs ordering. Strip it
+      // for the subscription and register it in its own try so an offline /
+      // small-peer failure ("Unsupported feature: Limit or Order by") is
+      // non-fatal and the local observer still renders. Mirrors Forge's
+      // sdks/js/src/hooks/ditto/useQuery.ts.
+      const subscriptionQuery = query.replace(/\s*ORDER BY[\s\S]*$/i, '')
       try {
-        const subscription = ditto.sync.registerSubscription(query, args)
+        const subscription = ditto.sync.registerSubscription(subscriptionQuery, args)
+        _set({
+          messageSubscriptionsByRoom: {
+            ..._get().messageSubscriptionsByRoom,
+            [roomId]: subscription,
+          },
+        })
+      } catch (subErr) {
+        console.warn(
+          'registerSubscription failed (continuing with local observer):',
+          subErr,
+        )
+      }
+
+      try {
         const allUsers = _get().allUsers
 
         const observer = ditto.store.registerObserver<Message>(
@@ -612,10 +650,6 @@ export const createMessageSlice: CreateSlice<MessageSlice> = (
         )
 
         _set({
-          messageSubscriptionsByRoom: {
-            ..._get().messageSubscriptionsByRoom,
-            [roomId]: subscription,
-          },
           messageObserversByRoom: {
             ..._get().messageObserversByRoom,
             [roomId]: observer,
