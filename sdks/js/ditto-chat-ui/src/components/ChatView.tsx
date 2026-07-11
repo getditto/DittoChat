@@ -9,7 +9,7 @@ import {
   useDittoChatStore,
 } from '@dittolive/ditto-chat-core'
 import { EmojiClickData } from 'emoji-picker-react'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import { EMPTY_MESSAGES, EMPTY_ROOMS } from '../constants'
 import { useImageAttachment } from '../hooks/useImageAttachment'
@@ -107,13 +107,26 @@ function ChatView({
     room._id in currentUser.subscriptions &&
     currentUser.subscriptions[room._id] !== null
 
+  // Stabilize the retention object by its primitive values. Callers (e.g. the
+  // Forge CHAT_ROOM renderer) build a fresh `retention` object every render; if
+  // it went straight into the subscription effect's deps, the effect would
+  // re-run on every render → subscribe/unsubscribe each call the store's
+  // setState → re-render → new `retention` identity → infinite loop
+  // ("Maximum update depth exceeded"), crashing the view. Keyed on the actual
+  // values, identity only changes when retention truly changes.
+  const stableRetention = useMemo(
+    () => retention,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [retention?.retainIndefinitely, retention?.days],
+  )
+
   // Dynamic subscription lifecycle for generated rooms
   // When roomId is explicitly provided, we subscribe on mount and unsubscribe on unmount
   useEffect(() => {
     if (roomId) {
       // Capture roomId in closure to ensure cleanup has correct value
       const currentRoomId = roomId
-      subscribeToRoomMessages(currentRoomId, messagesId, retention).catch(
+      subscribeToRoomMessages(currentRoomId, messagesId, stableRetention).catch(
         (err) => {
           console.error(
             `[ChatView] Error subscribing to ${currentRoomId}:`,
@@ -136,7 +149,7 @@ function ChatView({
   }, [
     roomId,
     messagesId,
-    retention,
+    stableRetention,
     subscribeToRoomMessages,
     unsubscribeFromRoomMessages,
   ])

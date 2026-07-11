@@ -834,19 +834,23 @@ describe('useMessages Slice', () => {
       expect(secondCallCount).toBe(firstCallCount)
     })
 
-    it('handles errors gracefully', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    it('subscription failure is non-fatal — the local observer still registers', async () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
       mockDitto.sync.registerSubscription.mockImplementation(() => {
         throw new Error('Subscription Error')
       })
 
       await store.getState().messagesPublisher(mockRoom)
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Error in messagesPublisher:',
+      // A sync-subscription failure (e.g. offline / small-peer Ditto rejecting
+      // ORDER BY/LIMIT) is logged as a warning and swallowed...
+      expect(warnSpy).toHaveBeenCalledWith(
+        'registerSubscription failed (continuing with local observer):',
         expect.any(Error),
       )
-      consoleSpy.mockRestore()
+      // ...and the local observer is still registered, so messages render.
+      expect(mockDitto.store.registerObserver).toHaveBeenCalled()
+      warnSpy.mockRestore()
     })
 
     it('returns early when ditto is null', async () => {
